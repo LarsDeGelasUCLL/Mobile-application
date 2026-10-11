@@ -31,6 +31,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@babel/preset-flow": "^8.0.1",
+    "@babel/preset-react": "^8.0.1",
     "@storybook/react": "^10.5.10",
     "@storybook/react-vite": "^10.5.10",
     "@types/react": "~19.2.4",
