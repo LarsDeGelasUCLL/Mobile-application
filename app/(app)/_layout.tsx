@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
 
 export default function AppLayout() {
   // Uncomment when you implement Supabase authentication:

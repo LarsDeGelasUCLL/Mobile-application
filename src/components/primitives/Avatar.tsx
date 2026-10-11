@@ -1,16 +1,21 @@
-import { View, Image, StyleSheet } from 'react-native';
-import { Text } from './Text';
+import { View, Image, StyleSheet } from "react-native";
+import { Text } from "./Text";
 
 interface AvatarProps {
   uri?: string;
   name?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
-export function Avatar({ uri, name, size = 'md' }: AvatarProps) {
+export function Avatar({ uri, name, size = "md" }: AvatarProps) {
   const initials = name
-    ? name.split(' ').map((part) => part[0]).join('').toUpperCase().slice(0, 2)
-    : '?';
+    ? name
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?";
 
   if (uri !== undefined) {
     return <Image source={{ uri }} style={[styles.base, styles[size]]} />;
@@ -24,7 +29,12 @@ export function Avatar({ uri, name, size = 'md' }: AvatarProps) {
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: 999, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  base: {
+    borderRadius: 999,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   fallback: {},
   sm: {},
   md: {},

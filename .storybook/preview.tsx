@@ -1,6 +1,6 @@
-import React from 'react';
-import type { Preview } from '@storybook/react';
-import { View } from 'react-native';
+import React from "react";
+import type { Preview } from "@storybook/react";
+import { View } from "react-native";
 
 const preview: Preview = {
   decorators: [
