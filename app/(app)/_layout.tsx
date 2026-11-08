@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { Icon } from "../../src/components/primitives/Icon";
@@ -14,31 +15,20 @@ export default function AppLayout() {
       screenOptions={{
         tabBarActiveTintColor: "#2563EB",
         tabBarInactiveTintColor: "#6B7280",
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: 1,
-          borderTopColor: "#E5E7EB",
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
-        headerStyle: {
-          backgroundColor: "#FFFFFF",
-        },
-        headerTitleStyle: {
-          fontWeight: "bold",
-        },
+        tabBarStyle: styles.tabBar,
+        headerStyle: styles.header,
+        headerTitleStyle: styles.headerTitle,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "home" : "home-outline"}
               size={24}
-              color={color ?? (focused ? "#2563EB" : "#6B7280")}
+              color={focused ? "#2563EB" : "#6B7280"}
             />
           ),
         }}
@@ -48,11 +38,11 @@ export default function AppLayout() {
         name="groups"
         options={{
           title: "Groups",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "people" : "people-outline"}
               size={24}
-              color={color ?? (focused ? "#2563EB" : "#6B7280")}
+              color={focused ? "#2563EB" : "#6B7280"}
             />
           ),
         }}
@@ -62,11 +52,11 @@ export default function AppLayout() {
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "settings" : "settings-outline"}
               size={24}
-              color={color ?? (focused ? "#2563EB" : "#6B7280")}
+              color={focused ? "#2563EB" : "#6B7280"}
             />
           ),
         }}
@@ -76,23 +66,32 @@ export default function AppLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "person" : "person-outline"}
               size={24}
-              color={color ?? (focused ? "#2563EB" : "#6B7280")}
+              color={focused ? "#2563EB" : "#6B7280"}
             />
           ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="details/[id]"
-        options={{
-          href: null,
-          title: "Details",
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    height: 64,
+    paddingBottom: 8,
+    paddingTop: 6,
+  },
+  header: {
+    backgroundColor: "#FFFFFF",
+  },
+  headerTitle: {
+    fontWeight: "bold",
+  },
+});

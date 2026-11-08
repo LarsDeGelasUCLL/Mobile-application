@@ -6,10 +6,12 @@ import {
   Screen,
   Stack,
   Text,
-  Badge,
   InputField,
+  Badge,
+  Card,
+  Avatar,
 } from "../../src/components/primitives";
-import { StyledButton } from "@/components/StyledButton";
+import { StyledButton } from "../../src/components/StyledButton";
 
 export default function ProfileScreen() {
   const { user, logout, updateName, isLoading } = useAuthStore();
@@ -18,8 +20,6 @@ export default function ProfileScreen() {
   const [iban, setIban] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
   const [error, setError] = useState("");
-
-  const initial = (user?.name?.[0] || user?.email?.[0] || "U").toUpperCase();
 
   const handleSaveProfile = async () => {
     setError("");
@@ -45,72 +45,53 @@ export default function ProfileScreen() {
 
   return (
     <Screen padding="lg">
-      <Stack gap="lg">
-        {/* Bovenste kaart: Avatar & Accountstatus */}
-        <View style={styles.card}>
-          <Stack gap="sm" align="center">
-            <View style={styles.avatar}>
-              <Text size="xl" weight="bold" color="#FFFFFF">
-                {initial}
+      <View style={styles.container}>
+        <Stack gap="lg">
+          <Card>
+            <Stack gap="sm" align="center">
+              <Avatar name={user?.name ?? user?.email ?? "U"} size="lg" />
+              <Text size="lg" weight="bold">
+                {user?.name ?? "Gebruiker"}
               </Text>
-            </View>
-            <Text size="lg" weight="bold">
-              {user?.name ?? "Gebruiker"}
-            </Text>
-            <Text size="sm" color="#6B7280">
-              {user?.email ?? ""}
-            </Text>
-            <Badge label="Actief lid" variant="success" />
-          </Stack>
-        </View>
+              <Text size="sm">{user?.email ?? ""}</Text>
+              <Badge label="Actief lid" variant="success" />
+            </Stack>
+          </Card>
 
-        {/* Formulier: Gegevens & Betaalvoorkeur voor de kostentracker */}
-        <View style={styles.card}>
-          <Stack gap="md">
-            <Text size="md" weight="bold">
-              Persoonlijke instellingen
-            </Text>
-
-            <InputField
-              label="Weergavenaam in groepen"
-              value={name}
-              onChangeText={setName}
-              placeholder="Jouw naam"
-              error={error !== "" ? error : undefined}
-              testID="profile-name-input"
-            />
-
-            <InputField
-              label="IBAN-rekeningnummer (voor terugbetalingen)"
-              value={iban}
-              onChangeText={setIban}
-              placeholder="BE00 0000 0000 0000"
-              testID="profile-iban-input"
-            />
-
-            {savedMessage !== "" && (
-              <Text size="sm" color="#16A34A">
-                {savedMessage}
+          <Card>
+            <Stack gap="md">
+              <Text size="md" weight="bold">
+                Persoonlijke instellingen
               </Text>
-            )}
 
-            <StyledButton
-              label="Wijzigingen opslaan"
-              onPress={handleSaveProfile}
-              isLoading={isLoading}
-              testID="save-profile-button"
-            />
-          </Stack>
-        </View>
+              <InputField
+                label="Weergavenaam in groepen"
+                value={name}
+                onChangeText={setName}
+                placeholder="Jouw naam"
+                error={error !== "" ? error : undefined}
+                testID="profile-name-input"
+              />
 
-        {/* Acties: Terug & Uitloggen */}
-        <Stack gap="sm">
-          <StyledButton
-            label="Terug naar overzicht"
-            onPress={() => router.back()}
-            variant="secondary"
-            testID="back-home-button"
-          />
+              <InputField
+                label="IBAN-rekeningnummer (voor terugbetalingen)"
+                value={iban}
+                onChangeText={setIban}
+                placeholder="BE00 0000 0000 0000"
+                testID="profile-iban-input"
+              />
+
+              {savedMessage !== "" && <Text size="sm">{savedMessage}</Text>}
+
+              <StyledButton
+                label="Wijzigingen opslaan"
+                onPress={handleSaveProfile}
+                isLoading={isLoading}
+                testID="save-profile-button"
+              />
+            </Stack>
+          </Card>
+
           <StyledButton
             label="Uitloggen"
             onPress={handleLogout}
@@ -118,26 +99,13 @@ export default function ProfileScreen() {
             testID="logout-button"
           />
         </Stack>
-      </Stack>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#2563EB",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
+  container: {
+    flex: 1,
   },
 });
