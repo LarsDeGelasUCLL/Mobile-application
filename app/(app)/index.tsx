@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { Screen } from "../../src/components/primitives/Screen";
 import { Stack } from "../../src/components/primitives/Stack";
@@ -15,12 +16,21 @@ export default function HomeScreen() {
         <Text size="xl" weight="bold">
           {user !== null ? `Welcome, ${user.name}` : "Welcome"}
         </Text>
-        <Text>Your items will appear here once you connect Supabase.</Text>
-        <Badge label={"Succes badge"} variant={"success"} />
+        <Text>Beheer hier straks je groepen en gedeelde uitgaven.</Text>
+        <Badge label={"Account gekoppeld"} variant={"success"} />
+
         <EmptyState
-          title="No items yet"
-          description="Implement getItems() in your itemService to load data."
+          title="Nog geen groepen"
+          description="Maak een groep aan of koppel Supabase tabellen om je kosten bij te houden."
         />
+
+        <StyledButton
+          label="Mijn Profiel"
+          onPress={() => router.push("/profile")}
+          variant="primary"
+          testID="go-to-profile-button"
+        />
+
         <StyledButton label="Log out" onPress={logout} variant="secondary" />
       </Stack>
     </Screen>
