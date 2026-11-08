@@ -1,18 +1,18 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from "react-native";
 
 interface RowProps {
   children: React.ReactNode;
-  gap?: 'none' | 'sm' | 'md' | 'lg';
-  align?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
-  justify?: 'flex-start' | 'center' | 'flex-end' | 'space-between';
+  gap?: "none" | "sm" | "md" | "lg";
+  align?: "flex-start" | "center" | "flex-end" | "stretch";
+  justify?: "flex-start" | "center" | "flex-end" | "space-between";
   wrap?: boolean;
 }
 
 export function Row({
   children,
-  gap = 'none',
-  align = 'center',
-  justify = 'flex-start',
+  gap = "none",
+  align = "center",
+  justify = "flex-start",
   wrap = false,
 }: RowProps) {
   return (
@@ -30,10 +30,10 @@ export function Row({
 }
 
 const styles = StyleSheet.create({
-  base: { flexDirection: 'row' },
-  wrap: { flexWrap: 'wrap' },
-  gap_none: {},
-  gap_sm: {},
-  gap_md: {},
-  gap_lg: {},
+  base: { flexDirection: "row" },
+  wrap: { flexWrap: "wrap" },
+  gap_none: { gap: 0 },
+  gap_sm: { gap: 8 },
+  gap_md: { gap: 16 },
+  gap_lg: { gap: 24 },
 });

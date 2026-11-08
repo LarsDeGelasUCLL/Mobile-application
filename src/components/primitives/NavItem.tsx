@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet } from 'react-native';
-import { Text } from './Text';
+import { Pressable, StyleSheet } from "react-native";
+import { Text } from "./Text";
 
 interface NavItemProps {
   label: string;
@@ -11,12 +11,23 @@ interface NavItemProps {
 export function NavItem({ label, onPress, active = false }: NavItemProps) {
   return (
     <Pressable onPress={onPress} style={[styles.base, active && styles.active]}>
-      <Text size="md" weight={active ? 'bold' : 'normal'}>{label}</Text>
+      <Text size="md" weight={active ? "bold" : "normal"}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {},
-  active: {},
+  base: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  active: {
+    borderBottomColor: "#2563EB",
+  },
 });

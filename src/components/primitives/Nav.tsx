@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from "react-native";
 
 interface NavProps {
   children: React.ReactNode;
@@ -9,5 +9,12 @@ export function Nav({ children }: NavProps) {
 }
 
 const styles = StyleSheet.create({
-  base: { flexDirection: 'row' },
+  base: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 8,
+    gap: 8,
+  },
 });

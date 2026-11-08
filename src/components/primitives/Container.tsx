@@ -1,23 +1,29 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from "react-native";
 
 interface ContainerProps {
   children: React.ReactNode;
   flex?: number;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  padding?: "none" | "sm" | "md" | "lg";
 }
 
-export function Container({ children, flex, padding = 'none' }: ContainerProps) {
+export function Container({
+  children,
+  flex,
+  padding = "none",
+}: ContainerProps) {
   return (
-    <View style={[styles.base, flex !== undefined && { flex }, styles[padding]]}>
+    <View
+      style={[styles.base, flex !== undefined && { flex }, styles[padding]]}
+    >
       {children}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {},
-  none: {},
-  sm: {},
-  md: {},
-  lg: {},
+  base: { width: "100%" },
+  none: { padding: 0 },
+  sm: { padding: 8 },
+  md: { padding: 16 },
+  lg: { padding: 24 },
 });

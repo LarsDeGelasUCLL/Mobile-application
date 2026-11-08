@@ -1,5 +1,5 @@
-import { View, Pressable, StyleSheet } from 'react-native';
-import { Text } from './Text';
+import { View, Pressable, StyleSheet } from "react-native";
+import { Text } from "./Text";
 
 interface TagProps {
   label: string;
@@ -20,6 +20,19 @@ export function Tag({ label, onRemove }: TagProps) {
 }
 
 const styles = StyleSheet.create({
-  base: { flexDirection: 'row', alignItems: 'center' },
-  removeButton: {},
+  base: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  removeButton: {
+    paddingHorizontal: 4,
+  },
 });

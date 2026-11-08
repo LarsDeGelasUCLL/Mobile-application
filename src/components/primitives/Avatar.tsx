@@ -23,7 +23,9 @@ export function Avatar({ uri, name, size = "md" }: AvatarProps) {
 
   return (
     <View style={[styles.base, styles[size], styles.fallback]}>
-      <Text size="sm">{initials}</Text>
+      <Text size={size === "lg" ? "lg" : "sm"} weight="bold" color="#1D4ED8">
+        {initials}
+      </Text>
     </View>
   );
 }
@@ -35,8 +37,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  fallback: {},
-  sm: {},
-  md: {},
-  lg: {},
+  fallback: {
+    backgroundColor: "#DBEAFE",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  sm: { width: 32, height: 32 },
+  md: { width: 44, height: 44 },
+  lg: { width: 64, height: 64 },
 });

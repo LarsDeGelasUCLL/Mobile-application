@@ -1,5 +1,5 @@
-import { Pressable, View, StyleSheet } from 'react-native';
-import { Text } from './Text';
+import { Pressable, View, StyleSheet } from "react-native";
+import { Text } from "./Text";
 
 interface RadioProps {
   label: string;
@@ -20,8 +20,29 @@ export function Radio({ label, value, selected, onSelect }: RadioProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center' },
-  circle: { borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  circleSelected: {},
-  dot: { borderRadius: 999 },
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 4,
+  },
+  circle: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  circleSelected: {
+    borderColor: "#2563EB",
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 999,
+    backgroundColor: "#2563EB",
+  },
 });

@@ -1,36 +1,45 @@
-import { View, StyleSheet } from 'react-native';
-import { Text } from './Text';
+import { View, StyleSheet } from "react-native";
+import { Text } from "./Text";
 
 interface BadgeProps {
   label: string;
-  variant?: 'default' | 'success' | 'warning' | 'error';
+  variant?: "default" | "success" | "warning" | "error";
 }
 
-export function Badge({ label, variant = 'default' }: BadgeProps) {
+const textColors: Record<NonNullable<BadgeProps["variant"]>, string> = {
+  default: "#374151",
+  success: "#065F46",
+  warning: "#92400E",
+  error: "#991B1B",
+};
+
+export function Badge({ label, variant = "default" }: BadgeProps) {
   return (
     <View style={[styles.base, styles[variant]]}>
-      <Text size="sm">{label}</Text>
+      <Text size="sm" weight="medium" color={textColors[variant]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
   },
   default: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: "#e5e7eb",
   },
   success: {
-    backgroundColor: '#d1fae5',
+    backgroundColor: "#d1fae5",
   },
   warning: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: "#fef3c7",
   },
   error: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: "#fee2e2",
   },
 });

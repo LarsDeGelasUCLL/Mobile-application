@@ -12,7 +12,6 @@ export default function AppLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ title: "Overzicht" }} />
       <Stack.Screen name="profile" options={{ title: "Mijn Profiel" }} />
-      <Stack.Screen name="details/[id]" options={{ title: "Details" }} />
     </Stack>
   );
 }

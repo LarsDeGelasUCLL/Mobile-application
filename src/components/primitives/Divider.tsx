@@ -1,16 +1,19 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from "react-native";
 
 interface DividerProps {
-  orientation?: 'horizontal' | 'vertical';
-  spacing?: 'none' | 'sm' | 'md' | 'lg';
+  orientation?: "horizontal" | "vertical";
+  spacing?: "none" | "sm" | "md" | "lg";
 }
 
-export function Divider({ orientation = 'horizontal', spacing = 'none' }: DividerProps) {
+export function Divider({
+  orientation = "horizontal",
+  spacing = "none",
+}: DividerProps) {
   return (
     <View
       style={[
         styles.base,
-        orientation === 'horizontal' ? styles.horizontal : styles.vertical,
+        orientation === "horizontal" ? styles.horizontal : styles.vertical,
         styles[`spacing_${spacing}` as keyof typeof styles],
       ]}
     />
@@ -18,11 +21,11 @@ export function Divider({ orientation = 'horizontal', spacing = 'none' }: Divide
 }
 
 const styles = StyleSheet.create({
-  base: {},
-  horizontal: { height: 1, width: '100%' },
-  vertical: { width: 1, height: '100%' },
-  spacing_none: {},
-  spacing_sm: {},
-  spacing_md: {},
-  spacing_lg: {},
+  base: { backgroundColor: "#E5E7EB" },
+  horizontal: { height: 1, width: "100%" },
+  vertical: { width: 1, height: "100%" },
+  spacing_none: { margin: 0 },
+  spacing_sm: { marginVertical: 8 },
+  spacing_md: { marginVertical: 16 },
+  spacing_lg: { marginVertical: 24 },
 });
