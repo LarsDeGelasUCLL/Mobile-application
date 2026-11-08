@@ -1,5 +1,5 @@
-import { TextInput, View, StyleSheet } from 'react-native';
-import { Text } from './Text';
+import { TextInput, View, StyleSheet } from "react-native";
+import { Text } from "./Text";
 
 interface InputFieldProps {
   label: string;
@@ -22,7 +22,9 @@ export function InputField({
 }: InputFieldProps) {
   return (
     <View style={styles.container}>
-      <Text size="sm" weight="medium">{label}</Text>
+      <Text size="sm" weight="medium">
+        {label}
+      </Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -32,13 +34,33 @@ export function InputField({
         testID={testID}
         autoCapitalize="none"
       />
-      {error !== undefined && <Text size="sm" color="red">{error}</Text>}
+      {error !== undefined && (
+        <Text size="sm" color="red">
+          {error}
+        </Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {},
-  input: {},
-  inputError: {},
+  container: {
+    width: "100%",
+    gap: 6,
+    marginBottom: 4,
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    backgroundColor: "#FFFFFF",
+    color: "#111827",
+  },
+  inputError: {
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
+  },
 });
