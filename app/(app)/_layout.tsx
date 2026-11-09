@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { Icon } from "../../src/components/primitives/Icon";
+import { colors } from "../../src/types/theme";
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -13,8 +14,8 @@ export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#2563EB",
-        tabBarInactiveTintColor: "#6B7280",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: styles.tabBar,
         headerStyle: styles.header,
         headerTitleStyle: styles.headerTitle,
@@ -28,7 +29,7 @@ export default function AppLayout() {
             <Icon
               name={focused ? "home" : "home-outline"}
               size={24}
-              color={focused ? "#2563EB" : "#6B7280"}
+              color={focused ? colors.primary : colors.muted}
             />
           ),
         }}
@@ -42,7 +43,7 @@ export default function AppLayout() {
             <Icon
               name={focused ? "people" : "people-outline"}
               size={24}
-              color={focused ? "#2563EB" : "#6B7280"}
+              color={focused ? colors.primary : colors.muted}
             />
           ),
         }}
@@ -56,7 +57,7 @@ export default function AppLayout() {
             <Icon
               name={focused ? "settings" : "settings-outline"}
               size={24}
-              color={focused ? "#2563EB" : "#6B7280"}
+              color={focused ? colors.primary : colors.muted}
             />
           ),
         }}
@@ -70,7 +71,7 @@ export default function AppLayout() {
             <Icon
               name={focused ? "person" : "person-outline"}
               size={24}
-              color={focused ? "#2563EB" : "#6B7280"}
+              color={focused ? colors.primary : colors.muted}
             />
           ),
         }}
@@ -81,17 +82,18 @@ export default function AppLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: colors.border,
     height: 64,
     paddingBottom: 8,
     paddingTop: 6,
   },
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
   },
   headerTitle: {
-    fontWeight: "bold",
+    fontWeight: "700",
+    color: colors.text,
   },
 });

@@ -1,4 +1,5 @@
 import { ScrollView, View, StyleSheet } from "react-native";
+import { colors } from "../../types/theme";
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -29,11 +30,11 @@ export function Screen({
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: colors.background,
   },
   content: {
     flexGrow: 1,

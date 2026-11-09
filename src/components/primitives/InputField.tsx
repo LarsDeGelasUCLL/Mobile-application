@@ -1,5 +1,6 @@
 import { TextInput, View, StyleSheet } from "react-native";
 import { Text } from "./Text";
+import { colors } from "../../types/theme";
 
 interface InputFieldProps {
   label: string;
@@ -31,6 +32,8 @@ export function InputField({
         placeholder={placeholder}
         secureTextEntry={secureTextEntry}
         style={[styles.input, error !== undefined && styles.inputError]}
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.primary}
         testID={testID}
         autoCapitalize="none"
       />
@@ -52,12 +55,12 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 14,
     fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    color: "#111827",
+    backgroundColor: colors.surface,
+    color: colors.text,
   },
   inputError: {
     borderColor: "#EF4444",

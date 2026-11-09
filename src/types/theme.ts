@@ -1,0 +1,18 @@
+export const colors = {
+  background: "#F7F5FA",
+  surface: "#FFFFFF",
+  surfaceTint: "#F1ECF8",
+  border: "#E8E2EF",
+  text: "#282333",
+  muted: "#777181",
+  primary: "#6D4BC3",
+  primaryDark: "#5435A3",
+  primarySoft: "#EFE8FB",
+  primaryBorder: "#DCCDF5",
+  success: "#227A63",
+  successSoft: "#E5F4EE",
+  warning: "#9A6717",
+  warningSoft: "#FFF4DA",
+  error: "#B54747",
+  errorSoft: "#FCEAEA",
+} as const;

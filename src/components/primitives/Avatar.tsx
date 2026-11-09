@@ -1,5 +1,6 @@
 import { View, Image, StyleSheet } from "react-native";
 import { Text } from "./Text";
+import { colors } from "../../types/theme";
 
 interface AvatarProps {
   uri?: string;
@@ -23,7 +24,11 @@ export function Avatar({ uri, name, size = "md" }: AvatarProps) {
 
   return (
     <View style={[styles.base, styles[size], styles.fallback]}>
-      <Text size={size === "lg" ? "lg" : "sm"} weight="bold" color="#1D4ED8">
+      <Text
+        size={size === "lg" ? "lg" : "sm"}
+        weight="bold"
+        color={colors.primaryDark}
+      >
         {initials}
       </Text>
     </View>
@@ -38,9 +43,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   fallback: {
-    backgroundColor: "#DBEAFE",
+    backgroundColor: colors.primarySoft,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
+    borderColor: colors.primaryBorder,
   },
   sm: { width: 32, height: 32 },
   md: { width: 44, height: 44 },

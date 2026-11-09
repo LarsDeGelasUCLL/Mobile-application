@@ -1,5 +1,6 @@
 import { View, StyleSheet } from "react-native";
 import { Text } from "./Text";
+import { colors } from "../../types/theme";
 
 interface BadgeProps {
   label: string;
@@ -7,10 +8,10 @@ interface BadgeProps {
 }
 
 const textColors: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  default: "#374151",
-  success: "#065F46",
-  warning: "#92400E",
-  error: "#991B1B",
+  default: colors.primaryDark,
+  success: colors.success,
+  warning: colors.warning,
+  error: colors.error,
 };
 
 export function Badge({ label, variant = "default" }: BadgeProps) {
@@ -31,15 +32,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   default: {
-    backgroundColor: "#e5e7eb",
+    backgroundColor: colors.primarySoft,
   },
   success: {
-    backgroundColor: "#d1fae5",
+    backgroundColor: colors.successSoft,
   },
   warning: {
-    backgroundColor: "#fef3c7",
+    backgroundColor: colors.warningSoft,
   },
   error: {
-    backgroundColor: "#fee2e2",
+    backgroundColor: colors.errorSoft,
   },
 });

@@ -1,5 +1,6 @@
 import { View, StyleSheet } from "react-native";
 import { Text } from "./Text";
+import { colors } from "../../types/theme";
 
 interface EmptyStateProps {
   title: string;
@@ -25,10 +26,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 32,
     gap: 8,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: colors.primaryBorder,
     borderStyle: "dashed",
   },
   action: {

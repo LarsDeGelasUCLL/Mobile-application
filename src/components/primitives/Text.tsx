@@ -1,4 +1,5 @@
 import { Text as RNText, StyleSheet } from "react-native";
+import { colors } from "../../types/theme";
 
 interface TextProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ export function Text({
   size = "md",
   weight = "normal",
   align = "left",
-  color = "#111827",
+  color = colors.text,
 }: TextProps) {
   return (
     <RNText style={[styles[size], styles[weight], { textAlign: align, color }]}>
