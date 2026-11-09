@@ -1,6 +1,6 @@
 import { View, StyleSheet } from "react-native";
 import { Text } from "./Text";
-import { colors } from "../../types/theme";
+import { colors } from "../../theme/colors";
 
 interface BadgeProps {
   label: string;

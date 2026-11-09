@@ -9,9 +9,9 @@ import {
   Stack,
   Text,
 } from "../../src/components/primitives";
-import { HeroBanner } from "../../src/components/HeroBanner";
-import { StyledButton } from "../../src/components/StyledButton";
-import { colors } from "../../src/types/theme";
+import { HeroBanner } from "../../src/features/home/components/HeroBanner";
+import { StyledButton } from "../../src/components/common/StyledButton";
+import { colors } from "../../src/theme/colors";
 
 export default function HomeScreen() {
   const { user } = useAuthStore();

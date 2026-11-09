@@ -1,5 +1,5 @@
 import { Text as RNText, StyleSheet } from "react-native";
-import { colors } from "../../types/theme";
+import { colors } from "../../theme/colors";
 
 interface TextProps {
   children: React.ReactNode;

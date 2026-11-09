@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { Icon } from "../../src/components/primitives";
-import { colors } from "../../src/types/theme";
+import { colors } from "../../src/theme/colors";
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);

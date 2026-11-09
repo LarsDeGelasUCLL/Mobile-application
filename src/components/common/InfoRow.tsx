@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
-import { Text } from "./primitives";
-import { colors } from "../types/theme";
+import { Text } from "../primitives";
+import { colors } from "../../theme/colors";
 
 interface InfoRowProps {
   label: string;

@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { StyleSheet, View } from "react-native";
-import { Icon, Text } from "./primitives";
-import { colors } from "../types/theme";
+import { Icon, Text } from "../../../components/primitives";
+import { colors } from "../../../theme/colors";
 
 interface BrandHeaderProps {
   title: string;

@@ -2,9 +2,9 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../src/state/useAuthStore";
-import { BrandHeader } from "../src/components/BrandHeader";
-import { StyledButton } from "../src/components/StyledButton";
-import { colors } from "../src/types/theme";
+import { BrandHeader } from "../src/features/auth/components/BrandHeader";
+import { StyledButton } from "../src/components/common/StyledButton";
+import { colors } from "../src/theme/colors";
 import {
   Card,
   InputField,

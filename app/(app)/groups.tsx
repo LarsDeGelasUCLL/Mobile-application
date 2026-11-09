@@ -8,9 +8,9 @@ import {
   Stack,
   Text,
 } from "../../src/components/primitives";
-import { FeatureIntro } from "../../src/components/FeatureIntro";
-import { StyledButton } from "../../src/components/StyledButton";
-import { colors } from "../../src/types/theme";
+import { FeatureIntro } from "../../src/features/groups/components/FeatureIntro";
+import { StyledButton } from "../../src/components/common/StyledButton";
+import { colors } from "../../src/theme/colors";
 
 export default function GroupsScreen() {
   return (

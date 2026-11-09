@@ -10,10 +10,10 @@ import {
   Stack,
   Text,
 } from "../../src/components/primitives";
-import { InfoRow } from "../../src/components/InfoRow";
-import { SectionHeader } from "../../src/components/SectionHeader";
-import { StyledButton } from "../../src/components/StyledButton";
-import { colors } from "../../src/types/theme";
+import { InfoRow } from "../../src/components/common/InfoRow";
+import { SectionHeader } from "../../src/components/common/SectionHeader";
+import { StyledButton } from "../../src/components/common/StyledButton";
+import { colors } from "../../src/theme/colors";
 
 export default function SettingsScreen() {
   const { logout } = useAuthStore();

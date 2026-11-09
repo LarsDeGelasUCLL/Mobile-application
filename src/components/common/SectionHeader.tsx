@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
-import { Badge, Stack, Text } from "./primitives";
-import { colors } from "../types/theme";
+import { Badge, Stack, Text } from "../primitives";
+import { colors } from "../../theme/colors";
 
 interface SectionHeaderProps {
   title: string;

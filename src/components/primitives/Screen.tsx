@@ -1,5 +1,5 @@
 import { ScrollView, View, StyleSheet } from "react-native";
-import { colors } from "../../types/theme";
+import { colors } from "../../theme/colors";
 
 interface ScreenProps {
   children: React.ReactNode;
