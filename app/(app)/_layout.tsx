@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
-import { Icon } from "../../src/components/primitives/Icon";
+import { Icon } from "../../src/components/primitives";
 import { colors } from "../../src/types/theme";
 
 export default function AppLayout() {
@@ -25,6 +25,7 @@ export default function AppLayout() {
         name="index"
         options={{
           title: "Home",
+          tabBarButtonTestID: "tab-home",
           tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "home" : "home-outline"}
@@ -39,6 +40,7 @@ export default function AppLayout() {
         name="groups"
         options={{
           title: "Groups",
+          tabBarButtonTestID: "tab-groups",
           tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "people" : "people-outline"}
@@ -53,6 +55,7 @@ export default function AppLayout() {
         name="settings"
         options={{
           title: "Settings",
+          tabBarButtonTestID: "tab-settings",
           tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "settings" : "settings-outline"}
@@ -67,6 +70,7 @@ export default function AppLayout() {
         name="profile"
         options={{
           title: "Profile",
+          tabBarButtonTestID: "tab-profile",
           tabBarIcon: ({ focused }) => (
             <Icon
               name={focused ? "person" : "person-outline"}

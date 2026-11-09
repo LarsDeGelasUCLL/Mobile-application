@@ -3,15 +3,17 @@ import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import {
+  Avatar,
+  Badge,
+  Card,
+  Divider,
+  InputField,
   Screen,
   Stack,
   Text,
-  InputField,
-  Badge,
-  Card,
-  Avatar,
-  Divider,
 } from "../../src/components/primitives";
+import { InfoRow } from "../../src/components/InfoRow";
+import { SectionHeader } from "../../src/components/SectionHeader";
 import { StyledButton } from "../../src/components/StyledButton";
 import { colors } from "../../src/types/theme";
 
@@ -47,7 +49,7 @@ export default function ProfileScreen() {
 
   return (
     <Screen padding="lg">
-      <View style={styles.container}>
+      <View style={styles.container} testID="profile-screen">
         <Stack gap="lg">
           <Stack gap="sm">
             <Text size="sm" weight="bold" color={colors.primary}>
@@ -103,9 +105,11 @@ export default function ProfileScreen() {
               </Text>
 
               {savedMessage !== "" && (
-                <Text size="sm" color={colors.success}>
-                  {savedMessage}
-                </Text>
+                <View testID="profile-saved-message">
+                  <Text size="sm" color={colors.success}>
+                    {savedMessage}
+                  </Text>
+                </View>
               )}
 
               <StyledButton
@@ -119,22 +123,33 @@ export default function ProfileScreen() {
 
           <Card>
             <Stack gap="md">
-              <View style={styles.sectionHeading}>
-                <Stack gap="sm">
-                  <Text size="md" weight="bold">
-                    More about you
-                  </Text>
-                  <Text size="sm" color={colors.muted}>
-                    Optional details to add when profile settings are connected.
-                  </Text>
-                  <Badge label="Coming soon" />
-                </Stack>
-              </View>
+              <SectionHeader
+                title="More about you"
+                description="Optional details to add when profile settings are connected."
+                badgeLabel="Coming soon"
+                testID="profile-more-header"
+              />
               <Divider spacing="sm" />
-              <ProfileDetail label="Phone number" value="Not added" />
-              <ProfileDetail label="Preferred currency" value="EUR (€)" />
-              <ProfileDetail label="Language" value="English" />
-              <ProfileDetail label="Payment method" value="Not connected" />
+              <InfoRow
+                label="Phone number"
+                value="Not added"
+                testID="profile-detail-phone"
+              />
+              <InfoRow
+                label="Preferred currency"
+                value="EUR (€)"
+                testID="profile-detail-currency"
+              />
+              <InfoRow
+                label="Language"
+                value="English"
+                testID="profile-detail-language"
+              />
+              <InfoRow
+                label="Payment method"
+                value="Not connected"
+                testID="profile-detail-payment"
+              />
             </Stack>
           </Card>
 
@@ -154,37 +169,4 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  sectionHeading: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 4,
-  },
-  detailValue: {
-    flex: 1,
-    flexShrink: 1,
-    alignItems: "flex-end",
-  },
 });
-
-function ProfileDetail({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.detailRow}>
-      <Text size="sm" color={colors.muted}>
-        {label}
-      </Text>
-      <View style={styles.detailValue}>
-        <Text size="sm" weight="medium" color={colors.text} align="right">
-          {value}
-        </Text>
-      </View>
-    </View>
-  );
-}

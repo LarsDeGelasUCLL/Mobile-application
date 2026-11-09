@@ -2,15 +2,15 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../src/state/useAuthStore";
+import { BrandHeader } from "../src/components/BrandHeader";
 import { StyledButton } from "../src/components/StyledButton";
 import { colors } from "../src/types/theme";
 import {
-  Text,
-  Stack,
-  InputField,
   Card,
+  InputField,
   Screen,
-  Icon,
+  Stack,
+  Text,
 } from "../src/components/primitives";
 
 export default function LoginScreen() {
@@ -31,15 +31,8 @@ export default function LoginScreen() {
 
   return (
     <Screen padding="lg">
-      <View style={styles.container}>
-        <View style={styles.brand}>
-          <View style={styles.brandMark}>
-            <Icon name="people" size={28} color="#FFFFFF" />
-          </View>
-          <Text size="sm" weight="bold" color={colors.primary}>
-            COMMON GROUND
-          </Text>
-        </View>
+      <View style={styles.container} testID="login-screen">
+        <BrandHeader title="COMMON GROUND" testID="login-brand-header" />
         <Card>
           <Stack gap="lg" padding="md">
             <Stack gap="sm" align="center">
@@ -89,19 +82,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingVertical: 24,
-  },
-  brand: {
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 24,
-  },
-  brandMark: {
-    width: 64,
-    height: 64,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 20,
-    backgroundColor: colors.primary,
   },
 });

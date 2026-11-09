@@ -4,102 +4,66 @@ import { useAuthStore } from "../../src/state/useAuthStore";
 import {
   Badge,
   EmptyState,
-  Icon,
   Row,
   Screen,
   Stack,
   Text,
 } from "../../src/components/primitives";
+import { HeroBanner } from "../../src/components/HeroBanner";
 import { StyledButton } from "../../src/components/StyledButton";
 import { colors } from "../../src/types/theme";
 
 export default function HomeScreen() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
 
   return (
     <Screen padding="lg">
-      <Stack gap="lg">
-        <Stack gap="sm">
-          <Row justify="space-between" align="center">
-            <Stack gap="sm">
-              <Text size="sm" weight="bold" color={colors.primary}>
-                A LITTLE BETTER TOGETHER
-              </Text>
-              <Text size="xl" weight="bold">
-                {user?.name ? `Hi, ${user.name}` : "Welcome"}
-              </Text>
-            </Stack>
-            <Badge label="Preview" />
-          </Row>
-          <Text color={colors.muted}>
-            Shared plans, clear balances, and fewer awkward reminders.
-          </Text>
+      <View style={styles.container} testID="home-screen">
+        <Stack gap="lg">
+          <Stack gap="sm">
+            <Row justify="space-between" align="center">
+              <Stack gap="sm">
+                <Text size="sm" weight="bold" color={colors.primary}>
+                  A LITTLE BETTER TOGETHER
+                </Text>
+                <Text size="xl" weight="bold">
+                  {user?.name ? `Hi, ${user.name}` : "Welcome"}
+                </Text>
+              </Stack>
+              <Badge label="Preview" />
+            </Row>
+            <Text color={colors.muted}>
+              Shared plans, clear balances, and fewer awkward reminders.
+            </Text>
+          </Stack>
+
+          <HeroBanner
+            badgeText="YOUR SHARED WALLET"
+            title="More time together. Less time splitting costs."
+            description="Your group balances and recent activity will have a home here."
+            footerText="Start with a group"
+            testID="home-hero-banner"
+          />
+
+          <EmptyState
+            title="Your first group starts here"
+            description="Create a space for a trip, a shared home, or your next dinner plan."
+            action={
+              <StyledButton
+                label="Explore groups"
+                onPress={() => router.push("/groups")}
+                testID="go-to-groups-button"
+              />
+            }
+          />
         </Stack>
-
-        <View style={styles.hero}>
-          <View style={styles.heroLabel}>
-            <Icon name="sparkles-outline" size={17} color="#FFFFFF" />
-            <Text size="sm" weight="medium" color="#FFFFFF">
-              YOUR SHARED WALLET
-            </Text>
-          </View>
-          <Text size="xl" weight="bold" color="#FFFFFF">
-            More time together. Less time splitting costs.
-          </Text>
-          <Text color="#EEE8FB">
-            Your group balances and recent activity will have a home here.
-          </Text>
-          <View style={styles.heroFooter}>
-            <Icon name="people-outline" size={18} color="#E3D8FA" />
-            <Text size="sm" color="#EEE8FB">
-              Start with a group
-            </Text>
-          </View>
-        </View>
-
-        <EmptyState
-          title="Your first group starts here"
-          description="Create a space for a trip, a shared home, or your next dinner plan."
-          action={
-            <StyledButton
-              label="Explore groups"
-              onPress={() => router.push("/groups")}
-              testID="go-to-groups-button"
-            />
-          }
-        />
-
-        <StyledButton
-          label="My profile"
-          onPress={() => router.push("/profile")}
-          variant="secondary"
-          testID="go-to-profile-button"
-        />
-
-        <StyledButton label="Log out" onPress={logout} variant="secondary" />
-      </Stack>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    gap: 14,
-    padding: 22,
-    borderRadius: 12,
-    backgroundColor: colors.primaryDark,
-  },
-  heroLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  heroFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#765DB4",
+  container: {
+    flex: 1,
   },
 });
