@@ -1,4 +1,10 @@
-import { ScrollView, View, StyleSheet } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+  StyleSheet,
+} from "react-native";
 import { colors } from "../../theme/colors";
 
 interface ScreenProps {
@@ -17,17 +23,27 @@ export function Screen({
   }
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={[styles.content, styles[padding]]}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoiding}
+      behavior={Platform.OS === "android" ? "height" : undefined}
     >
-      {children}
-    </ScrollView>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, styles[padding]]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+      >
+        {children}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   scroll: {
     flex: 1,
     backgroundColor: colors.background,
