@@ -7,5 +7,24 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  event.respondWith(fetch(event.request));
+  if (
+    event.request.cache === "only-if-cached" &&
+    event.request.mode !== "same-origin"
+  ) {
+    return;
+  }
+
+  if (
+    event.request.method !== "GET" ||
+    !event.request.url.startsWith(self.location.origin)
+  ) {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request).catch(async () => {
+      const cached = await caches.match(event.request);
+      return cached || new Response("Offline", { status: 503 });
+    }),
+  );
 });

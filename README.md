@@ -18,6 +18,13 @@ The app is particularly aimed at groups that need to split costs, while also
 keeping track of expenses between two individuals. Over time, the modular
 concept could be expanded with additional group-organization features.
 
+## Public App Login
+
+The teacher may use the following credentials to log in to the public app:
+
+- **Email:** `test@ucll.be`
+- **Password:** `Test123`
+
 ## What We Are Building
 
 The focus of this project is an easy-to-use expense tracker for groups and
