@@ -25,19 +25,7 @@
       "lang": "en",
       "themeColor": "#ffffff",
       "backgroundColor": "#ffffff",
-      "display": "standalone",
-      "icons": [
-        {
-          "src": "./assets/icon.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": "./assets/icon.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
+      "display": "standalone"
     },
     "plugins": ["expo-router", "expo-asset", "expo-font", "expo-status-bar"],
     "experiments": {
