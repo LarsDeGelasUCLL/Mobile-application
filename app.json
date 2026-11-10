@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "UCLL Mobile Starter",
-    "slug": "ucll-mobile-starter",
+    "name": "Lumin",
+    "slug": "lumin",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "ucllstarter",
+    "scheme": "lumin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -19,7 +19,13 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Lumin",
+      "shortName": "Lumin",
+      "lang": "en",
+      "themeColor": "#ffffff",
+      "backgroundColor": "#ffffff",
+      "display": "standalone"
     },
     "plugins": ["expo-router", "expo-asset", "expo-font", "expo-status-bar"],
     "experiments": {
