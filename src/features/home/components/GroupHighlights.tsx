@@ -2,13 +2,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Icon, Row, Stack, Text } from "../../../components/primitives";
 import { GroupAvatar } from "../../groups/components/GroupAvatar";
 import { colors } from "../../../theme/colors";
-
-export interface GroupHighlight {
-  id: string;
-  name: string;
-  imageUri?: string;
-  fallbackColor?: string;
-}
+import type { GroupHighlight } from "../../../types";
 
 interface GroupHighlightsProps {
   groups: GroupHighlight[];

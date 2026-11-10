@@ -6,9 +6,8 @@ import {
   View,
 } from "react-native";
 import { Icon, Row, Stack, Text } from "../../../components/primitives";
+import type { FeedFilter } from "../../../types";
 import { colors } from "../../../theme/colors";
-
-export type FeedFilter = "for-you" | "recent" | "by-group";
 
 interface FeedFilterOption {
   value: FeedFilter;

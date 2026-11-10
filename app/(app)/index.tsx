@@ -9,18 +9,13 @@ import {
   Stack,
   Text,
 } from "../../src/components/primitives";
-import {
-  FeedFilterMenu,
-  type FeedFilter,
-} from "../../src/features/home/components/FeedFilterMenu";
+import { FeedFilterMenu } from "../../src/features/home/components/FeedFilterMenu";
 import { FeedPostCard } from "../../src/features/home/components/FeedPostCard";
-import {
-  GroupHighlights,
-  type GroupHighlight,
-} from "../../src/features/home/components/GroupHighlights";
+import { GroupHighlights } from "../../src/features/home/components/GroupHighlights";
 import { HomeHeader } from "../../src/features/home/components/HomeHeader";
 import { colors } from "../../src/theme/colors";
 import { useAuthStore } from "../../src/state/useAuthStore";
+import type { FeedFilter, GroupHighlight } from "../../src/types";
 
 const groups: GroupHighlight[] = [
   { id: "ucll", name: "UCLL Community", fallbackColor: "#6D4BC3" },
