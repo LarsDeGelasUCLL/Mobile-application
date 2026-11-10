@@ -32,18 +32,21 @@ export default function LoginScreen() {
   return (
     <Screen padding="lg">
       <View style={styles.container} testID="login-screen">
-        <BrandHeader title="COMMON GROUND" testID="login-brand-header" />
+        <BrandHeader
+          title="Appname, To Be Determined"
+          testID="login-brand-header"
+        />
         <Card>
           <Stack gap="lg" padding="md">
             <Stack gap="sm" align="center">
               <Text size="sm" weight="bold" color={colors.primary}>
-                YOUR SHARED WALLET
+                Your trusted group activity planner
               </Text>
               <Text size="xl" weight="bold" align="center">
                 Welcome back
               </Text>
               <Text size="sm" align="center" color={colors.muted}>
-                Sign in to pick up where your group left off.
+                Log in to pick up where your group left off.
               </Text>
             </Stack>
 
