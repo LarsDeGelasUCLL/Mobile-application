@@ -1,6 +1,6 @@
-import { supabase } from "./supabase";
-import { getUserProfile, updateUserProfile } from "./profileService";
-import type { User, UserProfileDto } from "../types";
+import { getUserProfile, updateUserProfile } from "../profiles/profileService";
+import { supabase } from "../supabase";
+import type { User, UserProfileDto } from "../../types";
 
 function buildAuthenticatedUser(profile: UserProfileDto, token: string): User {
   return {
@@ -11,7 +11,6 @@ function buildAuthenticatedUser(profile: UserProfileDto, token: string): User {
   };
 }
 
-// Endpoint: Login a user with email and password, returning the authenticated user and token
 export async function login(email: string, password: string): Promise<User> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email.trim(),
@@ -47,7 +46,6 @@ export async function login(email: string, password: string): Promise<User> {
   }
 }
 
-// Endpoint: Create a new user account with email, password, and display name
 export async function register(
   email: string,
   password: string,
@@ -76,7 +74,6 @@ export async function register(
   return buildAuthenticatedUser(profile, token);
 }
 
-// Endpoint: Authenticate the current user session and retrieve the user profile
 export async function getCurrentUser(): Promise<User | null> {
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session?.user) {
@@ -87,7 +84,6 @@ export async function getCurrentUser(): Promise<User | null> {
   return buildAuthenticatedUser(profile, data.session.access_token);
 }
 
-// Endpoint: update the display name of the currently authenticated user
 export async function updateProfileName(name: string): Promise<void> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) {
@@ -97,7 +93,6 @@ export async function updateProfileName(name: string): Promise<void> {
   await updateUserProfile(userData.user.id, { displayName: name.trim() });
 }
 
-// Endpoint: Logout the currently authenticated user
 export async function logout(): Promise<void> {
   const { error } = await supabase.auth.signOut();
   if (error) {
