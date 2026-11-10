@@ -2,10 +2,11 @@ import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 export default function RootLayout() {
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
       if (!document.querySelector('link[rel="manifest"]')) {
         const link = document.createElement("link");
         link.rel = "manifest";
