@@ -1,4 +1,4 @@
-import { UserProfileDto } from ".";
+import type { PublicUserProfileDto } from "./User";
 
 export type GroupRole = "ADMIN" | "MEMBER";
 export type MembershipStatus = "PENDING" | "ACTIVE";
@@ -30,7 +30,7 @@ export interface MembershipDto {
   status: MembershipStatus;
   invitedBy: string | null;
   joinedAt: string;
-  userProfile?: UserProfileDto;
+  userProfile?: PublicUserProfileDto;
 }
 
 // Response DTO for the list of groups a user is an active member of
@@ -46,5 +46,11 @@ export interface GroupInviteDto {
   membershipId: string;
   joinedAt: string;
   group: GroupDto;
-  invitedByProfile: UserProfileDto | null;
+  invitedByProfile: PublicUserProfileDto | null;
+}
+
+export interface UpdateGroupDto {
+  name?: string;
+  description?: string | null;
+  groupIconUrl?: string | null;
 }

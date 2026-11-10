@@ -1,11 +1,14 @@
-import { calculateGroupBalances, createExpense } from "../../services";
+import {
+  calculateGroupBalances,
+  createExpense,
+  updateExpense,
+} from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
 import { getErrorMessage } from "../shared/storeUtils";
 
-export const createExpenseCreateActions: ExpenseActionCreator<"addExpense"> = (
-  set,
-  get,
-) => ({
+export const createExpenseCreateActions: ExpenseActionCreator<
+  "addExpense" | "updateExpense"
+> = (set, get) => ({
   addExpense: async (payload) => {
     set({ isLoading: true, error: null });
     try {
@@ -27,6 +30,38 @@ export const createExpenseCreateActions: ExpenseActionCreator<"addExpense"> = (
     } catch (error) {
       set({
         error: getErrorMessage(error, "Could not add expense."),
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  updateExpense: async (expenseId, payload) => {
+    set({ isLoading: true, error: null });
+    try {
+      const updated = await updateExpense(expenseId, payload);
+      const groupBalances =
+        updated.groupId !== null
+          ? await calculateGroupBalances(updated.groupId)
+          : get().groupBalances;
+      set({
+        groupExpenses: get().groupExpenses.map((expense) =>
+          expense.id === expenseId ? updated : expense,
+        ),
+        individualExpenses: get().individualExpenses.map((expense) =>
+          expense.id === expenseId ? updated : expense,
+        ),
+        selectedExpense:
+          get().selectedExpense?.id === expenseId
+            ? updated
+            : get().selectedExpense,
+        groupBalances,
+        isLoading: false,
+      });
+      return updated;
+    } catch (error) {
+      set({
+        error: getErrorMessage(error, "Could not update expense."),
         isLoading: false,
       });
       throw error;

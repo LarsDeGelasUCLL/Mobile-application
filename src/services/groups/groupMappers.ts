@@ -3,8 +3,9 @@ import type {
   GroupRole,
   MembershipDto,
   MembershipStatus,
-  UserProfileDto,
+  PublicUserProfileDto,
 } from "../../types";
+import type { Database } from "../../types/database.types";
 
 function parseGroupRole(value: unknown): GroupRole {
   return value === "ADMIN" ? "ADMIN" : "MEMBER";
@@ -14,7 +15,9 @@ function parseMembershipStatus(value: unknown): MembershipStatus {
   return value === "ACTIVE" ? "ACTIVE" : "PENDING";
 }
 
-export function mapRowToGroupDto(row: Record<string, unknown>): GroupDto {
+export function mapRowToGroupDto(
+  row: Database["public"]["Tables"]["groups"]["Row"],
+): GroupDto {
   return {
     id: String(row.id ?? ""),
     name: String(row.name ?? ""),
@@ -28,8 +31,8 @@ export function mapRowToGroupDto(row: Record<string, unknown>): GroupDto {
 }
 
 export function mapRowToMembershipDto(
-  row: Record<string, unknown>,
-  profile?: UserProfileDto,
+  row: Database["public"]["Tables"]["memberships"]["Row"],
+  profile?: PublicUserProfileDto,
 ): MembershipDto {
   return {
     id: String(row.id ?? ""),

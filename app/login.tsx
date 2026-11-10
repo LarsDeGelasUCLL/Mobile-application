@@ -22,7 +22,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setError("");
     try {
-      await login(email, password);
+      await login({ email, password });
       router.replace("/");
     } catch {
       setError("Login failed. Check your credentials.");

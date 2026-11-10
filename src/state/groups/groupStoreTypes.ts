@@ -4,6 +4,8 @@ import type {
   GroupDto,
   GroupInviteDto,
   MembershipDto,
+  GroupRole,
+  UpdateGroupDto,
   UserGroupDto,
 } from "../../types";
 
@@ -17,6 +19,12 @@ export interface GroupState {
   fetchGroupsAndInvites: (userId: string) => Promise<void>;
   fetchMembersForGroup: (groupId: string) => Promise<void>;
   createNewGroup: (userId: string, payload: CreateGroupDto) => Promise<GroupDto>;
+  updateGroup: (groupId: string, payload: UpdateGroupDto) => Promise<GroupDto>;
+  deleteGroup: (groupId: string, userId: string) => Promise<void>;
+  changeMemberRole: (
+    membershipId: string,
+    groupRole: GroupRole,
+  ) => Promise<void>;
   inviteMemberByEmail: (
     groupId: string,
     senderUserId: string,

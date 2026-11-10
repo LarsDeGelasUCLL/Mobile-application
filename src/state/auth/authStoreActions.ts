@@ -1,7 +1,11 @@
 import {
+  changeEmail,
   login,
   logout,
   register,
+  requestPasswordReset,
+  resendConfirmation,
+  setPassword,
   updateProfileName,
   updateUserProfile,
 } from "../../services";
@@ -10,10 +14,10 @@ import { useExpenseStore } from "../expenses/useExpenseStore";
 import { useGroupStore } from "../groups/useGroupStore";
 
 export const createAuthActions: AuthActionCreator = (set, get) => ({
-  login: async (email, password) => {
+  login: async (payload) => {
     set({ isLoading: true });
     try {
-      const user = await login(email, password);
+      const user = await login(payload);
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -21,11 +25,55 @@ export const createAuthActions: AuthActionCreator = (set, get) => ({
     }
   },
 
-  register: async (email, password, displayName, phoneNumber) => {
+  register: async (payload) => {
     set({ isLoading: true });
     try {
-      const user = await register(email, password, displayName, phoneNumber);
+      const user = await register(payload);
       set({ user, isAuthenticated: true, isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  requestPasswordReset: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await requestPasswordReset(payload);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  setPassword: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await setPassword(payload);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  changeEmail: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await changeEmail(payload);
+      set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  resendConfirmation: async (payload) => {
+    set({ isLoading: true });
+    try {
+      await resendConfirmation(payload);
+      set({ isLoading: false });
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -58,7 +106,9 @@ export const createAuthActions: AuthActionCreator = (set, get) => ({
 
   updateProfile: async (payload) => {
     const currentUser = get().user;
-    if (!currentUser) return;
+    if (!currentUser) {
+      throw new Error("Not logged in.");
+    }
 
     set({ isLoading: true });
     try {

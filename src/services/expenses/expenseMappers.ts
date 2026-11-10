@@ -1,12 +1,13 @@
 import type {
   ExpenseDto,
   ExpenseSplitDto,
-  UserProfileDto,
+  PublicUserProfileDto,
 } from "../../types";
+import type { Database } from "../../types/database.types";
 
 export function mapRowToExpenseSplitDto(
-  row: Record<string, unknown>,
-  profile?: UserProfileDto,
+  row: Database["public"]["Tables"]["expense_splits"]["Row"],
+  profile?: PublicUserProfileDto,
 ): ExpenseSplitDto {
   return {
     id: String(row.id ?? ""),
@@ -19,8 +20,8 @@ export function mapRowToExpenseSplitDto(
 }
 
 export function mapRowToExpenseDto(
-  row: Record<string, unknown>,
-  paidByProfile?: UserProfileDto,
+  row: Database["public"]["Tables"]["expenses"]["Row"],
+  paidByProfile?: PublicUserProfileDto,
   splits: ExpenseSplitDto[] = [],
 ): ExpenseDto {
   return {

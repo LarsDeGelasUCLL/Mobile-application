@@ -1,4 +1,4 @@
-import type { UserProfileDto } from "./User";
+import type { PublicUserProfileDto } from "./User";
 
 // Response DTO: public.expense_splits
 export interface ExpenseSplitDto {
@@ -7,7 +7,7 @@ export interface ExpenseSplitDto {
   userId: string;
   amountOwed: number;
   isSettled: boolean;
-  userProfile?: UserProfileDto;
+  userProfile?: PublicUserProfileDto;
 }
 
 // Response DTO: public.expenses
@@ -19,7 +19,7 @@ export interface ExpenseDto {
   amount: number;
   receiptUrl: string | null;
   recordCreated: string;
-  paidByProfile?: UserProfileDto;
+  paidByProfile?: PublicUserProfileDto;
   splits: ExpenseSplitDto[];
 }
 
@@ -27,6 +27,13 @@ export interface ExpenseDto {
 export interface CreateExpenseSplitInput {
   userId: string;
   amountOwed: number;
+}
+
+export interface UpdateExpenseDto {
+  title: string;
+  amount: number;
+  receiptUrl?: string | null;
+  splits: CreateExpenseSplitInput[];
 }
 
 // Request DTO for creating a new expense

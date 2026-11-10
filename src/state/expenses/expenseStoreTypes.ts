@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 import type {
   CreateExpenseDto,
   ExpenseDto,
+  UpdateExpenseDto,
   UserBalanceDto,
 } from "../../types";
 
@@ -16,6 +17,10 @@ export interface ExpenseState {
   fetchIndividualExpenses: (userId: string) => Promise<void>;
   fetchExpenseDetail: (expenseId: string) => Promise<void>;
   addExpense: (payload: CreateExpenseDto) => Promise<ExpenseDto>;
+  updateExpense: (
+    expenseId: string,
+    payload: UpdateExpenseDto,
+  ) => Promise<ExpenseDto>;
   toggleSettleSplit: (
     splitId: string,
     isSettled: boolean,

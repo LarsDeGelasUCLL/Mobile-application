@@ -1,4 +1,5 @@
-import type { CreateGroupDto, GroupDto } from "../../types";
+import type { CreateGroupDto, GroupDto, UpdateGroupDto } from "../../types";
+import type { Database } from "../../types/database.types";
 import { mapRowToGroupDto } from "./groupMappers";
 import { supabase } from "../supabase";
 
@@ -13,6 +14,7 @@ export {
   joinGroupByInviteCode,
   removeMembership,
   respondToGroupInvite,
+  updateMembershipRole,
 } from "./groupMembershipService";
 
 export async function createGroup(
@@ -24,30 +26,21 @@ export async function createGroup(
     throw new Error("Group name is required.");
   }
 
-  const { data: group, error } = await supabase
-    .from("groups")
-    .insert({
-      name,
-      description: payload.description?.trim() ?? null,
-      group_icon_url: payload.groupIconUrl ?? null,
-      created_by: userId,
-    })
-    .select("*")
-    .single();
+  const { data: currentUser, error: authError } = await supabase.auth.getUser();
+  if (authError || !currentUser.user || currentUser.user.id !== userId) {
+    throw new Error(authError?.message ?? "Not logged in as this user.");
+  }
+  const { data: group, error } = await supabase.rpc(
+    "create_group_with_membership",
+    {
+      _name: name,
+      _description: payload.description?.trim() || null,
+      _group_icon_url: payload.groupIconUrl ?? null,
+    },
+  );
 
   if (error || !group) {
     throw new Error(error?.message ?? "Could not create group.");
-  }
-
-  const { error: membershipError } = await supabase.from("memberships").insert({
-    user_id: userId,
-    group_id: group.id,
-    group_role: "ADMIN",
-    status: "ACTIVE",
-  });
-
-  if (membershipError) {
-    throw new Error(membershipError.message);
   }
 
   return mapRowToGroupDto(group);
@@ -65,4 +58,51 @@ export async function getGroupById(groupId: string): Promise<GroupDto> {
   }
 
   return mapRowToGroupDto(data);
+}
+
+export async function updateGroup(
+  groupId: string,
+  payload: UpdateGroupDto,
+): Promise<GroupDto> {
+  const updatePayload: Database["public"]["Tables"]["groups"]["Update"] = {};
+  if (payload.name !== undefined) {
+    const name = payload.name.trim();
+    if (!name) {
+      throw new Error("Group name is required.");
+    }
+    updatePayload.name = name;
+  }
+  if (payload.description !== undefined) {
+    updatePayload.description = payload.description?.trim() || null;
+  }
+  if (payload.groupIconUrl !== undefined) {
+    updatePayload.group_icon_url = payload.groupIconUrl;
+  }
+  if (Object.keys(updatePayload).length === 0) {
+    throw new Error("At least one group field must be provided.");
+  }
+
+  const { data, error } = await supabase
+    .from("groups")
+    .update(updatePayload)
+    .eq("id", groupId)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(error?.message ?? "Could not update group.");
+  }
+
+  return mapRowToGroupDto(data);
+}
+
+export async function deleteGroup(groupId: string): Promise<void> {
+  const { error } = await supabase
+    .from("groups")
+    .delete()
+    .eq("id", groupId)
+    .select("id")
+    .single();
+  if (error) {
+    throw new Error(error.message);
+  }
 }

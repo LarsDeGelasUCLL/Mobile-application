@@ -2,6 +2,7 @@ import type {
   UpdateUserSettingsDto,
   UserSettingsDto,
 } from "../../types";
+import type { Database } from "../../types/database.types";
 import { mapRowToUserSettingsDto } from "./profileMappers";
 import { supabase } from "../supabase";
 
@@ -25,7 +26,8 @@ export async function updateUserSettings(
   userId: string,
   payload: UpdateUserSettingsDto,
 ): Promise<UserSettingsDto> {
-  const updatePayload: Record<string, unknown> = {};
+  const updatePayload: Database["public"]["Tables"]["user_settings"]["Update"] =
+    {};
 
   if (payload.pushNotificationToken !== undefined) {
     updatePayload.push_notification_token = payload.pushNotificationToken;

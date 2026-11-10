@@ -1,6 +1,15 @@
 import { getUserProfile, updateUserProfile } from "../profiles/profileService";
 import { supabase } from "../supabase";
-import type { User, UserProfileDto } from "../../types";
+import type {
+  ChangeEmailRequestDto,
+  LoginRequestDto,
+  PasswordResetRequestDto,
+  RegisterRequestDto,
+  ResendConfirmationRequestDto,
+  SetPasswordRequestDto,
+  User,
+  UserProfileDto,
+} from "../../types";
 
 function buildAuthenticatedUser(profile: UserProfileDto, token: string): User {
   return {
@@ -11,56 +20,30 @@ function buildAuthenticatedUser(profile: UserProfileDto, token: string): User {
   };
 }
 
-export async function login(email: string, password: string): Promise<User> {
+export async function login(payload: LoginRequestDto): Promise<User> {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
-    password,
+    email: payload.email.trim(),
+    password: payload.password,
   });
 
   if (error || !data.user || !data.session) {
     throw new Error(error?.message ?? "Login failed");
   }
 
-  try {
-    const profile = await getUserProfile(data.user.id);
-    return buildAuthenticatedUser(profile, data.session.access_token);
-  } catch {
-    // Fall back if the user_profiles row does not exist yet
-    const fallbackName = (data.user.email ?? email).split("@")[0];
-    const metaName =
-      data.user.user_metadata?.display_name ?? data.user.user_metadata?.name;
-    const displayName = typeof metaName === "string" ? metaName : fallbackName;
-
-    const fallbackProfile: UserProfileDto = {
-      id: data.user.id,
-      emailAddress: data.user.email ?? email,
-      displayName,
-      phoneNumber: data.user.phone ?? null,
-      iban: null,
-      profilePictureUrl: null,
-      customBio: null,
-      recordCreated: new Date().toISOString(),
-    };
-
-    return buildAuthenticatedUser(fallbackProfile, data.session.access_token);
-  }
+  const profile = await getUserProfile(data.user.id);
+  return buildAuthenticatedUser(profile, data.session.access_token);
 }
 
-export async function register(
-  email: string,
-  password: string,
-  displayName: string,
-  phoneNumber?: string,
-): Promise<User> {
-  const cleanName = displayName.trim();
+export async function register(payload: RegisterRequestDto): Promise<User> {
+  const cleanName = payload.displayName.trim();
   const { data, error } = await supabase.auth.signUp({
-    email: email.trim(),
-    password,
+    email: payload.email.trim(),
+    password: payload.password,
     options: {
       data: {
         display_name: cleanName,
         name: cleanName,
-        phone_number: phoneNumber?.trim() ?? null,
+        phone_number: payload.phoneNumber?.trim() ?? null,
       },
     },
   });
@@ -68,15 +51,22 @@ export async function register(
   if (error || !data.user) {
     throw new Error(error?.message ?? "Registration failed.");
   }
+  if (!data.session) {
+    throw new Error(
+      "Registration succeeded, but Supabase did not return a session. Check the email confirmation settings.",
+    );
+  }
 
-  const token = data.session?.access_token ?? "";
   const profile = await getUserProfile(data.user.id);
-  return buildAuthenticatedUser(profile, token);
+  return buildAuthenticatedUser(profile, data.session.access_token);
 }
 
 export async function getCurrentUser(): Promise<User | null> {
   const { data, error } = await supabase.auth.getSession();
-  if (error || !data.session?.user) {
+  if (error) {
+    throw new Error(error.message);
+  }
+  if (!data.session?.user) {
     return null;
   }
 
@@ -91,6 +81,55 @@ export async function updateProfileName(name: string): Promise<void> {
   }
 
   await updateUserProfile(userData.user.id, { displayName: name.trim() });
+}
+
+export async function requestPasswordReset(
+  payload: PasswordResetRequestDto,
+): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    payload.email.trim(),
+    payload.redirectTo ? { redirectTo: payload.redirectTo } : undefined,
+  );
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function setPassword(
+  payload: SetPasswordRequestDto,
+): Promise<void> {
+  const { error } = await supabase.auth.updateUser({
+    password: payload.password,
+  });
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function changeEmail(
+  payload: ChangeEmailRequestDto,
+): Promise<void> {
+  const { error } = await supabase.auth.updateUser(
+    { email: payload.email.trim() },
+    payload.redirectTo
+      ? { emailRedirectTo: payload.redirectTo }
+      : undefined,
+  );
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function resendConfirmation(
+  payload: ResendConfirmationRequestDto,
+): Promise<void> {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: payload.email.trim(),
+  });
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function logout(): Promise<void> {

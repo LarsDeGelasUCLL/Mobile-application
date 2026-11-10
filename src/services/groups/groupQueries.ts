@@ -4,7 +4,7 @@ import type {
   UserGroupDto,
 } from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
-import { mapRowToUserProfileDto } from "../profiles/profileMappers";
+import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
 import { supabase } from "../supabase";
 
 export async function getUserActiveGroups(
@@ -63,7 +63,7 @@ export async function getGroupMembers(
   const userIds = memberships.map((membership) => String(membership.user_id));
   const { data: profiles, error: profilesError } = await supabase
     .from("user_profiles")
-    .select("*")
+    .select("id, display_name, profile_picture_url, custom_bio, record_created")
     .in("id", userIds);
 
   if (profilesError) {
@@ -75,7 +75,7 @@ export async function getGroupMembers(
       (profile) => profile.id === membership.user_id,
     );
     const profile = profileRow
-      ? mapRowToUserProfileDto(profileRow)
+      ? mapRowToPublicUserProfileDto(profileRow)
       : undefined;
     return mapRowToMembershipDto(membership, profile);
   });
@@ -99,14 +99,23 @@ export async function getUserPendingInvites(
   const inviterIds = pendingRows
     .map((row) => row.invited_by)
     .filter((id): id is string => typeof id === "string");
-  const { data: groups } = await supabase
+  const { data: groups, error: groupsError } = await supabase
     .from("groups")
     .select("*")
     .in("id", groupIds);
-  const { data: inviters } =
+  if (groupsError) {
+    throw new Error(groupsError.message);
+  }
+  const { data: inviters, error: invitersError } =
     inviterIds.length > 0
-      ? await supabase.from("user_profiles").select("*").in("id", inviterIds)
-      : { data: [] };
+      ? await supabase
+          .from("user_profiles")
+          .select("id, display_name, profile_picture_url, custom_bio, record_created")
+          .in("id", inviterIds)
+      : { data: [], error: null };
+  if (invitersError) {
+    throw new Error(invitersError.message);
+  }
 
   return pendingRows.flatMap((row) => {
     const group = groups?.find((item) => item.id === row.group_id);
@@ -117,7 +126,9 @@ export async function getUserPendingInvites(
       membershipId: String(row.id),
       joinedAt: String(row.joined_at ?? ""),
       group: mapRowToGroupDto(group),
-      invitedByProfile: inviter ? mapRowToUserProfileDto(inviter) : null,
+      invitedByProfile: inviter
+        ? mapRowToPublicUserProfileDto(inviter)
+        : null,
     }];
   });
 }

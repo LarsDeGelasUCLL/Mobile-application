@@ -1,5 +1,6 @@
-import type { ExpenseDto, UserProfileDto } from "../../types";
-import { mapRowToUserProfileDto } from "../profiles/profileMappers";
+import type { ExpenseDto, PublicUserProfileDto } from "../../types";
+import type { Database } from "../../types/database.types";
+import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
 import {
   mapRowToExpenseDto,
   mapRowToExpenseSplitDto,
@@ -7,7 +8,7 @@ import {
 import { supabase } from "../supabase";
 
 export async function enrichExpenses(
-  expenseRows: Record<string, unknown>[],
+  expenseRows: Database["public"]["Tables"]["expenses"]["Row"][],
 ): Promise<ExpenseDto[]> {
   if (expenseRows.length === 0) return [];
 
@@ -33,14 +34,20 @@ export async function enrichExpenses(
     }
   }
 
-  const { data: profilesData } =
+  const { data: profilesData, error: profilesError } =
     userIds.size > 0
-      ? await supabase.from("user_profiles").select("*").in("id", [...userIds])
-      : { data: [] };
+      ? await supabase
+          .from("user_profiles")
+          .select("id, display_name, profile_picture_url, custom_bio, record_created")
+          .in("id", [...userIds])
+      : { data: [], error: null };
+  if (profilesError) {
+    throw new Error(profilesError.message);
+  }
 
-  const profileMap = new Map<string, UserProfileDto>();
+  const profileMap = new Map<string, PublicUserProfileDto>();
   for (const profileRow of profilesData ?? []) {
-    const profile = mapRowToUserProfileDto(profileRow);
+    const profile = mapRowToPublicUserProfileDto(profileRow);
     profileMap.set(profile.id, profile);
   }
 

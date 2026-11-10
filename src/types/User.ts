@@ -1,15 +1,48 @@
 export type UiTheme = "SYSTEM" | "LIGHT" | "DARK";
 
-// Response DTO: public.user_profiles
-export interface UserProfileDto {
+export interface PublicUserProfileDto {
   id: string;
-  emailAddress: string;
   displayName: string;
-  phoneNumber: string | null;
-  iban: string | null;
   profilePictureUrl: string | null;
   customBio: string | null;
   recordCreated: string;
+}
+
+// Response DTO: public.user_profiles
+export interface UserProfileDto extends PublicUserProfileDto {
+  emailAddress: string;
+  phoneNumber: string | null;
+  iban: string | null;
+}
+
+export interface LoginRequestDto {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequestDto {
+  email: string;
+  password: string;
+  displayName: string;
+  phoneNumber?: string;
+}
+
+export interface PasswordResetRequestDto {
+  email: string;
+  redirectTo?: string;
+}
+
+export interface SetPasswordRequestDto {
+  password: string;
+}
+
+export interface ChangeEmailRequestDto {
+  email: string;
+  redirectTo?: string;
+}
+
+export interface ResendConfirmationRequestDto {
+  email: string;
 }
 
 // Request DTO: update profile

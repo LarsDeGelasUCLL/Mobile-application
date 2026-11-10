@@ -1,84 +1,84 @@
 import type {
+  PublicUserProfileDto,
   UpdateUserProfileDto,
   UserProfileDto,
 } from "../../types";
-import { mapRowToUserProfileDto } from "./profileMappers";
+import type { Json } from "../../types/database.types";
+import {
+  mapRowToPublicUserProfileDto,
+  mapRowToUserProfileDto,
+} from "./profileMappers";
 import { supabase } from "../supabase";
 
 export {
+  mapRowToPublicUserProfileDto,
   mapRowToUserProfileDto,
   mapRowToUserSettingsDto,
 } from "./profileMappers";
 export { getUserSettings, updateUserSettings } from "./settingsService";
 
 export async function getUserProfile(userId: string): Promise<UserProfileDto> {
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  const { data, error } = await supabase.rpc("get_my_user_profile");
 
   if (error || !data) {
     throw new Error(error?.message ?? "Profile not found.");
+  }
+  if (data.id !== userId) {
+    throw new Error("Cannot access another user's private profile.");
   }
 
   return mapRowToUserProfileDto(data);
 }
 
-export async function getUserProfileByEmail(
-  email: string,
-): Promise<UserProfileDto | null> {
+export async function getPublicUserProfile(
+  userId: string,
+): Promise<PublicUserProfileDto> {
   const { data, error } = await supabase
     .from("user_profiles")
-    .select("*")
-    .ilike("email_address", email.trim())
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
+    .select("id, display_name, profile_picture_url, custom_bio, record_created")
+    .eq("id", userId)
+    .single();
+  if (error || !data) {
+    throw new Error(error?.message ?? "Profile not found.");
   }
-
-  return data ? mapRowToUserProfileDto(data) : null;
+  return mapRowToPublicUserProfileDto(data);
 }
 
 export async function updateUserProfile(
   userId: string,
   payload: UpdateUserProfileDto,
 ): Promise<UserProfileDto> {
-  const updatePayload: Record<string, unknown> = {};
-
-  if (payload.displayName !== undefined) {
-    updatePayload.display_name = payload.displayName.trim();
-  }
-  if (payload.phoneNumber !== undefined) {
-    updatePayload.phone_number = payload.phoneNumber;
-  }
-  if (payload.iban !== undefined) {
-    updatePayload.iban = payload.iban;
-  }
-  if (payload.profilePictureUrl !== undefined) {
-    updatePayload.profile_picture_url = payload.profilePictureUrl;
-  }
-  if (payload.customBio !== undefined) {
-    updatePayload.custom_bio = payload.customBio;
-  }
-
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .update(updatePayload)
-    .eq("id", userId)
-    .select("*")
-    .single();
+  const updatePayload: Json = {
+    ...(payload.displayName !== undefined
+      ? { displayName: payload.displayName.trim() }
+      : {}),
+    ...(payload.phoneNumber !== undefined
+      ? { phoneNumber: payload.phoneNumber }
+      : {}),
+    ...(payload.iban !== undefined ? { iban: payload.iban } : {}),
+    ...(payload.profilePictureUrl !== undefined
+      ? { profilePictureUrl: payload.profilePictureUrl }
+      : {}),
+    ...(payload.customBio !== undefined ? { customBio: payload.customBio } : {}),
+  };
+  const { data, error } = await supabase.rpc("update_my_user_profile", {
+    _payload: updatePayload,
+  });
 
   if (error || !data) {
     throw new Error(error?.message ?? "Could not update profile.");
   }
-
+  if (data.id !== userId) {
+    throw new Error("Cannot update another user's profile.");
+  }
   if (payload.displayName !== undefined) {
     const displayName = payload.displayName.trim();
-    await supabase.auth.updateUser({
+    const { error: authError } = await supabase.auth.updateUser({
       data: { display_name: displayName, name: displayName },
     });
+    if (authError) {
+      throw new Error(authError.message);
+    }
   }
 
   return mapRowToUserProfileDto(data);

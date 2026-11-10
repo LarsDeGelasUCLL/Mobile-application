@@ -19,10 +19,13 @@ export async function getGroupExpenses(groupId: string): Promise<ExpenseDto[]> {
 export async function getIndividualExpenses(
   userId: string,
 ): Promise<ExpenseDto[]> {
-  const { data: splitMatches } = await supabase
+  const { data: splitMatches, error: splitError } = await supabase
     .from("expense_splits")
     .select("expense_id")
     .eq("user_id", userId);
+  if (splitError) {
+    throw new Error(splitError.message);
+  }
 
   const splitExpenseIds = (splitMatches ?? []).map((split) =>
     String(split.expense_id),
