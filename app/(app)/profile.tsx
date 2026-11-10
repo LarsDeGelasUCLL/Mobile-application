@@ -30,15 +30,15 @@ export default function ProfileScreen() {
     setSavedMessage("");
 
     if (!name.trim()) {
-      setError("Vul een geldige weergavenaam in.");
+      setError("Please enter a valid display name.");
       return;
     }
 
     try {
       await updateName(name);
-      setSavedMessage("Profiel succesvol bijgewerkt!");
+      setSavedMessage("Profile updated successfully!");
     } catch {
-      setError("Kon profiel niet opslaan. Probeer het opnieuw.");
+      setError("Could not save your profile. Please try again.");
     }
   };
 
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
             <Stack gap="sm" align="center">
               <Avatar name={user?.name ?? user?.email ?? "U"} size="lg" />
               <Text size="lg" weight="bold">
-                {user?.name ?? "Gebruiker"}
+                {user?.name ?? "User"}
               </Text>
               <Text size="sm">{user?.email ?? ""}</Text>
               <Badge label="Account active" variant="success" />
@@ -113,7 +113,7 @@ export default function ProfileScreen() {
               )}
 
               <StyledButton
-                label="Wijzigingen opslaan"
+                label="Save changes"
                 onPress={handleSaveProfile}
                 isLoading={isLoading}
                 testID="save-profile-button"

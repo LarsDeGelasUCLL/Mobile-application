@@ -45,7 +45,7 @@ export default function GroupsScreen() {
             <Stack gap="sm">
               <StyledButton
                 label="Create a group"
-                onPress={() => console.log("Nieuwe groep")}
+                onPress={() => console.log("New group")}
                 variant="primary"
                 testID="create-group-button"
               />
