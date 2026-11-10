@@ -20,6 +20,9 @@ concept could be expanded with additional group-organization features.
 
 ## Public App Login
 
+You can find the app at:
+https://mobile-application-brown.vercel.app/
+
 The teacher may use the following credentials to log in to the public app:
 
 - **Email:** `test@ucll.be`
