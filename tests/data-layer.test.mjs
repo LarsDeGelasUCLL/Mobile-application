@@ -59,19 +59,19 @@ test("group forms validate required names, invite codes, and email addresses", a
   const authValidation = await loadTypeScriptModule(
     "src/features/auth/authValidation.ts",
   );
-  const {
-    validateGroupName,
-    validateInviteCode,
-    validateInviteEmail,
-  } = await loadTypeScriptModule("src/features/groups/groupValidation.ts", {
-    "../auth/authValidation": authValidation,
-  });
+  const { validateGroupName, validateInviteCode, validateInviteEmail } =
+    await loadTypeScriptModule("src/features/groups/groupValidation.ts", {
+      "../auth/authValidation": authValidation,
+    });
 
   assert.equal(validateGroupName("   "), "Group name is required.");
   assert.equal(validateGroupName("  Weekend trip  "), undefined);
   assert.equal(validateInviteCode(" "), "Invite code is required.");
   assert.equal(validateInviteCode(" abcd-1234 "), undefined);
-  assert.equal(validateInviteEmail("not-an-email"), "Enter a valid email address.");
+  assert.equal(
+    validateInviteEmail("not-an-email"),
+    "Enter a valid email address.",
+  );
   assert.equal(validateInviteEmail("  ada@example.com "), undefined);
 });
 
@@ -110,16 +110,48 @@ test("refreshing group details reloads the group list before its members", async
 
 test("group details are a sibling route to tabs in the authenticated stack", async () => {
   const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
-  const tabsLayout = await fs.readFile(
-    "app/(app)/(tabs)/_layout.tsx",
-    "utf8",
-  );
+  const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
 
   assert.match(appLayout, /<Stack/);
   assert.match(appLayout, /name="\(tabs\)"/);
   assert.match(appLayout, /name="group\/\[groupId\]"/);
   assert.match(tabsLayout, /<Tabs/);
   assert.doesNotMatch(tabsLayout, /name="group"/);
+});
+
+test("expense create, detail, and edit routes are sibling stack screens", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
+
+  assert.match(appLayout, /name="expense\/create"/);
+  assert.match(appLayout, /name="expense\/\[expenseId\]"/);
+  assert.match(appLayout, /name="expense\/edit\/\[expenseId\]"/);
+  assert.doesNotMatch(tabsLayout, /name="expense\//);
+});
+
+test("home stays the event placeholder and expenses use the fifth tab", async () => {
+  const home = await fs.readFile("app/(app)/(tabs)/index.tsx", "utf8");
+  const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
+  const tabFiles = await fs.readdir("app/(app)/(tabs)");
+
+  assert.match(home, /<GroupHighlights/);
+  assert.match(home, /<FeedPostCard/);
+  assert.doesNotMatch(home, /useExpenseStore/);
+  assert.ok(tabFiles.includes("expenses.tsx"));
+
+  const expenses = await fs.readFile("app/(app)/(tabs)/expenses.tsx", "utf8");
+  assert.match(expenses, /fetchIndividualExpenses/);
+  assert.match(tabsLayout, /name="expenses"/);
+  assert.ok(
+    tabsLayout.indexOf('name="profile"') <
+      tabsLayout.indexOf('name="expenses"'),
+  );
+
+  const expenseDetail = await fs.readFile(
+    "app/(app)/expense/[expenseId].tsx",
+    "utf8",
+  );
+  assert.match(expenseDetail, /router\.replace\("\/expenses"\)/);
 });
 
 test("auth deep-link exchange distinguishes unrelated, completed, and failed links", async () => {
@@ -341,6 +373,7 @@ test("loading group expenses calculates balances from the same fetch", async () 
   assert.equal(state.groupExpenses, expenses);
   assert.equal(state.groupBalances[0].netBalance, 12);
   assert.equal(state.groupBalances[1].netBalance, -12);
+  assert.equal(state.groupBalancesGroupId, "group-1");
 });
 
 test("group member queries exclude pending invitations", async () => {
@@ -522,7 +555,10 @@ test("responding to an invitation updates the store before refresh completes", a
   await actionAssertion;
   assert.deepEqual(state.pendingInvites, []);
   assert.equal(state.groups[0].group.id, "group-1");
-  assert.match(state.error, /Invitation accepted, but group data could not be refreshed/);
+  assert.match(
+    state.error,
+    /Invitation accepted, but group data could not be refreshed/,
+  );
 
   state.pendingInvites = [
     {
@@ -542,7 +578,10 @@ test("responding to an invitation updates the store before refresh completes", a
   assert.deepEqual(state.pendingInvites, []);
   assert.equal(state.groups.length, 1);
   await declineAssertion;
-  assert.match(state.error, /Invitation declined, but group data could not be refreshed/);
+  assert.match(
+    state.error,
+    /Invitation declined, but group data could not be refreshed/,
+  );
 });
 
 test("settings store loads settings and persists returned updates", async () => {
@@ -588,4 +627,558 @@ test("settings store loads settings and persists returned updates", async () => 
   });
   assert.equal(updated.notifyGroupUpdates, true);
   assert.equal(state.settings.notifyGroupUpdates, true);
+});
+
+test("expense form validation normalizes receipt URLs and enforces personal participation", async () => {
+  const { validateExpenseForm } = await loadTypeScriptModule(
+    "src/services/expenses/expenseValidation.ts",
+  );
+  const participants = ["user-1", "user-2"];
+  const valid = validateExpenseForm(
+    {
+      title: "  Shared lunch  ",
+      amount: "10.00",
+      receiptUrl: " https://example.com/receipt ",
+      paidByUserId: "user-2",
+      splits: [
+        { userId: "user-1", amount: "4.00" },
+        { userId: "user-2", amount: "6.00" },
+      ],
+    },
+    {
+      groupId: null,
+      currentUserId: "user-1",
+      allowedParticipantIds: participants,
+    },
+  );
+
+  assert.equal(typeof valid, "object");
+  assert.equal(valid.title, "Shared lunch");
+  assert.equal(valid.receiptUrl, "https://example.com/receipt");
+  assert.equal(valid.amount, 10);
+  assert.equal(valid.paidByUserId, "user-2");
+
+  const blankReceipt = validateExpenseForm(
+    {
+      title: "Lunch",
+      amount: "1.25",
+      receiptUrl: "   ",
+      paidByUserId: "user-1",
+      splits: [{ userId: "user-1", amount: "1.25" }],
+    },
+    {
+      groupId: null,
+      currentUserId: "user-1",
+      allowedParticipantIds: ["user-1"],
+    },
+  );
+  assert.equal(blankReceipt.receiptUrl, null);
+
+  const payerOutsideSplit = validateExpenseForm(
+    {
+      title: "Lunch",
+      amount: "1.00",
+      receiptUrl: "",
+      paidByUserId: "user-2",
+      splits: [{ userId: "user-1", amount: "1.00" }],
+    },
+    {
+      groupId: null,
+      currentUserId: "user-1",
+      allowedParticipantIds: participants,
+    },
+  );
+  assert.equal(typeof payerOutsideSplit, "string");
+  assert.match(payerOutsideSplit, /payer must be included/i);
+
+  const callerOutsideSplit = validateExpenseForm(
+    {
+      title: "Lunch",
+      amount: "1.00",
+      receiptUrl: "",
+      paidByUserId: "user-2",
+      splits: [{ userId: "user-2", amount: "1.00" }],
+    },
+    {
+      groupId: null,
+      currentUserId: "user-1",
+      allowedParticipantIds: participants,
+    },
+  );
+  assert.equal(typeof callerOutsideSplit, "string");
+  assert.match(callerOutsideSplit, /you must be involved/i);
+});
+
+test("expense form validation rejects invalid amounts and split rows", async () => {
+  const { validateExpenseForm } = await loadTypeScriptModule(
+    "src/services/expenses/expenseValidation.ts",
+  );
+  const validate = (amount, splits, title = "Trip") =>
+    validateExpenseForm(
+      {
+        title,
+        amount,
+        receiptUrl: "",
+        paidByUserId: "user-1",
+        splits,
+      },
+      {
+        groupId: "group-1",
+        currentUserId: "user-1",
+        allowedParticipantIds: ["user-1", "user-2"],
+      },
+    );
+
+  assert.match(validate("0", [{ userId: "user-1", amount: "0" }]), /positive/i);
+  assert.match(
+    validate("1.234", [{ userId: "user-1", amount: "1.234" }]),
+    /two decimal/i,
+  );
+  assert.match(
+    validate("2.00", [
+      { userId: "user-1", amount: "1.00" },
+      { userId: "user-1", amount: "1.00" },
+    ]),
+    /duplicate/i,
+  );
+  assert.match(
+    validate("2.00", [{ userId: "user-1", amount: "-1.00" }]),
+    /nonnegative/i,
+  );
+  assert.match(
+    validate("2.00", [{ userId: "user-1", amount: "-0.01" }]),
+    /nonnegative/i,
+  );
+  assert.match(
+    validate("2.00", [
+      { userId: "user-1", amount: "1.00" },
+      { userId: "user-2", amount: "0.99" },
+    ]),
+    /equal the expense amount/i,
+  );
+  assert.match(
+    validate("2.00", [{ userId: "outsider", amount: "2.00" }]),
+    /available participants/i,
+  );
+  const longTitle = validate(
+    "2.00",
+    [{ userId: "user-1", amount: "2.00" }],
+    "x".repeat(151),
+  );
+  assert.equal(typeof longTitle, "string");
+  assert.match(longTitle, /150 characters/i);
+  const maximumUnicodeTitle = validate(
+    "2.00",
+    [{ userId: "user-1", amount: "2.00" }],
+    "🍱".repeat(150),
+  );
+  assert.equal(typeof maximumUnicodeTitle, "object");
+});
+
+test("equal expense splits distribute every cent including remainders", async () => {
+  const { createEqualExpenseSplits } = await loadTypeScriptModule(
+    "src/services/expenses/expenseValidation.ts",
+  );
+
+  assert.deepEqual(
+    createEqualExpenseSplits("10.01", ["user-1", "user-2", "user-3"]).map(
+      (split) => [split.userId, split.amount],
+    ),
+    [
+      ["user-1", "3.34"],
+      ["user-2", "3.34"],
+      ["user-3", "3.33"],
+    ],
+  );
+  assert.deepEqual(
+    createEqualExpenseSplits("0.02", ["user-1", "user-2", "user-3"]).map(
+      (split) => split.amount,
+    ),
+    ["0.01", "0.01", "0.00"],
+  );
+  assert.throws(() => createEqualExpenseSplits("1.00", []), /participant/i);
+});
+
+test("expense mapper preserves the recorded creator separately from the payer", async () => {
+  const { mapRowToExpenseDto } = await loadTypeScriptModule(
+    "src/services/expenses/expenseMappers.ts",
+  );
+  const expense = mapRowToExpenseDto({
+    id: "expense-1",
+    group_id: "group-1",
+    paid_by_user_id: "payer-1",
+    created_by_user_id: "creator-1",
+    title: "Lunch",
+    amount: 12,
+    receipt_url: null,
+    record_created: "2026-11-21T12:00:00Z",
+  });
+
+  assert.equal(expense.paidByUserId, "payer-1");
+  assert.equal(expense.createdByUserId, "creator-1");
+});
+
+test("expense RPCs send the selected payer while creator identity stays server-derived", async () => {
+  const rpcCalls = [];
+  const expenseRow = {
+    id: "expense-1",
+    group_id: "group-1",
+    paid_by_user_id: "payer-2",
+    created_by_user_id: "creator-1",
+    title: "Lunch",
+    amount: 12,
+    receipt_url: null,
+    record_created: "2026-11-21T12:00:00Z",
+  };
+  const expenseValidation = await loadTypeScriptModule(
+    "src/services/expenses/expenseValidation.ts",
+  );
+  const { createExpense, updateExpense } = await loadTypeScriptModule(
+    "src/services/expenses/expenseService.ts",
+    {
+      "./expenseEnrichment": {
+        enrichExpenses: async (rows) =>
+          rows.map((row) => ({
+            ...row,
+            createdByUserId: row.created_by_user_id,
+            splits: [],
+          })),
+      },
+      "./expenseMappers": {
+        mapRowToExpenseSplitDto: (row) => row,
+      },
+      "../supabase": {
+        supabase: {
+          auth: {
+            getUser: async () => ({
+              data: { user: { id: "creator-1" } },
+              error: null,
+            }),
+          },
+          rpc: async (name, args) => {
+            rpcCalls.push({ name, args });
+            return { data: expenseRow, error: null };
+          },
+        },
+      },
+      "./expenseValidation": expenseValidation,
+      "./expenseQueries": {
+        getExpenseById: async () => null,
+        getGroupExpenses: async () => [],
+        getIndividualExpenses: async () => [],
+      },
+      "./expenseBalanceService": {
+        calculateGroupBalances: async () => [],
+      },
+    },
+  );
+  const splits = [
+    { userId: "creator-1", amountOwed: 6 },
+    { userId: "payer-2", amountOwed: 6 },
+  ];
+
+  await createExpense({
+    groupId: "group-1",
+    paidByUserId: "payer-2",
+    title: "Lunch",
+    amount: 12,
+    receiptUrl: " https://example.com/receipt ",
+    splits,
+  });
+  await updateExpense("expense-1", {
+    groupId: "group-1",
+    paidByUserId: "payer-2",
+    title: "Lunch",
+    amount: 12,
+    receiptUrl: " https://example.com/receipt ",
+    splits,
+  });
+
+  assert.deepEqual(
+    rpcCalls.map(({ name, args }) => [
+      name,
+      args._paid_by_user_id,
+      args._receipt_url,
+    ]),
+    [
+      ["create_expense_with_splits", "payer-2", "https://example.com/receipt"],
+      ["update_expense_with_splits", "payer-2", "https://example.com/receipt"],
+    ],
+  );
+  assert.equal("_created_by_user_id" in rpcCalls[0].args, false);
+  assert.equal("_created_by_user_id" in rpcCalls[1].args, false);
+});
+
+test("expense service validation requires the creator and payer in personal splits", async () => {
+  const { validateExpensePayload } = await loadTypeScriptModule(
+    "src/services/expenses/expenseValidation.ts",
+  );
+  const payload = {
+    groupId: null,
+    paidByUserId: "user-2",
+    title: "Lunch",
+    amount: 10,
+    splits: [
+      { userId: "user-1", amountOwed: 4 },
+      { userId: "user-2", amountOwed: 6 },
+    ],
+  };
+
+  assert.doesNotThrow(() => validateExpensePayload(payload, "user-1"));
+  assert.throws(
+    () =>
+      validateExpensePayload(
+        { ...payload, splits: [{ userId: "user-2", amountOwed: 10 }] },
+        "user-1",
+      ),
+    /you must be involved/i,
+  );
+  assert.throws(
+    () =>
+      validateExpensePayload({ ...payload, paidByUserId: "user-3" }, "user-1"),
+    /payer must be included/i,
+  );
+});
+
+test("expense creation remains locally successful when balance refresh fails", async () => {
+  const created = {
+    id: "expense-1",
+    groupId: "group-1",
+    paidByUserId: "payer-1",
+    title: "Lunch",
+    amount: 12,
+    receiptUrl: null,
+    recordCreated: "2026-11-21T12:00:00Z",
+    splits: [],
+  };
+  const { createExpenseCreateActions } = await loadTypeScriptModule(
+    "src/state/expenses/expenseCreateActions.ts",
+    {
+      "../../services": {
+        createExpense: async () => created,
+        updateExpense: async () => created,
+        calculateGroupBalances: async () => {
+          throw new Error("Balance refresh failed");
+        },
+      },
+      "../shared/storeUtils": {
+        getErrorMessage: (error) => String(error),
+      },
+    },
+  );
+  const state = {
+    groupExpenses: [],
+    individualExpenses: [],
+    selectedExpense: null,
+    groupBalances: [],
+    isLoading: false,
+    error: null,
+  };
+  const actions = createExpenseCreateActions(
+    (update) => Object.assign(state, update),
+    () => state,
+  );
+  const result = await actions.addExpense({
+    groupId: "group-1",
+    paidByUserId: "payer-1",
+    title: "Lunch",
+    amount: 12,
+    splits: [{ userId: "payer-1", amountOwed: 12 }],
+  });
+
+  assert.equal(result, created);
+  assert.equal(state.groupExpenses[0], created);
+  assert.equal(state.isLoading, false);
+  assert.match(state.error, /created, but.*balances could not be refreshed/i);
+});
+
+test("expense store refuses to settle or unsettle the payer's own split", async () => {
+  let settleCalls = 0;
+  const expense = {
+    id: "expense-1",
+    groupId: "group-1",
+    paidByUserId: "payer-1",
+    title: "Lunch",
+    amount: 12,
+    receiptUrl: null,
+    recordCreated: "2026-11-21T12:00:00Z",
+    splits: [
+      {
+        id: "payer-split",
+        expenseId: "expense-1",
+        userId: "payer-1",
+        amountOwed: 6,
+        isSettled: true,
+      },
+    ],
+  };
+  const { createExpenseSplitActions } = await loadTypeScriptModule(
+    "src/state/expenses/expenseSplitActions.ts",
+    {
+      "../../services": {
+        calculateGroupBalances: async () => [],
+        settleExpenseSplit: async () => {
+          settleCalls += 1;
+        },
+      },
+      "../shared/storeUtils": {
+        getErrorMessage: (error) => String(error),
+      },
+    },
+  );
+  const state = {
+    groupExpenses: [expense],
+    individualExpenses: [],
+    selectedExpense: expense,
+    groupBalances: [],
+    isLoading: false,
+    error: null,
+  };
+  const actions = createExpenseSplitActions(
+    (update) => Object.assign(state, update),
+    () => state,
+  );
+
+  await assert.rejects(
+    actions.toggleSettleSplit("payer-split", false, "group-1"),
+    /payer's own split/i,
+  );
+  assert.equal(settleCalls, 0);
+  assert.equal(state.isLoading, false);
+});
+
+test("settling and unsettling a split updates cached expenses and group balances", async () => {
+  const expense = {
+    id: "expense-1",
+    groupId: "group-1",
+    paidByUserId: "payer-1",
+    title: "Lunch",
+    amount: 12,
+    receiptUrl: null,
+    recordCreated: "2026-11-21T12:00:00Z",
+    splits: [
+      {
+        id: "debtor-split",
+        expenseId: "expense-1",
+        userId: "debtor-1",
+        amountOwed: 6,
+        isSettled: false,
+      },
+    ],
+  };
+  const settledBalances = [{ userId: "payer-1", balance: 0 }];
+  const unsettledBalances = [{ userId: "debtor-1", balance: -6 }];
+  const settleCalls = [];
+  let balanceCall = 0;
+  const { createExpenseSplitActions } = await loadTypeScriptModule(
+    "src/state/expenses/expenseSplitActions.ts",
+    {
+      "../../services": {
+        calculateGroupBalances: async (groupId) => {
+          assert.equal(groupId, "group-1");
+          balanceCall += 1;
+          return balanceCall === 1 ? settledBalances : unsettledBalances;
+        },
+        settleExpenseSplit: async (...args) => settleCalls.push(args),
+      },
+      "../shared/storeUtils": {
+        getErrorMessage: (error) => String(error),
+      },
+    },
+  );
+  const state = {
+    groupExpenses: [expense],
+    individualExpenses: [],
+    selectedExpense: expense,
+    groupBalances: [],
+    isLoading: false,
+    error: null,
+  };
+  const actions = createExpenseSplitActions(
+    (update) => Object.assign(state, update),
+    () => state,
+  );
+
+  await actions.toggleSettleSplit("debtor-split", true, "group-1");
+  assert.deepEqual(settleCalls, [["debtor-split", true]]);
+  assert.equal(state.groupExpenses[0].splits[0].isSettled, true);
+  assert.equal(state.selectedExpense.splits[0].isSettled, true);
+  assert.deepEqual(state.groupBalances, settledBalances);
+  assert.equal(state.groupBalancesGroupId, "group-1");
+
+  await actions.toggleSettleSplit("debtor-split", false, "group-1");
+  assert.deepEqual(settleCalls, [
+    ["debtor-split", true],
+    ["debtor-split", false],
+  ]);
+  assert.equal(state.groupExpenses[0].splits[0].isSettled, false);
+  assert.equal(state.selectedExpense.splits[0].isSettled, false);
+  assert.deepEqual(state.groupBalances, unsettledBalances);
+  assert.equal(state.isLoading, false);
+});
+
+test("personal expense participants merge group members and all known expense profiles", async () => {
+  const { getUserExpenseParticipants } = await loadTypeScriptModule(
+    "src/services/expenses/expenseQueries.ts",
+    {
+      "./expenseEnrichment": { enrichExpenses: async () => [] },
+      "../supabase": { supabase: {} },
+      "../groups": {
+        getUserActiveGroups: async () => [
+          { group: { id: "group-1" } },
+          { group: { id: "group-2" } },
+        ],
+        getGroupMembers: async (groupId) =>
+          groupId === "group-1"
+            ? [
+                {
+                  userId: "group-user",
+                  userProfile: { id: "group-user", displayName: "Group User" },
+                },
+                {
+                  userId: "shared-user",
+                  userProfile: { id: "shared-user", displayName: "Shared" },
+                },
+              ]
+            : [
+                {
+                  userId: "shared-user",
+                  userProfile: { id: "shared-user", displayName: "Shared" },
+                },
+              ],
+      },
+    },
+  );
+  assert.equal(typeof getUserExpenseParticipants, "function");
+
+  const profile = (id) => ({
+    id,
+    displayName: id,
+    profilePictureUrl: null,
+    customBio: null,
+    recordCreated: "2026-01-01",
+  });
+  const participants = await getUserExpenseParticipants("user-1", [
+    {
+      paidByProfile: profile("history-payer"),
+      createdByProfile: profile("history-creator"),
+      splits: [{ userProfile: profile("history-split") }],
+    },
+    {
+      paidByProfile: profile("history-payer"),
+      createdByProfile: profile("history-creator"),
+      splits: [{ userProfile: profile("shared-user") }],
+    },
+  ]);
+
+  assert.deepEqual(
+    Array.from(participants, (participant) => participant.id).sort(),
+    [
+      "group-user",
+      "history-creator",
+      "history-payer",
+      "history-split",
+      "shared-user",
+    ],
+  );
 });

@@ -15,17 +15,32 @@ export const createExpenseDeleteActions: ExpenseActionCreator<
       const individualExpenses = get().individualExpenses.filter(
         (expense) => expense.id !== expenseId,
       );
+      set({
+        groupExpenses,
+        individualExpenses,
+        selectedExpense:
+          get().selectedExpense?.id === expenseId
+            ? null
+            : get().selectedExpense,
+      });
 
-      if (typeof groupId === "string") {
+      if (typeof groupId !== "string") {
+        set({ isLoading: false });
+        return;
+      }
+
+      try {
         const groupBalances = await calculateGroupBalances(groupId);
         set({
-          groupExpenses,
-          individualExpenses,
           groupBalances,
+          groupBalancesGroupId: groupId,
           isLoading: false,
         });
-      } else {
-        set({ groupExpenses, individualExpenses, isLoading: false });
+      } catch (error) {
+        set({
+          error: `Expense deleted, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+          isLoading: false,
+        });
       }
     } catch (error) {
       set({

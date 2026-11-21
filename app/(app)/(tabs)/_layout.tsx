@@ -70,6 +70,20 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="expenses"
+        options={{
+          title: "Expenses",
+          tabBarButtonTestID: "tab-expenses",
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              name={focused ? "wallet" : "wallet-outline"}
+              size={24}
+              color={focused ? colors.primary : colors.muted}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

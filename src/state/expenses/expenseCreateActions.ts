@@ -3,6 +3,7 @@ import {
   createExpense,
   updateExpense,
 } from "../../services";
+import type { ExpenseDto } from "../../types";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
 import { getErrorMessage } from "../shared/storeUtils";
 
@@ -11,22 +12,9 @@ export const createExpenseCreateActions: ExpenseActionCreator<
 > = (set, get) => ({
   addExpense: async (payload) => {
     set({ isLoading: true, error: null });
+    let created: ExpenseDto;
     try {
-      const created = await createExpense(payload);
-      if (payload.groupId !== null) {
-        const groupBalances = await calculateGroupBalances(payload.groupId);
-        set({
-          groupExpenses: [created, ...get().groupExpenses],
-          groupBalances,
-          isLoading: false,
-        });
-      } else {
-        set({
-          individualExpenses: [created, ...get().individualExpenses],
-          isLoading: false,
-        });
-      }
-      return created;
+      created = await createExpense(payload);
     } catch (error) {
       set({
         error: getErrorMessage(error, "Could not add expense."),
@@ -34,31 +22,37 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       });
       throw error;
     }
+
+    if (payload.groupId === null) {
+      set({
+        individualExpenses: [created, ...get().individualExpenses],
+        isLoading: false,
+      });
+      return created;
+    }
+
+    set({ groupExpenses: [created, ...get().groupExpenses] });
+    try {
+      const groupBalances = await calculateGroupBalances(payload.groupId);
+      set({
+        groupBalances,
+        groupBalancesGroupId: payload.groupId,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: `Expense created, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+        isLoading: false,
+      });
+    }
+    return created;
   },
 
   updateExpense: async (expenseId, payload) => {
     set({ isLoading: true, error: null });
+    let updated: ExpenseDto;
     try {
-      const updated = await updateExpense(expenseId, payload);
-      const groupBalances =
-        updated.groupId !== null
-          ? await calculateGroupBalances(updated.groupId)
-          : get().groupBalances;
-      set({
-        groupExpenses: get().groupExpenses.map((expense) =>
-          expense.id === expenseId ? updated : expense,
-        ),
-        individualExpenses: get().individualExpenses.map((expense) =>
-          expense.id === expenseId ? updated : expense,
-        ),
-        selectedExpense:
-          get().selectedExpense?.id === expenseId
-            ? updated
-            : get().selectedExpense,
-        groupBalances,
-        isLoading: false,
-      });
-      return updated;
+      updated = await updateExpense(expenseId, payload);
     } catch (error) {
       set({
         error: getErrorMessage(error, "Could not update expense."),
@@ -66,5 +60,38 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       });
       throw error;
     }
+
+    set({
+      groupExpenses: get().groupExpenses.map((expense) =>
+        expense.id === expenseId ? updated : expense,
+      ),
+      individualExpenses: get().individualExpenses.map((expense) =>
+        expense.id === expenseId ? updated : expense,
+      ),
+      selectedExpense:
+        get().selectedExpense?.id === expenseId
+          ? updated
+          : get().selectedExpense,
+    });
+
+    if (updated.groupId === null) {
+      set({ isLoading: false });
+      return updated;
+    }
+
+    try {
+      const groupBalances = await calculateGroupBalances(updated.groupId);
+      set({
+        groupBalances,
+        groupBalancesGroupId: updated.groupId,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: `Expense updated, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+        isLoading: false,
+      });
+    }
+    return updated;
   },
 });

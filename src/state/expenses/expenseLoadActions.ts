@@ -20,7 +20,12 @@ export const createExpenseLoadActions: ExpenseActionCreator<
         groupId,
         groupExpenses,
       );
-      set({ groupExpenses, groupBalances, isLoading: false });
+      set({
+        groupExpenses,
+        groupBalances,
+        groupBalancesGroupId: groupId,
+        isLoading: false,
+      });
     } catch (error) {
       set({
         error: getErrorMessage(error, "Could not load group expenses."),

@@ -107,6 +107,7 @@ export interface Database {
           id: string;
           group_id: string | null;
           paid_by_user_id: string;
+          created_by_user_id: string;
           title: string;
           amount: number;
           receipt_url: string | null;
@@ -116,6 +117,7 @@ export interface Database {
           id?: string;
           group_id?: string | null;
           paid_by_user_id: string;
+          created_by_user_id: string;
           title: string;
           amount: number;
           receipt_url?: string | null;
@@ -168,6 +170,7 @@ export interface Database {
       create_expense_with_splits: {
         Args: {
           _group_id: string | null;
+          _paid_by_user_id: string;
           _title: string;
           _amount: number;
           _receipt_url: string | null;
@@ -178,6 +181,7 @@ export interface Database {
       update_expense_with_splits: {
         Args: {
           _expense_id: string;
+          _paid_by_user_id: string;
           _title: string;
           _amount: number;
           _receipt_url: string | null;

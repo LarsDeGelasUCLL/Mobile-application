@@ -1,6 +1,37 @@
 import type { ExpenseDto } from "../../types";
+import type { PublicUserProfileDto } from "../../types";
 import { enrichExpenses } from "./expenseEnrichment";
+import { getGroupMembers, getUserActiveGroups } from "../groups";
 import { supabase } from "../supabase";
+
+export async function getUserExpenseParticipants(
+  userId: string,
+  personalExpenses: ExpenseDto[],
+): Promise<PublicUserProfileDto[]> {
+  const groups = await getUserActiveGroups(userId);
+  const membershipsByGroup = await Promise.all(
+    groups.map(({ group }) => getGroupMembers(group.id)),
+  );
+  const participants = new Map<string, PublicUserProfileDto>();
+  const addProfile = (profile?: PublicUserProfileDto) => {
+    if (profile && !participants.has(profile.id)) {
+      participants.set(profile.id, profile);
+    }
+  };
+
+  for (const membership of membershipsByGroup.flat()) {
+    addProfile(membership.userProfile);
+  }
+  for (const expense of personalExpenses) {
+    addProfile(expense.paidByProfile);
+    addProfile(expense.createdByProfile);
+    for (const split of expense.splits) {
+      addProfile(split.userProfile);
+    }
+  }
+
+  return Array.from(participants.values());
+}
 
 export async function getGroupExpenses(groupId: string): Promise<ExpenseDto[]> {
   const { data, error } = await supabase

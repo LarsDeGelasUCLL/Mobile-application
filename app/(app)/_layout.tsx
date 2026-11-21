@@ -1,6 +1,10 @@
 import { Redirect, Stack } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
-import { Screen, Stack as ContentStack, Text } from "../../src/components/primitives";
+import {
+  Screen,
+  Stack as ContentStack,
+  Text,
+} from "../../src/components/primitives";
 import { StyledButton } from "../../src/components/common/StyledButton";
 
 export default function AppLayout() {
@@ -40,6 +44,9 @@ export default function AppLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="group/[groupId]" />
+      <Stack.Screen name="expense/create" />
+      <Stack.Screen name="expense/[expenseId]" />
+      <Stack.Screen name="expense/edit/[expenseId]" />
     </Stack>
   );
 }

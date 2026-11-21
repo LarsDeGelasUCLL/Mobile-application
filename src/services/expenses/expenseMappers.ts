@@ -23,16 +23,19 @@ export function mapRowToExpenseDto(
   row: Database["public"]["Tables"]["expenses"]["Row"],
   paidByProfile?: PublicUserProfileDto,
   splits: ExpenseSplitDto[] = [],
+  createdByProfile?: PublicUserProfileDto,
 ): ExpenseDto {
   return {
     id: String(row.id ?? ""),
     groupId: typeof row.group_id === "string" ? row.group_id : null,
     paidByUserId: String(row.paid_by_user_id ?? ""),
+    createdByUserId: String(row.created_by_user_id ?? ""),
     title: String(row.title ?? ""),
     amount: Number(row.amount ?? 0),
     receiptUrl: typeof row.receipt_url === "string" ? row.receipt_url : null,
     recordCreated: String(row.record_created ?? ""),
     paidByProfile,
+    createdByProfile,
     splits,
   };
 }

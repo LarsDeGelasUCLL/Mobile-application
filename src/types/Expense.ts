@@ -15,11 +15,13 @@ export interface ExpenseDto {
   id: string;
   groupId: string | null; // null = individual expense, not linked to a group
   paidByUserId: string;
+  createdByUserId: string;
   title: string;
   amount: number;
   receiptUrl: string | null;
   recordCreated: string;
   paidByProfile?: PublicUserProfileDto;
+  createdByProfile?: PublicUserProfileDto;
   splits: ExpenseSplitDto[];
 }
 
@@ -30,6 +32,8 @@ export interface CreateExpenseSplitInput {
 }
 
 export interface UpdateExpenseDto {
+  groupId: string | null;
+  paidByUserId: string;
   title: string;
   amount: number;
   receiptUrl?: string | null;

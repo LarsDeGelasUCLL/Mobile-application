@@ -10,7 +10,7 @@ interface InputFieldProps {
   secureTextEntry?: boolean;
   error?: string;
   testID?: string;
-  keyboardType?: "default" | "email-address";
+  keyboardType?: "default" | "email-address" | "decimal-pad";
   editable?: boolean;
 }
 

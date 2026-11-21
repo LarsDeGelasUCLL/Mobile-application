@@ -21,8 +21,16 @@ import {
 import { loadGroupDetail } from "../../../src/features/groups/groupDetailLoader";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
+import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import type { GroupRole, UpdateGroupDto } from "../../../src/types";
 import { colors } from "../../../src/theme/colors";
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "EUR",
+  }).format(amount);
+}
 
 export default function GroupDetailScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
@@ -53,9 +61,24 @@ export default function GroupDetailScreen() {
   );
   const setSelectedGroupId = useGroupStore((state) => state.setSelectedGroupId);
   const clearError = useGroupStore((state) => state.clearError);
+  const expensesInStore = useExpenseStore((state) => state.groupExpenses);
+  const groupBalances = useExpenseStore((state) => state.groupBalances);
+  const groupBalancesGroupId = useExpenseStore(
+    (state) => state.groupBalancesGroupId,
+  );
+  const expensesLoading = useExpenseStore((state) => state.isLoading);
+  const expensesError = useExpenseStore((state) => state.error);
+  const fetchGroupExpensesAndBalances = useExpenseStore(
+    (state) => state.fetchGroupExpensesAndBalances,
+  );
+  const clearExpenseError = useExpenseStore((state) => state.clearError);
 
   const groupMembership = groups.find((item) => item.group.id === groupId);
   const group = groupMembership?.group;
+  const groupExpenses = expensesInStore.filter(
+    (expense) => expense.groupId === groupId,
+  );
+  const visibleBalances = groupBalancesGroupId === groupId ? groupBalances : [];
   const isAdmin = groupMembership?.groupRole === "ADMIN";
   const currentMembership = activeGroupMembers.find(
     (membership) => membership.userId === user?.id,
@@ -74,6 +97,7 @@ export default function GroupDetailScreen() {
   const loadGroup = useCallback(async () => {
     if (!user?.id || !groupId) return;
     clearError();
+    clearExpenseError();
     try {
       const isActive = await loadGroupDetail(
         user.id,
@@ -85,12 +109,16 @@ export default function GroupDetailScreen() {
       );
       if (!isActive) {
         setSelectedGroupId(null);
+        return;
       }
+      await fetchGroupExpensesAndBalances(groupId);
     } catch {
-      // The store exposes the load failure for the retry banner.
+      // The relevant store exposes the load failure for its retry banner.
     }
   }, [
     clearError,
+    clearExpenseError,
+    fetchGroupExpensesAndBalances,
     fetchGroupsAndInvites,
     fetchMembersForGroup,
     groupId,
@@ -197,7 +225,7 @@ export default function GroupDetailScreen() {
   return (
     <Screen
       padding="lg"
-      refreshing={isLoading}
+      refreshing={isLoading || expensesLoading}
       onRefresh={() => void loadGroup()}
     >
       <View style={styles.container} testID="group-detail-screen">
@@ -232,6 +260,27 @@ export default function GroupDetailScreen() {
                   variant="secondary"
                   isLoading={isLoading}
                   testID="group-detail-retry-button"
+                />
+              </Stack>
+            </Card>
+          ) : null}
+
+          {expensesError ? (
+            <Card>
+              <Stack gap="sm">
+                <Text size="sm" color={colors.error}>
+                  {expensesError}
+                </Text>
+                <StyledButton
+                  label="Retry expenses"
+                  onPress={() =>
+                    void fetchGroupExpensesAndBalances(groupId).catch(
+                      () => undefined,
+                    )
+                  }
+                  variant="secondary"
+                  isLoading={expensesLoading}
+                  testID="group-expenses-retry-button"
                 />
               </Stack>
             </Card>
@@ -276,6 +325,128 @@ export default function GroupDetailScreen() {
                   </Text>
                 </Stack>
               </Card>
+
+              <Stack gap="sm">
+                <Row justify="space-between" align="center">
+                  <Text size="lg" weight="bold">
+                    Expenses and balances
+                  </Text>
+                  <View style={styles.actionColumn}>
+                    <StyledButton
+                      label="Add expense"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/expense/create",
+                          params: { groupId },
+                        })
+                      }
+                      variant="secondary"
+                      testID="create-group-expense-button"
+                    />
+                  </View>
+                </Row>
+
+                <Text size="md" weight="bold">
+                  Group balances
+                </Text>
+                {expensesLoading && visibleBalances.length === 0 ? (
+                  <Card>
+                    <Stack gap="sm">
+                      <Skeleton height={20} width="60%" />
+                      <Skeleton height={18} width="45%" />
+                    </Stack>
+                  </Card>
+                ) : groupBalancesGroupId !== groupId && !expensesError ? (
+                  <Card>
+                    <Text size="sm" color={colors.muted}>
+                      Balances are loading.
+                    </Text>
+                  </Card>
+                ) : visibleBalances.length === 0 ? (
+                  <EmptyState
+                    title="No balances yet"
+                    description="Balances appear after your group records its first expense."
+                  />
+                ) : (
+                  visibleBalances.map((balance) => (
+                    <Card key={balance.userId}>
+                      <Row justify="space-between" align="center">
+                        <Text weight="medium">{balance.displayName}</Text>
+                        <Text
+                          weight="bold"
+                          color={
+                            balance.netBalance > 0
+                              ? colors.success
+                              : balance.netBalance < 0
+                                ? colors.error
+                                : colors.muted
+                          }
+                        >
+                          {balance.netBalance === 0
+                            ? "Settled up"
+                            : balance.netBalance > 0
+                              ? `Owed ${formatCurrency(balance.netBalance)}`
+                              : `Owes ${formatCurrency(-balance.netBalance)}`}
+                        </Text>
+                      </Row>
+                    </Card>
+                  ))
+                )}
+
+                <Text size="md" weight="bold">
+                  Recent expenses
+                </Text>
+                {expensesLoading && groupExpenses.length === 0 ? (
+                  <Card>
+                    <Stack gap="sm">
+                      <Skeleton height={22} width="55%" />
+                      <Skeleton height={16} width="80%" />
+                    </Stack>
+                  </Card>
+                ) : groupExpenses.length === 0 ? (
+                  <EmptyState
+                    title="No group expenses"
+                    description="Add an expense to start tracking shared costs."
+                    action={
+                      <StyledButton
+                        label="Add expense"
+                        onPress={() =>
+                          router.push({
+                            pathname: "/expense/create",
+                            params: { groupId },
+                          })
+                        }
+                      />
+                    }
+                  />
+                ) : (
+                  groupExpenses.map((expense) => (
+                    <Card
+                      key={expense.id}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/expense/[expenseId]",
+                          params: { expenseId: expense.id },
+                        })
+                      }
+                    >
+                      <Row justify="space-between" align="center">
+                        <Stack gap="none" flex={1}>
+                          <Text weight="bold">{expense.title}</Text>
+                          <Text size="sm" color={colors.muted}>
+                            Paid by{" "}
+                            {expense.paidByProfile?.displayName ??
+                              "Group member"}
+                          </Text>
+                        </Stack>
+                        <Text weight="bold">
+                          {formatCurrency(expense.amount)}
+                        </Text>
+                      </Row>
+                    </Card>
+                  ))
+                )}
+              </Stack>
 
               <Stack gap="sm">
                 <Text size="lg" weight="bold">

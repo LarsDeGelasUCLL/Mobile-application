@@ -11,6 +11,7 @@ export interface ExpenseState {
   individualExpenses: ExpenseDto[];
   selectedExpense: ExpenseDto | null;
   groupBalances: UserBalanceDto[];
+  groupBalancesGroupId: string | null;
   isLoading: boolean;
   error: string | null;
   fetchGroupExpensesAndBalances: (groupId: string) => Promise<void>;

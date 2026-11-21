@@ -20,6 +20,22 @@ export const createExpenseSplitActions: ExpenseActionCreator<
   "toggleSettleSplit"
 > = (set, get) => ({
   toggleSettleSplit: async (splitId, isSettled, groupId) => {
+    const state = get();
+    const expense = [
+      state.selectedExpense,
+      ...state.groupExpenses,
+      ...state.individualExpenses,
+    ].find((candidate) =>
+      candidate?.splits.some((split) => split.id === splitId),
+    );
+    const split = expense?.splits.find((item) => item.id === splitId);
+    if (!expense || !split) {
+      throw new Error("Expense split is not available in the store.");
+    }
+    if (split.userId === expense.paidByUserId) {
+      throw new Error("Cannot change settlement for the payer's own split.");
+    }
+
     set({ isLoading: true, error: null });
     try {
       await settleExpenseSplit(splitId, isSettled);
@@ -38,20 +54,23 @@ export const createExpenseSplitActions: ExpenseActionCreator<
         ? updateSplitStatus([currentSelectedExpense], splitId, isSettled)[0]
         : null;
 
-      if (typeof groupId === "string") {
+      set({ groupExpenses, individualExpenses, selectedExpense });
+
+      if (typeof groupId !== "string") {
+        set({ isLoading: false });
+        return;
+      }
+
+      try {
         const groupBalances = await calculateGroupBalances(groupId);
         set({
-          groupExpenses,
-          individualExpenses,
-          selectedExpense,
           groupBalances,
+          groupBalancesGroupId: groupId,
           isLoading: false,
         });
-      } else {
+      } catch (error) {
         set({
-          groupExpenses,
-          individualExpenses,
-          selectedExpense,
+          error: `Payment status updated, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
           isLoading: false,
         });
       }
