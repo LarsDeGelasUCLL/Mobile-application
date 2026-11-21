@@ -22,3 +22,14 @@ yarn-error.*
 expo-env.d.ts
 # @end expo-cli
 storybook-static/
+
+.codegraph/
+.github/
+.playwright-mcp/
+.serena/
+
+repomix-output.xml
+
+task_plan.md
+findings.md
+progress.md
