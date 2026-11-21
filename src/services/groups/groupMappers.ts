@@ -8,11 +8,17 @@ import type {
 import type { Database } from "../../types/database.types";
 
 function parseGroupRole(value: unknown): GroupRole {
-  return value === "ADMIN" ? "ADMIN" : "MEMBER";
+  if (value === "ADMIN" || value === "MEMBER") {
+    return value;
+  }
+  throw new Error(`Unexpected membership role: ${String(value)}`);
 }
 
 function parseMembershipStatus(value: unknown): MembershipStatus {
-  return value === "ACTIVE" ? "ACTIVE" : "PENDING";
+  if (value === "ACTIVE" || value === "PENDING") {
+    return value;
+  }
+  throw new Error(`Unexpected membership status: ${String(value)}`);
 }
 
 export function mapRowToGroupDto(

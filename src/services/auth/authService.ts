@@ -20,6 +20,13 @@ function buildAuthenticatedUser(profile: UserProfileDto, token: string): User {
   };
 }
 
+export class EmailConfirmationRequiredError extends Error {
+  constructor(readonly email: string) {
+    super("Registration succeeded. Check your email to confirm your account.");
+    this.name = "EmailConfirmationRequiredError";
+  }
+}
+
 export async function login(payload: LoginRequestDto): Promise<User> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: payload.email.trim(),
@@ -52,9 +59,7 @@ export async function register(payload: RegisterRequestDto): Promise<User> {
     throw new Error(error?.message ?? "Registration failed.");
   }
   if (!data.session) {
-    throw new Error(
-      "Registration succeeded, but Supabase did not return a session. Check the email confirmation settings.",
-    );
+    throw new EmailConfirmationRequiredError(payload.email.trim());
   }
 
   const profile = await getUserProfile(data.user.id);

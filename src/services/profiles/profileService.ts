@@ -10,6 +10,18 @@ import {
 } from "./profileMappers";
 import { supabase } from "../supabase";
 
+export class ProfileUpdatePartialSuccessError extends Error {
+  constructor(
+    readonly profile: UserProfileDto,
+    readonly authError: Error,
+  ) {
+    super(
+      `Profile data was updated, but Auth metadata update failed: ${authError.message}`,
+    );
+    this.name = "ProfileUpdatePartialSuccessError";
+  }
+}
+
 export {
   mapRowToPublicUserProfileDto,
   mapRowToUserProfileDto,
@@ -59,7 +71,9 @@ export async function updateUserProfile(
     ...(payload.profilePictureUrl !== undefined
       ? { profilePictureUrl: payload.profilePictureUrl }
       : {}),
-    ...(payload.customBio !== undefined ? { customBio: payload.customBio } : {}),
+    ...(payload.customBio !== undefined
+      ? { customBio: payload.customBio }
+      : {}),
   };
   const { data, error } = await supabase.rpc("update_my_user_profile", {
     _payload: updatePayload,
@@ -77,7 +91,10 @@ export async function updateUserProfile(
       data: { display_name: displayName, name: displayName },
     });
     if (authError) {
-      throw new Error(authError.message);
+      throw new ProfileUpdatePartialSuccessError(
+        mapRowToUserProfileDto(data),
+        new Error(authError.message),
+      );
     }
   }
 

@@ -19,6 +19,11 @@ export async function getGroupExpenses(groupId: string): Promise<ExpenseDto[]> {
 export async function getIndividualExpenses(
   userId: string,
 ): Promise<ExpenseDto[]> {
+  const { data: currentUser, error: authError } = await supabase.auth.getUser();
+  if (authError || !currentUser.user || currentUser.user.id !== userId) {
+    throw new Error(authError?.message ?? "Not logged in as this user.");
+  }
+
   const { data: splitMatches, error: splitError } = await supabase
     .from("expense_splits")
     .select("expense_id")

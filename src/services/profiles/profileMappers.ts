@@ -10,7 +10,7 @@ function parseUiTheme(value: unknown): UiTheme {
   if (value === "LIGHT" || value === "DARK" || value === "SYSTEM") {
     return value;
   }
-  return "SYSTEM";
+  throw new Error(`Unexpected UI theme: ${String(value)}`);
 }
 
 export function mapRowToUserProfileDto(

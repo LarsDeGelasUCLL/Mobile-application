@@ -13,6 +13,10 @@ type Table<Row, Insert, Update = Partial<Insert>> = {
   Relationships: [];
 };
 
+export type GroupRole = "ADMIN" | "MEMBER";
+export type MembershipStatus = "PENDING" | "ACTIVE";
+export type UiTheme = "SYSTEM" | "LIGHT" | "DARK";
+
 export interface Database {
   public: {
     Tables: {
@@ -42,7 +46,7 @@ export interface Database {
         {
           user_id: string;
           push_notification_token: string | null;
-          ui_theme: string;
+          ui_theme: UiTheme;
           language_code: string;
           notify_new_expense: boolean;
           notify_reminders: boolean;
@@ -51,7 +55,7 @@ export interface Database {
         {
           user_id: string;
           push_notification_token?: string | null;
-          ui_theme?: string;
+          ui_theme?: UiTheme;
           language_code?: string;
           notify_new_expense?: boolean;
           notify_reminders?: boolean;
@@ -83,8 +87,8 @@ export interface Database {
           id: string;
           user_id: string;
           group_id: string;
-          group_role: string;
-          status: string;
+          group_role: GroupRole;
+          status: MembershipStatus;
           invited_by: string | null;
           joined_at: string;
         },
@@ -92,8 +96,8 @@ export interface Database {
           id?: string;
           user_id: string;
           group_id: string;
-          group_role?: string;
-          status?: string;
+          group_role?: GroupRole;
+          status?: MembershipStatus;
           invited_by?: string | null;
           joined_at?: string;
         }

@@ -1,8 +1,4 @@
-import type {
-  GroupInviteDto,
-  MembershipDto,
-  UserGroupDto,
-} from "../../types";
+import type { GroupInviteDto, MembershipDto, UserGroupDto } from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
 import { supabase } from "../supabase";
@@ -10,6 +6,11 @@ import { supabase } from "../supabase";
 export async function getUserActiveGroups(
   userId: string,
 ): Promise<UserGroupDto[]> {
+  const { data: currentUser, error: authError } = await supabase.auth.getUser();
+  if (authError || !currentUser.user || currentUser.user.id !== userId) {
+    throw new Error(authError?.message ?? "Not logged in as this user.");
+  }
+
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
     .select("*")
@@ -21,9 +22,7 @@ export async function getUserActiveGroups(
   }
   if (!memberships?.length) return [];
 
-  const groupIds = memberships.map((membership) =>
-    String(membership.group_id),
-  );
+  const groupIds = memberships.map((membership) => String(membership.group_id));
   const { data: groups, error: groupsError } = await supabase
     .from("groups")
     .select("*")
@@ -36,13 +35,14 @@ export async function getUserActiveGroups(
   return memberships.flatMap((membership) => {
     const group = groups.find((item) => item.id === membership.group_id);
     return group
-      ? [{
-          membershipId: String(membership.id),
-          groupRole:
-            membership.group_role === "ADMIN" ? "ADMIN" : "MEMBER",
-          joinedAt: String(membership.joined_at ?? ""),
-          group: mapRowToGroupDto(group),
-        }]
+      ? [
+          {
+            membershipId: String(membership.id),
+            groupRole: mapRowToMembershipDto(membership).groupRole,
+            joinedAt: String(membership.joined_at ?? ""),
+            group: mapRowToGroupDto(group),
+          },
+        ]
       : [];
   });
 }
@@ -84,6 +84,11 @@ export async function getGroupMembers(
 export async function getUserPendingInvites(
   userId: string,
 ): Promise<GroupInviteDto[]> {
+  const { data: currentUser, error: authError } = await supabase.auth.getUser();
+  if (authError || !currentUser.user || currentUser.user.id !== userId) {
+    throw new Error(authError?.message ?? "Not logged in as this user.");
+  }
+
   const { data: pendingRows, error } = await supabase
     .from("memberships")
     .select("*")
@@ -110,7 +115,9 @@ export async function getUserPendingInvites(
     inviterIds.length > 0
       ? await supabase
           .from("user_profiles")
-          .select("id, display_name, profile_picture_url, custom_bio, record_created")
+          .select(
+            "id, display_name, profile_picture_url, custom_bio, record_created",
+          )
           .in("id", inviterIds)
       : { data: [], error: null };
   if (invitersError) {
@@ -122,13 +129,15 @@ export async function getUserPendingInvites(
     if (!group) return [];
 
     const inviter = inviters?.find((profile) => profile.id === row.invited_by);
-    return [{
-      membershipId: String(row.id),
-      joinedAt: String(row.joined_at ?? ""),
-      group: mapRowToGroupDto(group),
-      invitedByProfile: inviter
-        ? mapRowToPublicUserProfileDto(inviter)
-        : null,
-    }];
+    return [
+      {
+        membershipId: String(row.id),
+        joinedAt: String(row.joined_at ?? ""),
+        group: mapRowToGroupDto(group),
+        invitedByProfile: inviter
+          ? mapRowToPublicUserProfileDto(inviter)
+          : null,
+      },
+    ];
   });
 }
