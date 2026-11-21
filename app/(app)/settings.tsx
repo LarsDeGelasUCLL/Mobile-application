@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
+import { useSettingsStore } from "../../src/state/useSettingsStore";
+import type { UpdateUserSettingsDto } from "../../src/types";
 import {
   Card,
   Checkbox,
@@ -16,12 +18,26 @@ import { StyledButton } from "../../src/components/common/StyledButton";
 import { colors } from "../../src/theme/colors";
 
 export default function SettingsScreen() {
-  const { logout } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const { settings, isLoading, error, fetchSettings, updateSettings } =
+    useSettingsStore();
 
-  const [notifyNewExpense, setNotifyNewExpense] = useState(true);
-  const [notifyReminders, setNotifyReminders] = useState(true);
-  const [notifyGroupUpdates, setNotifyGroupUpdates] = useState(false);
-  const [notifyPaymentUpdates, setNotifyPaymentUpdates] = useState(true);
+  useEffect(() => {
+    if (user) {
+      void fetchSettings(user.id).catch((loadError) =>
+        console.error("Could not load settings.", loadError),
+      );
+    }
+  }, [fetchSettings, user?.id]);
+
+  const saveSettings = (payload: UpdateUserSettingsDto) => {
+    if (user) {
+      void updateSettings(user.id, payload).catch((updateError) =>
+        console.error("Could not save settings.", updateError),
+      );
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -112,29 +128,57 @@ export default function SettingsScreen() {
                 Choose which group updates you would like to receive.
               </Text>
               <Divider spacing="sm" />
-              <Checkbox
-                label="New group expenses"
-                checked={notifyNewExpense}
-                onChange={setNotifyNewExpense}
-              />
-              <Checkbox
-                label="Payment reminders"
-                checked={notifyReminders}
-                onChange={setNotifyReminders}
-              />
-              <Checkbox
-                label="New members and group updates"
-                checked={notifyGroupUpdates}
-                onChange={setNotifyGroupUpdates}
-              />
-              <Checkbox
-                label="Payment status changes"
-                checked={notifyPaymentUpdates}
-                onChange={setNotifyPaymentUpdates}
-              />
+              {settings ? (
+                <>
+                  <Checkbox
+                    label="New group expenses"
+                    checked={settings.notifyNewExpense}
+                    onChange={(notifyNewExpense) =>
+                      saveSettings({ notifyNewExpense })
+                    }
+                  />
+                  <Checkbox
+                    label="Payment reminders"
+                    checked={settings.notifyReminders}
+                    onChange={(notifyReminders) =>
+                      saveSettings({ notifyReminders })
+                    }
+                  />
+                  <Checkbox
+                    label="New members and group updates"
+                    checked={settings.notifyGroupUpdates}
+                    onChange={(notifyGroupUpdates) =>
+                      saveSettings({ notifyGroupUpdates })
+                    }
+                  />
+                </>
+              ) : (
+                <Text size="sm" color={colors.muted}>
+                  {isLoading
+                    ? "Loading notification settings..."
+                    : (error ?? "Settings are unavailable.")}
+                </Text>
+              )}
+              {error && settings ? (
+                <Text size="sm" color={colors.muted}>
+                  {error}
+                </Text>
+              ) : null}
               <Text size="sm" color={colors.muted}>
-                Notification choices are preview-only and are not saved yet.
+                Payment status notifications are not available in saved settings
+                yet.
               </Text>
+              {!settings && !isLoading && user ? (
+                <StyledButton
+                  label="Retry loading settings"
+                  onPress={() =>
+                    void fetchSettings(user.id).catch((loadError) =>
+                      console.error("Could not load settings.", loadError),
+                    )
+                  }
+                  variant="secondary"
+                />
+              ) : null}
             </Stack>
           </Card>
 

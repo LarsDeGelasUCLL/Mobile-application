@@ -10,6 +10,8 @@
     "build-storybook": "storybook build",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
+    "test": "node --test",
+    "test:data-layer": "node --test tests/data-layer.test.mjs",
     "test:mappers": "node --test tests/mappers.test.mjs"
   },
   "dependencies": {

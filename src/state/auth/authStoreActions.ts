@@ -14,8 +14,16 @@ import {
 import type { AuthActionCreator } from "./authStoreTypes";
 import { useExpenseStore } from "../expenses/useExpenseStore";
 import { useGroupStore } from "../groups/useGroupStore";
+import { useSettingsStore } from "../settings/useSettingsStore";
 
 let initializationPromise: Promise<void> | null = null;
+let authSubscription: { unsubscribe: () => void } | null = null;
+
+function resetUserStores() {
+  useGroupStore.getState().resetGroupStore();
+  useExpenseStore.getState().resetExpenseStore();
+  useSettingsStore.getState().resetSettings();
+}
 
 export const createAuthActions: AuthActionCreator = (set, get) => ({
   initialize: async () => {
@@ -28,52 +36,79 @@ export const createAuthActions: AuthActionCreator = (set, get) => ({
 
     initializationPromise = (async () => {
       set({ isLoading: true });
-      try {
-        const user = await getCurrentUser();
-        set({
-          user,
-          isAuthenticated: user !== null,
-          isLoading: false,
-          isInitialized: true,
-        });
 
-        supabase.auth.onAuthStateChange((event, session) => {
+      if (!authSubscription) {
+        const { data } = supabase.auth.onAuthStateChange((event, session) => {
           if (event === "SIGNED_OUT" || !session) {
-            useGroupStore.getState().resetGroupStore();
-            useExpenseStore.getState().resetExpenseStore();
-            set({ user: null, isAuthenticated: false });
+            resetUserStores();
+            set({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              isInitialized: true,
+            });
             return;
           }
 
-          if (
-            event === "SIGNED_IN" ||
-            event === "TOKEN_REFRESHED" ||
-            event === "USER_UPDATED"
-          ) {
-            setTimeout(() => {
-              void getCurrentUser()
-                .then((currentUser) =>
-                  set({
-                    user: currentUser,
-                    isAuthenticated: currentUser !== null,
-                  }),
-                )
-                .catch(() =>
-                  set({
-                    user: null,
-                    isAuthenticated: false,
-                  }),
-                );
-            }, 0);
-          }
+          set((state) => ({
+            user: state.user?.id === session.user.id ? state.user : null,
+            isAuthenticated: true,
+          }));
+          void getCurrentUser(session)
+            .then((user) =>
+              set({
+                user,
+                isAuthenticated: true,
+                isLoading: false,
+                isInitialized: true,
+              }),
+            )
+            .catch((error) => {
+              console.error(
+                "Could not load the authenticated user profile.",
+                error,
+              );
+              set((state) => ({
+                user: state.user?.id === session.user.id ? state.user : null,
+                isAuthenticated: true,
+                isLoading: false,
+                isInitialized: false,
+              }));
+            });
         });
-      } catch {
+        authSubscription = data.subscription;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          throw new Error(error.message);
+        }
+        const session = data.session;
+        if (!session) {
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            isInitialized: true,
+          });
+          return;
+        }
+
+        set((state) => ({
+          user: state.user?.id === session.user.id ? state.user : null,
+          isAuthenticated: true,
+        }));
+        const user = await getCurrentUser(session);
         set({
-          user: null,
-          isAuthenticated: false,
+          user,
+          isAuthenticated: true,
           isLoading: false,
           isInitialized: true,
         });
+      } catch (error) {
+        console.error("Could not initialize authentication.", error);
+        set({ isLoading: false, isInitialized: false });
       } finally {
         initializationPromise = null;
       }
@@ -150,8 +185,7 @@ export const createAuthActions: AuthActionCreator = (set, get) => ({
 
   logout: async () => {
     await logout();
-    useGroupStore.getState().resetGroupStore();
-    useExpenseStore.getState().resetExpenseStore();
+    resetUserStores();
     set({ user: null, isAuthenticated: false });
   },
 

@@ -1,10 +1,11 @@
-import type { UserBalanceDto } from "../../types";
+import type { ExpenseDto, UserBalanceDto } from "../../types";
 import { getGroupExpenses } from "./expenseQueries";
 
 export async function calculateGroupBalances(
   groupId: string,
+  groupExpenses?: ExpenseDto[],
 ): Promise<UserBalanceDto[]> {
-  const expenses = await getGroupExpenses(groupId);
+  const expenses = groupExpenses ?? (await getGroupExpenses(groupId));
   const balances = new Map<string, UserBalanceDto>();
 
   const ensureUserEntry = (

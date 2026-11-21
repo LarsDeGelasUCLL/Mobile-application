@@ -15,10 +15,11 @@ export const createExpenseLoadActions: ExpenseActionCreator<
   fetchGroupExpensesAndBalances: async (groupId) => {
     set({ isLoading: true, error: null });
     try {
-      const [groupExpenses, groupBalances] = await Promise.all([
-        getGroupExpenses(groupId),
-        calculateGroupBalances(groupId),
-      ]);
+      const groupExpenses = await getGroupExpenses(groupId);
+      const groupBalances = await calculateGroupBalances(
+        groupId,
+        groupExpenses,
+      );
       set({ groupExpenses, groupBalances, isLoading: false });
     } catch (error) {
       set({

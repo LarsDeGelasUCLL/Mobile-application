@@ -1,5 +1,6 @@
 import { getUserProfile, updateUserProfile } from "../profiles/profileService";
 import { supabase } from "../supabase";
+import type { Session } from "@supabase/supabase-js";
 import type {
   ChangeEmailRequestDto,
   LoginRequestDto,
@@ -66,17 +67,23 @@ export async function register(payload: RegisterRequestDto): Promise<User> {
   return buildAuthenticatedUser(profile, data.session.access_token);
 }
 
-export async function getCurrentUser(): Promise<User | null> {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    throw new Error(error.message);
+export async function getCurrentUser(
+  session?: Session | null,
+): Promise<User | null> {
+  let currentSession = session;
+  if (currentSession === undefined) {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      throw new Error(error.message);
+    }
+    currentSession = data.session;
   }
-  if (!data.session?.user) {
+  if (!currentSession?.user) {
     return null;
   }
 
-  const profile = await getUserProfile(data.session.user.id);
-  return buildAuthenticatedUser(profile, data.session.access_token);
+  const profile = await getUserProfile(currentSession.user.id);
+  return buildAuthenticatedUser(profile, currentSession.access_token);
 }
 
 export async function updateProfileName(name: string): Promise<void> {
@@ -116,9 +123,7 @@ export async function changeEmail(
 ): Promise<void> {
   const { error } = await supabase.auth.updateUser(
     { email: payload.email.trim() },
-    payload.redirectTo
-      ? { emailRedirectTo: payload.redirectTo }
-      : undefined,
+    payload.redirectTo ? { emailRedirectTo: payload.redirectTo } : undefined,
   );
   if (error) {
     throw new Error(error.message);

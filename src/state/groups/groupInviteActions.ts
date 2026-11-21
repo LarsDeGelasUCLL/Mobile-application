@@ -19,14 +19,14 @@ export const createGroupInviteActions: GroupActionCreator<
         senderUserId,
         targetEmail,
       );
-      if (get().selectedGroupId === groupId) {
+      if (membership.status === "ACTIVE" && get().selectedGroupId === groupId) {
         set({
           activeGroupMembers: [...get().activeGroupMembers, membership],
           isLoading: false,
         });
-      } else {
-        set({ isLoading: false });
+        return;
       }
+      set({ isLoading: false });
     } catch (error) {
       set({
         error: getErrorMessage(error, "Failed to send invitation."),

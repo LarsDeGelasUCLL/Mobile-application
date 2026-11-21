@@ -1,15 +1,37 @@
 import { StyleSheet } from "react-native";
 import { Redirect, Tabs } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
-import { Icon } from "../../src/components/primitives";
+import { Icon, Screen, Stack, Text } from "../../src/components/primitives";
+import { StyledButton } from "../../src/components/common/StyledButton";
 import { colors } from "../../src/theme/colors";
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isInitialized = useAuthStore((state) => state.isInitialized);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const initialize = useAuthStore((state) => state.initialize);
 
   if (!isInitialized) {
-    return null;
+    return (
+      <Screen padding="lg">
+        <Stack gap="md">
+          <Text>
+            {isLoading
+              ? "Restoring your session..."
+              : isAuthenticated
+                ? "Could not load your profile."
+                : "Could not restore your session."}
+          </Text>
+          {!isLoading ? (
+            <StyledButton
+              label="Try again"
+              onPress={() => void initialize()}
+              variant="secondary"
+            />
+          ) : null}
+        </Stack>
+      </Screen>
+    );
   }
 
   if (!isAuthenticated) {

@@ -53,7 +53,8 @@ export async function getGroupMembers(
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
     .select("*")
-    .eq("group_id", groupId);
+    .eq("group_id", groupId)
+    .eq("status", "ACTIVE");
 
   if (membershipError) {
     throw new Error(membershipError.message);
