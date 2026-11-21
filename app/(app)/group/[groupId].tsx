@@ -28,8 +28,11 @@ export default function GroupDetailScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const user = useAuthStore((state) => state.user);
   const groups = useGroupStore((state) => state.groups);
-  const activeGroupMembers = useGroupStore((state) =>
-    state.activeGroupMembers.filter((membership) => membership.groupId === groupId),
+  const allActiveGroupMembers = useGroupStore(
+    (state) => state.activeGroupMembers,
+  );
+  const activeGroupMembers = allActiveGroupMembers.filter(
+    (membership) => membership.groupId === groupId,
   );
   const isLoading = useGroupStore((state) => state.isLoading);
   const storeError = useGroupStore((state) => state.error);
@@ -48,9 +51,7 @@ export default function GroupDetailScreen() {
   const leaveOrRemoveMember = useGroupStore(
     (state) => state.leaveOrRemoveMember,
   );
-  const setSelectedGroupId = useGroupStore(
-    (state) => state.setSelectedGroupId,
-  );
+  const setSelectedGroupId = useGroupStore((state) => state.setSelectedGroupId);
   const clearError = useGroupStore((state) => state.clearError);
 
   const groupMembership = groups.find((item) => item.group.id === groupId);

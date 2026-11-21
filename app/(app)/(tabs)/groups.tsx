@@ -11,15 +11,15 @@ import {
   Skeleton,
   Stack,
   Text,
-} from "../../src/components/primitives";
-import { StyledButton } from "../../src/components/common/StyledButton";
-import { useAuthStore } from "../../src/state/useAuthStore";
-import { useGroupStore } from "../../src/state/useGroupStore";
+} from "../../../src/components/primitives";
+import { StyledButton } from "../../../src/components/common/StyledButton";
+import { useAuthStore } from "../../../src/state/useAuthStore";
+import { useGroupStore } from "../../../src/state/useGroupStore";
 import {
   validateGroupName,
   validateInviteCode,
-} from "../../src/features/groups/groupValidation";
-import { colors } from "../../src/theme/colors";
+} from "../../../src/features/groups/groupValidation";
+import { colors } from "../../../src/theme/colors";
 
 export default function GroupsScreen() {
   const user = useAuthStore((state) => state.user);

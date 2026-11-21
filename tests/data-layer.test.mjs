@@ -108,14 +108,18 @@ test("refreshing group details reloads the group list before its members", async
   assert.deepEqual(calls, ["groups"]);
 });
 
-test("group details are nested in a stack instead of registered as a tab", async () => {
-  const tabsLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
-  const groupLayout = await fs.readFile("app/(app)/group/_layout.tsx", "utf8");
+test("group details are a sibling route to tabs in the authenticated stack", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  const tabsLayout = await fs.readFile(
+    "app/(app)/(tabs)/_layout.tsx",
+    "utf8",
+  );
 
-  assert.match(tabsLayout, /name="group"/);
-  assert.doesNotMatch(tabsLayout, /name="group\/\[groupId\]"/);
-  assert.match(groupLayout, /<Stack/);
-  assert.match(groupLayout, /headerShown:\s*false/);
+  assert.match(appLayout, /<Stack/);
+  assert.match(appLayout, /name="\(tabs\)"/);
+  assert.match(appLayout, /name="group\/\[groupId\]"/);
+  assert.match(tabsLayout, /<Tabs/);
+  assert.doesNotMatch(tabsLayout, /name="group"/);
 });
 
 test("auth deep-link exchange distinguishes unrelated, completed, and failed links", async () => {

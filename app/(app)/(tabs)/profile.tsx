@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { useAuthStore } from "../../src/state/useAuthStore";
+import { useAuthStore } from "../../../src/state/useAuthStore";
 import {
   Avatar,
   Badge,
@@ -11,12 +11,12 @@ import {
   Screen,
   Stack,
   Text,
-} from "../../src/components/primitives";
-import { InfoRow } from "../../src/components/common/InfoRow";
-import { SectionHeader } from "../../src/components/common/SectionHeader";
-import { StyledButton } from "../../src/components/common/StyledButton";
-import { colors } from "../../src/theme/colors";
-import { validateEmail } from "../../src/features/auth/authValidation";
+} from "../../../src/components/primitives";
+import { InfoRow } from "../../../src/components/common/InfoRow";
+import { SectionHeader } from "../../../src/components/common/SectionHeader";
+import { StyledButton } from "../../../src/components/common/StyledButton";
+import { colors } from "../../../src/theme/colors";
+import { validateEmail } from "../../../src/features/auth/authValidation";
 
 export default function ProfileScreen() {
   const { user, logout, updateName, changeEmail, isLoading } = useAuthStore();

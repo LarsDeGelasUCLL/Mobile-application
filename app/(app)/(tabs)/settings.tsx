@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { useAuthStore } from "../../src/state/useAuthStore";
-import { useSettingsStore } from "../../src/state/useSettingsStore";
-import type { UpdateUserSettingsDto } from "../../src/types";
+import { useAuthStore } from "../../../src/state/useAuthStore";
+import { useSettingsStore } from "../../../src/state/useSettingsStore";
+import type { UpdateUserSettingsDto } from "../../../src/types";
 import {
   Card,
   Checkbox,
@@ -12,12 +12,12 @@ import {
   Screen,
   Stack,
   Text,
-} from "../../src/components/primitives";
-import { InfoRow } from "../../src/components/common/InfoRow";
-import { SectionHeader } from "../../src/components/common/SectionHeader";
-import { StyledButton } from "../../src/components/common/StyledButton";
-import { colors } from "../../src/theme/colors";
-import { validatePassword } from "../../src/features/auth/authValidation";
+} from "../../../src/components/primitives";
+import { InfoRow } from "../../../src/components/common/InfoRow";
+import { SectionHeader } from "../../../src/components/common/SectionHeader";
+import { StyledButton } from "../../../src/components/common/StyledButton";
+import { colors } from "../../../src/theme/colors";
+import { validatePassword } from "../../../src/features/auth/authValidation";
 
 export default function SettingsScreen() {
   const user = useAuthStore((state) => state.user);
