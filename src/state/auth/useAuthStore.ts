@@ -6,5 +6,6 @@ export const useAuthStore = create<AuthState>()((...args) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isInitialized: false,
   ...createAuthActions(...args),
 }));

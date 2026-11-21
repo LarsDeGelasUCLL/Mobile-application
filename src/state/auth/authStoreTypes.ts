@@ -14,6 +14,8 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
+  initialize: () => Promise<void>;
   login: (payload: LoginRequestDto) => Promise<void>;
   register: (payload: RegisterRequestDto) => Promise<void>;
   requestPasswordReset: (payload: PasswordResetRequestDto) => Promise<void>;
@@ -29,5 +31,5 @@ export type AuthActionCreator = StateCreator<
   AuthState,
   [],
   [],
-  Omit<AuthState, "user" | "isAuthenticated" | "isLoading">
+  Omit<AuthState, "user" | "isAuthenticated" | "isLoading" | "isInitialized">
 >;
