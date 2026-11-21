@@ -1,20 +1,114 @@
+import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { router } from "expo-router";
 import {
   Badge,
   Card,
   EmptyState,
+  InputField,
   Row,
   Screen,
+  Skeleton,
   Stack,
   Text,
 } from "../../src/components/primitives";
-import { FeatureIntro } from "../../src/features/groups/components/FeatureIntro";
 import { StyledButton } from "../../src/components/common/StyledButton";
+import { useAuthStore } from "../../src/state/useAuthStore";
+import { useGroupStore } from "../../src/state/useGroupStore";
+import {
+  validateGroupName,
+  validateInviteCode,
+} from "../../src/features/groups/groupValidation";
 import { colors } from "../../src/theme/colors";
 
 export default function GroupsScreen() {
+  const user = useAuthStore((state) => state.user);
+  const groups = useGroupStore((state) => state.groups);
+  const pendingInvites = useGroupStore((state) => state.pendingInvites);
+  const isLoading = useGroupStore((state) => state.isLoading);
+  const storeError = useGroupStore((state) => state.error);
+  const fetchGroupsAndInvites = useGroupStore(
+    (state) => state.fetchGroupsAndInvites,
+  );
+  const createNewGroup = useGroupStore((state) => state.createNewGroup);
+  const joinByCode = useGroupStore((state) => state.joinByCode);
+  const respondToInvite = useGroupStore((state) => state.respondToInvite);
+  const clearError = useGroupStore((state) => state.clearError);
+
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const [groupNameError, setGroupNameError] = useState<string>();
+  const [inviteCodeError, setInviteCodeError] = useState<string>();
+  const [feedback, setFeedback] = useState("");
+
+  const loadGroups = useCallback(() => {
+    if (user?.id) {
+      void fetchGroupsAndInvites(user.id).catch(() => undefined);
+    }
+  }, [fetchGroupsAndInvites, user?.id]);
+
+  useEffect(() => {
+    loadGroups();
+  }, [loadGroups]);
+
+  const handleCreateGroup = async () => {
+    const validationError = validateGroupName(groupName);
+    setGroupNameError(validationError);
+    setFeedback("");
+    clearError();
+    if (validationError || !user?.id) return;
+
+    try {
+      await createNewGroup(user.id, {
+        name: groupName.trim(),
+        description: groupDescription.trim() || undefined,
+      });
+      setGroupName("");
+      setGroupDescription("");
+      setFeedback("Your group was created.");
+    } catch {
+      setFeedback("");
+    }
+  };
+
+  const handleJoinGroup = async () => {
+    const validationError = validateInviteCode(inviteCode);
+    setInviteCodeError(validationError);
+    setFeedback("");
+    clearError();
+    if (validationError || !user?.id) return;
+
+    try {
+      await joinByCode(user.id, inviteCode.trim());
+      setInviteCode("");
+      setFeedback("You joined the group.");
+    } catch {
+      setFeedback("");
+    }
+  };
+
+  const handleInviteResponse = async (
+    membershipId: string,
+    accept: boolean,
+  ) => {
+    if (!user?.id) return;
+    setFeedback("");
+    clearError();
+    try {
+      await respondToInvite(user.id, membershipId, accept);
+      setFeedback(accept ? "Invitation accepted." : "Invitation declined.");
+    } catch {
+      setFeedback("");
+    }
+  };
+
   return (
-    <Screen padding="lg">
+    <Screen
+      padding="lg"
+      refreshing={isLoading}
+      onRefresh={loadGroups}
+    >
       <View style={styles.container} testID="groups-screen">
         <Stack gap="lg">
           <Row justify="space-between" align="center">
@@ -26,40 +120,212 @@ export default function GroupsScreen() {
                 Shared plans, made easier to manage
               </Text>
             </Stack>
-            <Badge label="0 groups" />
+            <Badge
+              label={`${groups.length} ${groups.length === 1 ? "group" : "groups"}`}
+            />
           </Row>
 
-          <FeatureIntro
-            iconName="people-outline"
-            title="Better together"
-            description="Keep trips, home expenses, and shared plans organized in one place."
-            testID="groups-feature-intro"
-          />
+          {storeError ? (
+            <Card>
+              <Stack gap="sm">
+                <Text size="sm" color={colors.error}>
+                  {storeError}
+                </Text>
+                <StyledButton
+                  label="Retry"
+                  onPress={loadGroups}
+                  variant="secondary"
+                  isLoading={isLoading}
+                  testID="groups-retry-button"
+                />
+              </Stack>
+            </Card>
+          ) : null}
 
-          <EmptyState
-            title="No groups yet"
-            description="Create your first group or join friends with an invite code. Your shared activity will appear here."
-          />
+          {feedback ? (
+            <View style={styles.successBanner} testID="groups-feedback">
+              <Text size="sm" color={colors.success}>
+                {feedback}
+              </Text>
+            </View>
+          ) : null}
 
           <Card>
-            <Stack gap="sm">
+            <Stack gap="md">
+              <Text size="md" weight="bold">
+                Create a group
+              </Text>
+              <InputField
+                label="Group name"
+                value={groupName}
+                onChangeText={(value) => {
+                  setGroupName(value);
+                  setGroupNameError(undefined);
+                }}
+                placeholder="Weekend trip"
+                error={groupNameError}
+                testID="create-group-name-input"
+              />
+              <InputField
+                label="Description (optional)"
+                value={groupDescription}
+                onChangeText={setGroupDescription}
+                placeholder="What are you planning together?"
+                testID="create-group-description-input"
+              />
               <StyledButton
-                label="Create a group"
-                onPress={() => console.log("New group")}
-                variant="primary"
+                label="Create group"
+                onPress={() => void handleCreateGroup()}
+                isLoading={isLoading}
                 testID="create-group-button"
               />
-              <StyledButton
-                label="Join with an invite code"
-                onPress={() => console.log("Join group placeholder")}
-                variant="secondary"
-                testID="join-group-button"
-              />
-              <Text size="sm" align="center" color={colors.muted}>
-                Group creation and invite joining are coming soon.
-              </Text>
             </Stack>
           </Card>
+
+          <Card>
+            <Stack gap="md">
+              <Text size="md" weight="bold">
+                Join a group
+              </Text>
+              <InputField
+                label="Invite code"
+                value={inviteCode}
+                onChangeText={(value) => {
+                  setInviteCode(value);
+                  setInviteCodeError(undefined);
+                }}
+                placeholder="Enter your invite code"
+                error={inviteCodeError}
+                testID="join-group-code-input"
+              />
+              <StyledButton
+                label="Join with code"
+                onPress={() => void handleJoinGroup()}
+                variant="secondary"
+                isLoading={isLoading}
+                testID="join-group-button"
+              />
+            </Stack>
+          </Card>
+
+          <Stack gap="sm">
+            <Row justify="space-between" align="center">
+              <Text size="lg" weight="bold">
+                Active groups
+              </Text>
+              <Badge label={String(groups.length)} variant="success" />
+            </Row>
+            {storeError && groups.length === 0 ? null : isLoading &&
+              groups.length === 0 ? (
+              <Card>
+                <Stack gap="sm">
+                  <Skeleton height={22} width="60%" />
+                  <Skeleton height={16} width="85%" />
+                  <Skeleton height={16} width="35%" />
+                </Stack>
+              </Card>
+            ) : groups.length === 0 ? (
+              <EmptyState
+                title="No active groups"
+                description="Create a group or join friends with an invite code. Groups you belong to will appear here."
+              />
+            ) : (
+              groups.map(({ group, groupRole }) => (
+                <Card
+                  key={group.id}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/group/[groupId]",
+                      params: { groupId: group.id },
+                    })
+                  }
+                >
+                  <Stack gap="sm">
+                    <Row justify="space-between" align="center">
+                      <Text size="md" weight="bold">
+                        {group.name}
+                      </Text>
+                      <Badge
+                        label={groupRole}
+                        variant={groupRole === "ADMIN" ? "warning" : "default"}
+                      />
+                    </Row>
+                    {group.description ? (
+                      <Text size="sm" color={colors.muted}>
+                        {group.description}
+                      </Text>
+                    ) : null}
+                    <Text size="sm" color={colors.primary}>
+                      View group
+                    </Text>
+                  </Stack>
+                </Card>
+              ))
+            )}
+          </Stack>
+
+          <Stack gap="sm">
+            <Row justify="space-between" align="center">
+              <Text size="lg" weight="bold">
+                Invitations
+              </Text>
+              <Badge label={String(pendingInvites.length)} />
+            </Row>
+            {storeError && pendingInvites.length === 0 ? null : isLoading &&
+              pendingInvites.length === 0 ? (
+              <Card>
+                <Stack gap="sm">
+                  <Skeleton height={22} width="55%" />
+                  <Skeleton height={16} width="75%" />
+                </Stack>
+              </Card>
+            ) : pendingInvites.length === 0 ? (
+              <EmptyState
+                title="No pending invitations"
+                description="Invitations sent to you will show up here."
+              />
+            ) : (
+              pendingInvites.map((invite) => (
+                <Card key={invite.membershipId}>
+                  <Stack gap="md">
+                    <Stack gap="sm">
+                      <Text size="md" weight="bold">
+                        {invite.group.name}
+                      </Text>
+                      <Text size="sm" color={colors.muted}>
+                        {invite.invitedByProfile
+                          ? `Invited by ${invite.invitedByProfile.displayName}`
+                          : "You have been invited to this group."}
+                      </Text>
+                    </Stack>
+                    <Row gap="sm">
+                      <View style={styles.buttonColumn}>
+                        <StyledButton
+                          label="Accept"
+                          onPress={() =>
+                            void handleInviteResponse(invite.membershipId, true)
+                          }
+                          isLoading={isLoading}
+                          testID={`accept-invite-${invite.membershipId}`}
+                        />
+                      </View>
+                      <View style={styles.buttonColumn}>
+                        <StyledButton
+                          label="Decline"
+                          onPress={() =>
+                            void handleInviteResponse(invite.membershipId, false)
+                          }
+                          variant="secondary"
+                          isLoading={isLoading}
+                          testID={`decline-invite-${invite.membershipId}`}
+                        />
+                      </View>
+                    </Row>
+                  </Stack>
+                </Card>
+              ))
+            )}
+          </Stack>
         </Stack>
       </View>
     </Screen>
@@ -69,5 +335,15 @@ export default function GroupsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  buttonColumn: {
+    flex: 1,
+  },
+  successBanner: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.success,
+    backgroundColor: colors.successSoft,
+    padding: 12,
   },
 });

@@ -59,6 +59,39 @@ export const createGroupInviteActions: GroupActionCreator<
     set({ isLoading: true, error: null });
     try {
       await respondToGroupInvite(membershipId, accept);
+    } catch (error) {
+      set({
+        error: getErrorMessage(error, "Could not process invitation."),
+        isLoading: false,
+      });
+      throw error;
+    }
+
+    const invite = get().pendingInvites.find(
+      (item) => item.membershipId === membershipId,
+    );
+    set({
+      pendingInvites: get().pendingInvites.filter(
+        (item) => item.membershipId !== membershipId,
+      ),
+      ...(accept && invite
+        ? {
+            groups: [
+              ...get().groups.filter(
+                (item) => item.group.id !== invite.group.id,
+              ),
+              {
+                membershipId,
+                groupRole: "MEMBER" as const,
+                joinedAt: new Date().toISOString(),
+                group: invite.group,
+              },
+            ],
+          }
+        : {}),
+    });
+
+    try {
       const [groups, pendingInvites] = await Promise.all([
         getUserActiveGroups(userId),
         getUserPendingInvites(userId),
@@ -66,7 +99,7 @@ export const createGroupInviteActions: GroupActionCreator<
       set({ groups, pendingInvites, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not process invitation."),
+        error: `Invitation ${accept ? "accepted" : "declined"}, but group data could not be refreshed: ${getErrorMessage(error, "Please retry.")}`,
         isLoading: false,
       });
       throw error;

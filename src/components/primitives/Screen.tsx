@@ -1,6 +1,7 @@
 import {
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
   ScrollView,
   View,
   StyleSheet,
@@ -11,12 +12,16 @@ interface ScreenProps {
   children: React.ReactNode;
   padding?: "none" | "sm" | "md" | "lg";
   scrollable?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export function Screen({
   children,
   padding = "md",
   scrollable = true,
+  refreshing = false,
+  onRefresh,
 }: ScreenProps) {
   if (!scrollable) {
     return <View style={[styles.container, styles[padding]]}>{children}</View>;
@@ -33,6 +38,11 @@ export function Screen({
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
         automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+        refreshControl={
+          onRefresh !== undefined ? (
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          ) : undefined
+        }
       >
         {children}
       </ScrollView>
