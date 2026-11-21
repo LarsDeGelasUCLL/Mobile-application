@@ -13,23 +13,85 @@ async function loadTypeScriptModule(filePath, dependencies = {}) {
     },
   }).outputText;
   const module = { exports: {} };
-  vm.runInNewContext(output, {
-    exports: module.exports,
-    module,
-    require: (specifier) => {
-      if (!(specifier in dependencies)) {
-        throw new Error(`Unexpected dependency: ${specifier}`);
-      }
-      return dependencies[specifier];
+  vm.runInNewContext(
+    output,
+    {
+      exports: module.exports,
+      module,
+      require: (specifier) => {
+        if (!(specifier in dependencies)) {
+          throw new Error(`Unexpected dependency: ${specifier}`);
+        }
+        return dependencies[specifier];
+      },
+      console: { error() {} },
+      URL,
+      setTimeout: (callback) => {
+        callback();
+        return 0;
+      },
     },
-    console: { error() {} },
-    setTimeout: (callback) => {
-      callback();
-      return 0;
-    },
-  }, { filename: filePath });
+    { filename: filePath },
+  );
   return module.exports;
 }
+
+test("auth field validation returns specific required and format errors", async () => {
+  const { validateEmail, validatePassword, validateDisplayName } =
+    await loadTypeScriptModule("src/features/auth/authValidation.ts");
+
+  assert.equal(validateEmail(""), "Email is required.");
+  assert.equal(validateEmail("not-an-email"), "Enter a valid email address.");
+  assert.equal(validateEmail("ada@example.com"), undefined);
+
+  assert.equal(validatePassword(""), "Password is required.");
+  assert.equal(
+    validatePassword("short"),
+    "Password must be at least 8 characters.",
+  );
+  assert.equal(validatePassword("long-enough"), undefined);
+
+  assert.equal(validateDisplayName(""), "Display name is required.");
+  assert.equal(validateDisplayName("Ada"), undefined);
+});
+
+test("auth deep-link exchange distinguishes unrelated, completed, and failed links", async () => {
+  const { exchangeAuthLinkCode } = await loadTypeScriptModule(
+    "src/features/auth/authLink.ts",
+  );
+  const codes = [];
+
+  assert.equal(
+    await exchangeAuthLinkCode("lumin://groups", async () => ({
+      error: null,
+    })),
+    "unrelated",
+  );
+  assert.equal(
+    await exchangeAuthLinkCode(
+      "lumin://login?code=valid-code",
+      async (code) => {
+        codes.push(code);
+        return { error: null };
+      },
+    ),
+    "completed",
+  );
+  assert.equal(
+    await exchangeAuthLinkCode("lumin://login?code=expired-code", async () => {
+      throw new Error("expired");
+    }),
+    "failed",
+  );
+  assert.equal(
+    await exchangeAuthLinkCode(
+      "lumin://login?error=access_denied",
+      async () => ({ error: null }),
+    ),
+    "failed",
+  );
+  assert.deepEqual(codes, ["valid-code"]);
+});
 
 test("settings service rejects requests for another authenticated user", async () => {
   let queriedSettings = false;
@@ -290,7 +352,10 @@ test("group member queries exclude pending invitations", async () => {
     ["group_id", "group-1"],
     ["status", "ACTIVE"],
   ]);
-  assert.deepEqual(members.map((member) => member.status), ["ACTIVE"]);
+  assert.deepEqual(
+    members.map((member) => member.status),
+    ["ACTIVE"],
+  );
 });
 
 test("sending an invitation does not add a pending member to active members", async () => {

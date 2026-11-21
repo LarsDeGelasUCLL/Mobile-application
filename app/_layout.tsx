@@ -1,15 +1,42 @@
-import { Slot } from "expo-router";
+import { router, Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect } from "react";
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 import { useAuthStore } from "../src/state/useAuthStore";
+import { supabase } from "../src/services";
+import { exchangeAuthLinkCode } from "../src/features/auth/authLink";
 
 export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
     void initialize();
+
+    const showAuthLinkFailure = () =>
+      router.replace("/login?mode=reset&authLinkError=1");
+    const handleAuthDeepLink = async (url: string | null | undefined) => {
+      if (!url) return;
+      const result = await exchangeAuthLinkCode(url, async (code) => {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        return { error };
+      });
+      if (result === "failed") {
+        showAuthLinkFailure();
+      } else if (result === "completed") {
+        router.replace("/login?mode=set-password");
+      }
+    };
+
+    if (Platform.OS !== "web") {
+      void Linking.getInitialURL()
+        .then(handleAuthDeepLink)
+        .catch(showAuthLinkFailure);
+      const subscription = Linking.addEventListener("url", ({ url }) => {
+        void handleAuthDeepLink(url).catch(showAuthLinkFailure);
+      });
+      return () => subscription.remove();
+    }
 
     if (Platform.OS === "web" && typeof document !== "undefined") {
       if (!document.querySelector('link[rel="manifest"]')) {

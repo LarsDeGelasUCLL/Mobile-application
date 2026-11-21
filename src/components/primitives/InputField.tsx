@@ -10,6 +10,8 @@ interface InputFieldProps {
   secureTextEntry?: boolean;
   error?: string;
   testID?: string;
+  keyboardType?: "default" | "email-address";
+  editable?: boolean;
 }
 
 export function InputField({
@@ -20,6 +22,8 @@ export function InputField({
   secureTextEntry = false,
   error,
   testID,
+  keyboardType = "default",
+  editable = true,
 }: InputFieldProps) {
   return (
     <View style={styles.container}>
@@ -35,7 +39,9 @@ export function InputField({
         placeholderTextColor={colors.muted}
         selectionColor={colors.primary}
         testID={testID}
-        autoCapitalize="none"
+        keyboardType={keyboardType}
+        editable={editable}
+        autoCapitalize={keyboardType === "email-address" ? "none" : "sentences"}
       />
       {error !== undefined && (
         <Text size="sm" color="red">

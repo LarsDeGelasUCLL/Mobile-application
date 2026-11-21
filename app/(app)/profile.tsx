@@ -16,14 +16,21 @@ import { InfoRow } from "../../src/components/common/InfoRow";
 import { SectionHeader } from "../../src/components/common/SectionHeader";
 import { StyledButton } from "../../src/components/common/StyledButton";
 import { colors } from "../../src/theme/colors";
+import { validateEmail } from "../../src/features/auth/authValidation";
 
 export default function ProfileScreen() {
-  const { user, logout, updateName, isLoading } = useAuthStore();
+  const { user, logout, updateName, changeEmail, isLoading } = useAuthStore();
 
   const [name, setName] = useState(user?.name ?? "");
   const [iban, setIban] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
   const [error, setError] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [emailError, setEmailError] = useState<string>();
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailRequestError, setEmailRequestError] = useState("");
+  const [logoutError, setLogoutError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleSaveProfile = async () => {
     setError("");
@@ -43,8 +50,42 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    await logout();
-    router.replace("/login");
+    setLogoutError("");
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.replace("/login");
+    } catch (logoutError) {
+      setLogoutError(
+        logoutError instanceof Error
+          ? logoutError.message
+          : "Could not log out. Please retry.",
+      );
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    const nextEmailError = validateEmail(newEmail);
+    setEmailError(nextEmailError);
+    setEmailMessage("");
+    setEmailRequestError("");
+    if (nextEmailError) return;
+
+    try {
+      await changeEmail({ email: newEmail });
+      setEmailMessage(
+        "Confirmation was sent. Check both email addresses to finish the change.",
+      );
+      setNewEmail("");
+    } catch (emailError) {
+      setEmailRequestError(
+        emailError instanceof Error
+          ? emailError.message
+          : "Could not request the email change. Please retry.",
+      );
+    }
   };
 
   return (
@@ -123,6 +164,50 @@ export default function ProfileScreen() {
 
           <Card>
             <Stack gap="md">
+              <Text size="md" weight="bold">
+                Email address
+              </Text>
+              <Text size="sm" color={colors.muted}>
+                Current email: {user?.email ?? "Not available"}
+              </Text>
+              <InputField
+                label="New email"
+                value={newEmail}
+                onChangeText={setNewEmail}
+                placeholder="new@example.com"
+                keyboardType="email-address"
+                error={emailError}
+                testID="profile-new-email-input"
+              />
+              {emailRequestError !== "" ? (
+                <View style={styles.errorBanner} testID="change-email-error">
+                  <Text size="sm" color={colors.error}>
+                    {emailRequestError}
+                  </Text>
+                </View>
+              ) : null}
+              {emailMessage !== "" ? (
+                <View
+                  style={styles.successBanner}
+                  testID="change-email-success"
+                >
+                  <Text size="sm" color={colors.success}>
+                    {emailMessage}
+                  </Text>
+                </View>
+              ) : null}
+              <StyledButton
+                label="Request email change"
+                onPress={handleChangeEmail}
+                isLoading={isLoading}
+                variant="secondary"
+                testID="change-email-button"
+              />
+            </Stack>
+          </Card>
+
+          <Card>
+            <Stack gap="md">
               <SectionHeader
                 title="More about you"
                 description="Optional details to add when profile settings are connected."
@@ -153,9 +238,17 @@ export default function ProfileScreen() {
             </Stack>
           </Card>
 
+          {logoutError !== "" ? (
+            <View style={styles.errorBanner} testID="logout-error">
+              <Text size="sm" color={colors.error}>
+                {logoutError}
+              </Text>
+            </View>
+          ) : null}
           <StyledButton
             label="Log out"
             onPress={handleLogout}
+            isLoading={isLoggingOut}
             variant="secondary"
             testID="logout-button"
           />
@@ -168,5 +261,19 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorBanner: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.errorSoft,
+    padding: 12,
+  },
+  successBanner: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.success,
+    backgroundColor: colors.successSoft,
+    padding: 12,
   },
 });

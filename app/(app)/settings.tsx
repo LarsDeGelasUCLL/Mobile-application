@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
@@ -8,6 +8,7 @@ import {
   Card,
   Checkbox,
   Divider,
+  InputField,
   Screen,
   Stack,
   Text,
@@ -16,32 +17,92 @@ import { InfoRow } from "../../src/components/common/InfoRow";
 import { SectionHeader } from "../../src/components/common/SectionHeader";
 import { StyledButton } from "../../src/components/common/StyledButton";
 import { colors } from "../../src/theme/colors";
+import { validatePassword } from "../../src/features/auth/authValidation";
 
 export default function SettingsScreen() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const setPassword = useAuthStore((state) => state.setPassword);
+  const isAuthLoading = useAuthStore((state) => state.isLoading);
+  const [password, setPasswordValue] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string>();
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>();
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordRequestError, setPasswordRequestError] = useState("");
+  const [logoutError, setLogoutError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [settingsActionError, setSettingsActionError] = useState("");
   const { settings, isLoading, error, fetchSettings, updateSettings } =
     useSettingsStore();
 
   useEffect(() => {
     if (user) {
-      void fetchSettings(user.id).catch((loadError) =>
-        console.error("Could not load settings.", loadError),
-      );
+      void fetchSettings(user.id)
+        .then(() => setSettingsActionError(""))
+        .catch((loadError) =>
+          setSettingsActionError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Could not load settings.",
+          ),
+        );
     }
   }, [fetchSettings, user?.id]);
 
   const saveSettings = (payload: UpdateUserSettingsDto) => {
     if (user) {
-      void updateSettings(user.id, payload).catch((updateError) =>
-        console.error("Could not save settings.", updateError),
+      void updateSettings(user.id, payload)
+        .then(() => setSettingsActionError(""))
+        .catch((updateError) =>
+          setSettingsActionError(
+            updateError instanceof Error
+              ? updateError.message
+              : "Could not save settings.",
+          ),
+        );
+    }
+  };
+
+  const handleSetPassword = async () => {
+    const nextPasswordError = validatePassword(password);
+    const nextConfirmPasswordError =
+      confirmPassword === password ? undefined : "Passwords must match.";
+    setPasswordError(nextPasswordError);
+    setConfirmPasswordError(nextConfirmPasswordError);
+    setPasswordMessage("");
+    setPasswordRequestError("");
+    if (nextPasswordError || nextConfirmPasswordError) return;
+
+    try {
+      await setPassword({ password });
+      setPasswordValue("");
+      setConfirmPassword("");
+      setPasswordMessage("Your password was updated.");
+    } catch (passwordError) {
+      setPasswordRequestError(
+        passwordError instanceof Error
+          ? passwordError.message
+          : "Could not update the password. Please retry.",
       );
     }
   };
 
   const handleLogout = async () => {
-    await logout();
-    router.replace("/login");
+    setLogoutError("");
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.replace("/login");
+    } catch (logoutError) {
+      setLogoutError(
+        logoutError instanceof Error
+          ? logoutError.message
+          : "Could not log out. Please retry.",
+      );
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -156,12 +217,14 @@ export default function SettingsScreen() {
                 <Text size="sm" color={colors.muted}>
                   {isLoading
                     ? "Loading notification settings..."
-                    : (error ?? "Settings are unavailable.")}
+                    : settingsActionError ||
+                      error ||
+                      "Settings are unavailable."}
                 </Text>
               )}
-              {error && settings ? (
+              {(settingsActionError || error) && settings ? (
                 <Text size="sm" color={colors.muted}>
-                  {error}
+                  {settingsActionError || error}
                 </Text>
               ) : null}
               <Text size="sm" color={colors.muted}>
@@ -171,11 +234,17 @@ export default function SettingsScreen() {
               {!settings && !isLoading && user ? (
                 <StyledButton
                   label="Retry loading settings"
-                  onPress={() =>
-                    void fetchSettings(user.id).catch((loadError) =>
-                      console.error("Could not load settings.", loadError),
-                    )
-                  }
+                  onPress={() => {
+                    void fetchSettings(user.id)
+                      .then(() => setSettingsActionError(""))
+                      .catch((loadError) =>
+                        setSettingsActionError(
+                          loadError instanceof Error
+                            ? loadError.message
+                            : "Could not load settings.",
+                        ),
+                      );
+                  }}
                   variant="secondary"
                 />
               ) : null}
@@ -199,16 +268,63 @@ export default function SettingsScreen() {
                 highlightValue
                 testID="setting-row-download-data"
               />
-              <InfoRow
-                label="Change password"
-                value="Coming soon"
-                highlightValue
-                testID="setting-row-change-password"
+              <Divider spacing="sm" />
+              <Text size="md" weight="bold">
+                Change password
+              </Text>
+              <InputField
+                label="New password"
+                value={password}
+                onChangeText={setPasswordValue}
+                placeholder="At least 8 characters"
+                secureTextEntry
+                error={passwordError}
+                testID="settings-new-password-input"
+              />
+              <InputField
+                label="Confirm password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Repeat your password"
+                secureTextEntry
+                error={confirmPasswordError}
+                testID="settings-confirm-password-input"
+              />
+              {passwordRequestError !== "" ? (
+                <View style={styles.errorBanner} testID="change-password-error">
+                  <Text size="sm" color={colors.error}>
+                    {passwordRequestError}
+                  </Text>
+                </View>
+              ) : null}
+              {passwordMessage !== "" ? (
+                <View
+                  style={styles.successBanner}
+                  testID="change-password-success"
+                >
+                  <Text size="sm" color={colors.success}>
+                    {passwordMessage}
+                  </Text>
+                </View>
+              ) : null}
+              <StyledButton
+                label="Update password"
+                onPress={handleSetPassword}
+                isLoading={isAuthLoading}
+                testID="change-password-button"
               />
               <Divider spacing="sm" />
+              {logoutError !== "" ? (
+                <View style={styles.errorBanner} testID="settings-logout-error">
+                  <Text size="sm" color={colors.error}>
+                    {logoutError}
+                  </Text>
+                </View>
+              ) : null}
               <StyledButton
                 label="Log out"
                 onPress={handleLogout}
+                isLoading={isLoggingOut}
                 variant="secondary"
                 testID="settings-logout-button"
               />
@@ -223,5 +339,19 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorBanner: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.errorSoft,
+    padding: 12,
+  },
+  successBanner: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.success,
+    backgroundColor: colors.successSoft,
+    padding: 12,
   },
 });
