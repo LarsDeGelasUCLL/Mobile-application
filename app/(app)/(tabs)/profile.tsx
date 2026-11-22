@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../../../src/state/useAuthStore";
@@ -6,25 +6,37 @@ import {
   Avatar,
   Badge,
   Card,
-  Divider,
   InputField,
   Screen,
   Stack,
   Text,
 } from "../../../src/components/primitives";
-import { InfoRow } from "../../../src/components/common/InfoRow";
-import { SectionHeader } from "../../../src/components/common/SectionHeader";
 import { StyledButton } from "../../../src/components/common/StyledButton";
 import { colors } from "../../../src/theme/colors";
 import { validateEmail } from "../../../src/features/auth/authValidation";
+import {
+  validateProfile,
+  type ProfileFieldErrors,
+  type ProfileFormValues,
+} from "../../../src/features/profile/profileValidation";
+import { ProfileUpdatePartialSuccessError } from "../../../src/services/profiles/profileService";
+
+const emptyProfile: ProfileFormValues = {
+  displayName: "",
+  phoneNumber: "",
+  iban: "",
+  profilePictureUrl: "",
+  customBio: "",
+};
 
 export default function ProfileScreen() {
-  const { user, logout, updateName, changeEmail, isLoading } = useAuthStore();
-
-  const [name, setName] = useState(user?.name ?? "");
-  const [iban, setIban] = useState("");
+  const { user, logout, updateProfile, changeEmail, isLoading } =
+    useAuthStore();
+  const [profile, setProfile] = useState<ProfileFormValues>(emptyProfile);
+  const [fieldErrors, setFieldErrors] = useState<ProfileFieldErrors>({});
   const [savedMessage, setSavedMessage] = useState("");
-  const [error, setError] = useState("");
+  const [partialSuccessWarning, setPartialSuccessWarning] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [emailError, setEmailError] = useState<string>();
   const [emailMessage, setEmailMessage] = useState("");
@@ -32,20 +44,50 @@ export default function ProfileScreen() {
   const [logoutError, setLogoutError] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleSaveProfile = async () => {
-    setError("");
-    setSavedMessage("");
-
-    if (!name.trim()) {
-      setError("Please enter a valid display name.");
-      return;
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        displayName: user.displayName,
+        phoneNumber: user.phoneNumber ?? "",
+        iban: user.iban ?? "",
+        profilePictureUrl: user.profilePictureUrl ?? "",
+        customBio: user.customBio ?? "",
+      });
     }
+  }, [user]);
+
+  const updateField = (field: keyof ProfileFormValues, value: string) => {
+    setProfile((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+    setSavedMessage("");
+    setPartialSuccessWarning("");
+    setProfileError("");
+  };
+
+  const handleSaveProfile = async () => {
+    setProfileError("");
+    setSavedMessage("");
+    setPartialSuccessWarning("");
+    const result = validateProfile(profile);
+    setFieldErrors(result.errors);
+    if (Object.keys(result.errors).length > 0) return;
 
     try {
-      await updateName(name);
-      setSavedMessage("Profile updated successfully!");
-    } catch {
-      setError("Could not save your profile. Please try again.");
+      await updateProfile(result.values);
+      setSavedMessage("Your profile was saved.");
+    } catch (saveError) {
+      if (saveError instanceof ProfileUpdatePartialSuccessError) {
+        setSavedMessage("Your profile was saved to your account.");
+        setPartialSuccessWarning(
+          "The database profile updated, but Auth metadata did not. Your displayed name may not refresh until your next sign-in.",
+        );
+      } else {
+        setProfileError(
+          saveError instanceof Error
+            ? saveError.message
+            : "Could not save your profile. Please retry.",
+        );
+      }
     }
   };
 
@@ -106,11 +148,15 @@ export default function ProfileScreen() {
 
           <Card>
             <Stack gap="sm" align="center">
-              <Avatar name={user?.name ?? user?.email ?? "U"} size="lg" />
+              <Avatar
+                name={user?.displayName ?? user?.emailAddress ?? "U"}
+                uri={user?.profilePictureUrl ?? undefined}
+                size="lg"
+              />
               <Text size="lg" weight="bold">
-                {user?.name ?? "User"}
+                {user?.displayName ?? "User"}
               </Text>
-              <Text size="sm">{user?.email ?? ""}</Text>
+              <Text size="sm">{user?.emailAddress ?? ""}</Text>
               <Badge label="Account active" variant="success" />
             </Stack>
           </Card>
@@ -120,41 +166,88 @@ export default function ProfileScreen() {
               <Text size="md" weight="bold">
                 Personal details
               </Text>
-              <Text size="sm" color={colors.muted}>
-                Update the name your group members will see.
-              </Text>
-
               <InputField
-                label="Name"
-                value={name}
-                onChangeText={setName}
+                label="Display name"
+                value={profile.displayName}
+                onChangeText={(value) => updateField("displayName", value)}
                 placeholder="Your name"
-                error={error !== "" ? error : undefined}
+                error={fieldErrors.displayName}
+                editable={!isLoading}
                 testID="profile-name-input"
               />
-
+              <InputField
+                label="Phone number"
+                value={profile.phoneNumber}
+                onChangeText={(value) => updateField("phoneNumber", value)}
+                placeholder="+32 123 456 789"
+                keyboardType="phone-pad"
+                error={fieldErrors.phoneNumber}
+                editable={!isLoading}
+                testID="profile-phone-input"
+              />
               <InputField
                 label="IBAN for reimbursements"
-                value={iban}
-                onChangeText={setIban}
+                value={profile.iban}
+                onChangeText={(value) => updateField("iban", value)}
                 placeholder="BE00 0000 0000 0000"
+                autoCapitalize="characters"
+                error={fieldErrors.iban}
+                editable={!isLoading}
                 testID="profile-iban-input"
               />
-
-              <Text size="sm" color={colors.muted}>
-                IBAN is a local placeholder and is not saved yet.
-              </Text>
-
-              {savedMessage !== "" && (
-                <View testID="profile-saved-message">
+              <InputField
+                label="Profile picture URL"
+                value={profile.profilePictureUrl}
+                onChangeText={(value) =>
+                  updateField("profilePictureUrl", value)
+                }
+                placeholder="https://example.com/photo.jpg"
+                keyboardType="url"
+                autoCapitalize="none"
+                error={fieldErrors.profilePictureUrl}
+                editable={!isLoading}
+                testID="profile-picture-input"
+              />
+              <InputField
+                label="Bio"
+                value={profile.customBio}
+                onChangeText={(value) => updateField("customBio", value)}
+                placeholder="A short introduction"
+                multiline
+                maxLength={500}
+                error={fieldErrors.customBio}
+                editable={!isLoading}
+                testID="profile-bio-input"
+              />
+              {profileError !== "" ? (
+                <View style={styles.errorBanner} testID="profile-save-error">
+                  <Text size="sm" color={colors.error}>
+                    {profileError}
+                  </Text>
+                </View>
+              ) : null}
+              {savedMessage !== "" ? (
+                <View
+                  style={styles.successBanner}
+                  testID="profile-saved-message"
+                >
                   <Text size="sm" color={colors.success}>
                     {savedMessage}
                   </Text>
                 </View>
-              )}
-
+              ) : null}
+              {partialSuccessWarning !== "" ? (
+                <View
+                  style={styles.warningBanner}
+                  testID="profile-save-warning"
+                >
+                  <Text size="sm" color={colors.warning}>
+                    {partialSuccessWarning}
+                  </Text>
+                </View>
+              ) : null}
               <StyledButton
-                label="Save changes"
+                label={profileError ? "Retry save" : "Save changes"}
                 onPress={handleSaveProfile}
                 isLoading={isLoading}
                 testID="save-profile-button"
@@ -206,38 +299,6 @@ export default function ProfileScreen() {
             </Stack>
           </Card>
 
-          <Card>
-            <Stack gap="md">
-              <SectionHeader
-                title="More about you"
-                description="Optional details to add when profile settings are connected."
-                badgeLabel="Coming soon"
-                testID="profile-more-header"
-              />
-              <Divider spacing="sm" />
-              <InfoRow
-                label="Phone number"
-                value="Not added"
-                testID="profile-detail-phone"
-              />
-              <InfoRow
-                label="Preferred currency"
-                value="EUR (€)"
-                testID="profile-detail-currency"
-              />
-              <InfoRow
-                label="Language"
-                value="English"
-                testID="profile-detail-language"
-              />
-              <InfoRow
-                label="Payment method"
-                value="Not connected"
-                testID="profile-detail-payment"
-              />
-            </Stack>
-          </Card>
-
           {logoutError !== "" ? (
             <View style={styles.errorBanner} testID="logout-error">
               <Text size="sm" color={colors.error}>
@@ -274,6 +335,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.success,
     backgroundColor: colors.successSoft,
+    padding: 12,
+  },
+  warningBanner: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    backgroundColor: colors.warningSoft,
     padding: 12,
   },
 });

@@ -55,6 +55,47 @@ test("auth field validation returns specific required and format errors", async 
   assert.equal(validateDisplayName("Ada"), undefined);
 });
 
+test("profile validation accepts valid details and rejects invalid values", async () => {
+  const { validateProfile } = await loadTypeScriptModule(
+    "src/features/profile/profileValidation.ts",
+  );
+
+  const valid = validateProfile({
+    displayName: " Ada Lovelace ",
+    phoneNumber: "+32 123 456 789",
+    iban: "GB82 WEST 1234 5698 7654 32",
+    profilePictureUrl: "https://example.com/avatar.png",
+    customBio: "Hello!",
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(valid.values)), {
+    displayName: "Ada Lovelace",
+    phoneNumber: "+32 123 456 789",
+    iban: "GB82WEST12345698765432",
+    profilePictureUrl: "https://example.com/avatar.png",
+    customBio: "Hello!",
+  });
+  assert.deepEqual(
+    JSON.parse(
+      JSON.stringify(
+        validateProfile({
+          displayName: " ",
+          phoneNumber: "123",
+          iban: "not-an-iban",
+          profilePictureUrl: "javascript:alert(1)",
+          customBio: "x".repeat(501),
+        }).errors,
+      ),
+    ),
+    {
+      displayName: "Display name is required.",
+      phoneNumber: "Enter a valid phone number.",
+      iban: "Enter a valid IBAN.",
+      profilePictureUrl: "Enter a valid HTTPS URL.",
+      customBio: "Bio must be 500 characters or fewer.",
+    },
+  );
+});
+
 test("group forms validate required names, invite codes, and email addresses", async () => {
   const authValidation = await loadTypeScriptModule(
     "src/features/auth/authValidation.ts",
@@ -623,10 +664,91 @@ test("settings store loads settings and persists returned updates", async () => 
   assert.equal(state.settings, settings);
 
   const updated = await actions.updateSettings("user-1", {
+    uiTheme: "DARK",
+    languageCode: "nl",
     notifyGroupUpdates: true,
   });
+  assert.equal(updated.uiTheme, "DARK");
+  assert.equal(updated.languageCode, "nl");
   assert.equal(updated.notifyGroupUpdates, true);
+  assert.equal(state.settings.uiTheme, "DARK");
+  assert.equal(state.settings.languageCode, "nl");
   assert.equal(state.settings.notifyGroupUpdates, true);
+});
+
+test("settings exposes load retry when refresh fails with cached preferences", async () => {
+  const screen = await fs.readFile("app/(app)/(tabs)/settings.tsx", "utf8");
+
+  assert.match(
+    screen,
+    /!pendingSettings\s+&&\s+!isLoading\s+&&\s+\(!settings\s+\|\|\s+settingsActionError\s+\|\|\s+error\)/,
+  );
+});
+
+test("profile store preserves database updates after auth metadata partial success", async () => {
+  class ProfileUpdatePartialSuccessError extends Error {
+    constructor(profile) {
+      super("Auth metadata update failed");
+      this.profile = profile;
+    }
+  }
+  const updatedProfile = {
+    displayName: "Ada Updated",
+    phoneNumber: "+32123456789",
+    iban: "GB82WEST12345698765432",
+    profilePictureUrl: "https://example.com/avatar.png",
+    customBio: "Updated bio",
+  };
+  const { createAuthActions } = await loadTypeScriptModule(
+    "src/state/auth/authStoreActions.ts",
+    {
+      "../../services": {
+        ProfileUpdatePartialSuccessError,
+        updateUserProfile: async () => {
+          throw new ProfileUpdatePartialSuccessError(updatedProfile);
+        },
+      },
+      "./authStoreTypes": {},
+      "../expenses/useExpenseStore": {
+        useExpenseStore: { getState: () => ({}) },
+      },
+      "../groups/useGroupStore": { useGroupStore: { getState: () => ({}) } },
+      "../settings/useSettingsStore": {
+        useSettingsStore: { getState: () => ({}) },
+      },
+    },
+  );
+  const state = {
+    user: {
+      id: "user-1",
+      displayName: "Ada",
+      name: "Ada",
+      emailAddress: "ada@example.com",
+      email: "ada@example.com",
+    },
+    isAuthenticated: true,
+    isLoading: false,
+    isInitialized: true,
+  };
+  const actions = createAuthActions(
+    (update) =>
+      Object.assign(
+        state,
+        typeof update === "function" ? update(state) : update,
+      ),
+    () => state,
+  );
+
+  await assert.rejects(
+    actions.updateProfile({ displayName: "Ada Updated" }),
+    ProfileUpdatePartialSuccessError,
+  );
+  assert.equal(state.user.displayName, updatedProfile.displayName);
+  assert.equal(state.user.phoneNumber, updatedProfile.phoneNumber);
+  assert.equal(state.user.iban, updatedProfile.iban);
+  assert.equal(state.user.profilePictureUrl, updatedProfile.profilePictureUrl);
+  assert.equal(state.user.customBio, updatedProfile.customBio);
+  assert.equal(state.isLoading, false);
 });
 
 test("expense form validation normalizes receipt URLs and enforces personal participation", async () => {

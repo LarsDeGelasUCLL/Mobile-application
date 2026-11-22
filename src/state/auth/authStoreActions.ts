@@ -10,6 +10,7 @@ import {
   supabase,
   updateProfileName,
   updateUserProfile,
+  ProfileUpdatePartialSuccessError,
 } from "../../services";
 import type { AuthActionCreator } from "./authStoreTypes";
 import { useExpenseStore } from "../expenses/useExpenseStore";
@@ -225,7 +226,19 @@ export const createAuthActions: AuthActionCreator = (set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-      set({ isLoading: false });
+      if (error instanceof ProfileUpdatePartialSuccessError) {
+        set({
+          user: {
+            ...currentUser,
+            ...error.profile,
+            email: error.profile.emailAddress,
+            name: error.profile.displayName,
+          },
+          isLoading: false,
+        });
+      } else {
+        set({ isLoading: false });
+      }
       throw error;
     }
   },

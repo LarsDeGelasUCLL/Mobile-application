@@ -10,7 +10,15 @@ interface InputFieldProps {
   secureTextEntry?: boolean;
   error?: string;
   testID?: string;
-  keyboardType?: "default" | "email-address" | "decimal-pad";
+  keyboardType?:
+    | "default"
+    | "email-address"
+    | "decimal-pad"
+    | "phone-pad"
+    | "url";
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  multiline?: boolean;
+  maxLength?: number;
   editable?: boolean;
 }
 
@@ -23,6 +31,9 @@ export function InputField({
   error,
   testID,
   keyboardType = "default",
+  autoCapitalize,
+  multiline = false,
+  maxLength,
   editable = true,
 }: InputFieldProps) {
   return (
@@ -35,13 +46,24 @@ export function InputField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         secureTextEntry={secureTextEntry}
-        style={[styles.input, error !== undefined && styles.inputError]}
+        style={[
+          styles.input,
+          multiline && styles.multiline,
+          error !== undefined && styles.inputError,
+        ]}
         placeholderTextColor={colors.muted}
         selectionColor={colors.primary}
         testID={testID}
         keyboardType={keyboardType}
+        multiline={multiline}
+        maxLength={maxLength}
         editable={editable}
-        autoCapitalize={keyboardType === "email-address" ? "none" : "sentences"}
+        autoCapitalize={
+          autoCapitalize ??
+          (keyboardType === "email-address" || keyboardType === "url"
+            ? "none"
+            : "sentences")
+        }
       />
       {error !== undefined && (
         <Text size="sm" color="red">
@@ -71,5 +93,10 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: "#EF4444",
     backgroundColor: "#FEF2F2",
+  },
+  multiline: {
+    height: 100,
+    paddingTop: 12,
+    textAlignVertical: "top",
   },
 });
