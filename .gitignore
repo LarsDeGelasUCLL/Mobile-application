@@ -29,6 +29,7 @@ supabase/
 .github/
 .playwright-mcp/
 .serena/
+.planning/
 
 repomix-output.xml
 

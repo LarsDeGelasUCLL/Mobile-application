@@ -5,11 +5,15 @@ import { supabase } from "../supabase";
 
 export { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 export {
+  getAdminJoinRequestCounts,
+  getGroupJoinRequests,
   getGroupMembers,
   getUserActiveGroups,
+  getUserJoinRequests,
   getUserPendingInvites,
 } from "./groupQueries";
 export {
+  approveJoinRequest,
   inviteUserByEmail,
   joinGroupByInviteCode,
   removeMembership,

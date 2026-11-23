@@ -14,7 +14,7 @@ type Table<Row, Insert, Update = Partial<Insert>> = {
 };
 
 export type GroupRole = "ADMIN" | "MEMBER";
-export type MembershipStatus = "PENDING" | "ACTIVE";
+export type MembershipStatus = "PENDING" | "ACTIVE" | "REQUESTED";
 export type UiTheme = "SYSTEM" | "LIGHT" | "DARK";
 
 export interface Database {
@@ -166,6 +166,10 @@ export interface Database {
       join_group_by_invite_code: {
         Args: { _invite_code: string };
         Returns: Database["public"]["Tables"]["groups"]["Row"];
+      };
+      approve_join_request: {
+        Args: { _membership_id: string };
+        Returns: Database["public"]["Tables"]["memberships"]["Row"];
       };
       create_expense_with_splits: {
         Args: {

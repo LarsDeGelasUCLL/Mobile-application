@@ -5,6 +5,7 @@ import { colors } from "../../theme/colors";
 interface BadgeProps {
   label: string;
   variant?: "default" | "success" | "warning" | "error";
+  testID?: string;
 }
 
 const textColors: Record<NonNullable<BadgeProps["variant"]>, string> = {
@@ -14,9 +15,9 @@ const textColors: Record<NonNullable<BadgeProps["variant"]>, string> = {
   error: colors.error,
 };
 
-export function Badge({ label, variant = "default" }: BadgeProps) {
+export function Badge({ label, variant = "default", testID }: BadgeProps) {
   return (
-    <View style={[styles.base, styles[variant]]}>
+    <View style={[styles.base, styles[variant]]} testID={testID}>
       <Text size="sm" weight="medium" color={textColors[variant]}>
         {label}
       </Text>

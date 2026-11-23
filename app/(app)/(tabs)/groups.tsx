@@ -26,6 +26,9 @@ export default function GroupsScreen() {
   const user = useAuthStore((state) => state.user);
   const groups = useGroupStore((state) => state.groups);
   const pendingInvites = useGroupStore((state) => state.pendingInvites);
+  const sentJoinRequests = useGroupStore((state) => state.sentJoinRequests);
+  const joinRequestCounts = useGroupStore((state) => state.joinRequestCounts);
+  const cancelJoinRequest = useGroupStore((state) => state.cancelJoinRequest);
   const isLoading = useGroupStore((state) => state.isLoading);
   const storeError = useGroupStore((state) => state.error);
   const fetchGroupsAndInvites = useGroupStore(
@@ -81,9 +84,24 @@ export default function GroupsScreen() {
     if (validationError || !user?.id) return;
 
     try {
-      await joinByCode(user.id, inviteCode.trim());
+      const { status } = await joinByCode(user.id, inviteCode.trim());
       setInviteCode("");
-      setFeedback("You joined the group.");
+      setFeedback(
+        status === "ACTIVE"
+          ? "You joined the group."
+          : "Request sent. A group admin must approve it.",
+      );
+    } catch {
+      setFeedback("");
+    }
+  };
+
+  const handleCancelRequest = async (membershipId: string) => {
+    setFeedback("");
+    clearError();
+    try {
+      await cancelJoinRequest(membershipId);
+      setFeedback("Join request cancelled.");
     } catch {
       setFeedback("");
     }
@@ -182,6 +200,10 @@ export default function GroupsScreen() {
               <Text size="md" weight="bold">
                 Join a group
               </Text>
+              <Text size="sm" color={colors.muted}>
+                A group admin must approve your request, unless they already
+                invited you.
+              </Text>
               <InputField
                 label="Invite code"
                 value={inviteCode}
@@ -240,10 +262,22 @@ export default function GroupsScreen() {
                       <Text size="md" weight="bold">
                         {group.name}
                       </Text>
-                      <Badge
-                        label={groupRole}
-                        variant={groupRole === "ADMIN" ? "warning" : "default"}
-                      />
+                      <Row gap="sm" align="center">
+                        {groupRole === "ADMIN" &&
+                        joinRequestCounts[group.id] > 0 ? (
+                          <Badge
+                            label={`${joinRequestCounts[group.id]} ${joinRequestCounts[group.id] === 1 ? "request" : "requests"}`}
+                            variant="error"
+                            testID={`group-join-request-count-${group.id}`}
+                          />
+                        ) : null}
+                        <Badge
+                          label={groupRole}
+                          variant={
+                            groupRole === "ADMIN" ? "warning" : "default"
+                          }
+                        />
+                      </Row>
                     </Row>
                     {group.description ? (
                       <Text size="sm" color={colors.muted}>
@@ -319,6 +353,46 @@ export default function GroupsScreen() {
                         />
                       </View>
                     </Row>
+                  </Stack>
+                </Card>
+              ))
+            )}
+          </Stack>
+
+          <Stack gap="sm">
+            <Row justify="space-between" align="center">
+              <Text size="lg" weight="bold">
+                Sent requests
+              </Text>
+              <Badge label={String(sentJoinRequests.length)} />
+            </Row>
+            {sentJoinRequests.length === 0 ? (
+              <EmptyState
+                title="No open join requests"
+                description="Groups you asked to join with an invite code will show up here until an admin responds."
+              />
+            ) : (
+              sentJoinRequests.map((request) => (
+                <Card key={request.membershipId}>
+                  <Stack gap="md">
+                    <Stack gap="sm">
+                      <Text size="md" weight="bold">
+                        {request.group.name}
+                      </Text>
+                      <Text size="sm" color={colors.muted}>
+                        Requested{" "}
+                        {new Date(request.requestedAt).toLocaleDateString()}
+                      </Text>
+                    </Stack>
+                    <StyledButton
+                      label="Cancel request"
+                      onPress={() =>
+                        void handleCancelRequest(request.membershipId)
+                      }
+                      variant="secondary"
+                      isLoading={isLoading}
+                      testID={`sent-request-cancel-${request.membershipId}`}
+                    />
                   </Stack>
                 </Card>
               ))

@@ -1,4 +1,10 @@
-import type { GroupInviteDto, MembershipDto, UserGroupDto } from "../../types";
+import type {
+  GroupInviteDto,
+  GroupJoinRequestDto,
+  MembershipDto,
+  MembershipStatus,
+  UserGroupDto,
+} from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
 import { supabase } from "../supabase";
@@ -47,14 +53,26 @@ export async function getUserActiveGroups(
   });
 }
 
-export async function getGroupMembers(
+export function getGroupMembers(groupId: string): Promise<MembershipDto[]> {
+  return getGroupMembershipsByStatus(groupId, "ACTIVE");
+}
+
+// RLS lets every active member read these rows; only admins can act on them.
+export function getGroupJoinRequests(
   groupId: string,
+): Promise<MembershipDto[]> {
+  return getGroupMembershipsByStatus(groupId, "REQUESTED");
+}
+
+async function getGroupMembershipsByStatus(
+  groupId: string,
+  status: MembershipStatus,
 ): Promise<MembershipDto[]> {
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
     .select("*")
     .eq("group_id", groupId)
-    .eq("status", "ACTIVE");
+    .eq("status", status);
 
   if (membershipError) {
     throw new Error(membershipError.message);
@@ -141,4 +159,70 @@ export async function getUserPendingInvites(
       },
     ];
   });
+}
+
+export async function getUserJoinRequests(
+  userId: string,
+): Promise<GroupJoinRequestDto[]> {
+  const { data: currentUser, error: authError } = await supabase.auth.getUser();
+  if (authError || !currentUser.user || currentUser.user.id !== userId) {
+    throw new Error(authError?.message ?? "Not logged in as this user.");
+  }
+
+  const { data: requestRows, error } = await supabase
+    .from("memberships")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "REQUESTED");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  if (!requestRows?.length) return [];
+
+  const groupIds = requestRows.map((row) => String(row.group_id));
+  const { data: groups, error: groupsError } = await supabase
+    .from("groups")
+    .select("*")
+    .in("id", groupIds);
+  if (groupsError) {
+    throw new Error(groupsError.message);
+  }
+
+  return requestRows.flatMap((row) => {
+    const group = groups?.find((item) => item.id === row.group_id);
+    return group
+      ? [
+          {
+            membershipId: String(row.id),
+            // joined_at holds the request time until an admin approves it.
+            requestedAt: String(row.joined_at ?? ""),
+            group: mapRowToGroupDto(group),
+          },
+        ]
+      : [];
+  });
+}
+
+export async function getAdminJoinRequestCounts(
+  adminGroupIds: string[],
+): Promise<Record<string, number>> {
+  if (adminGroupIds.length === 0) return {};
+
+  const { data: requestRows, error } = await supabase
+    .from("memberships")
+    .select("group_id")
+    .eq("status", "REQUESTED")
+    .in("group_id", adminGroupIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const counts: Record<string, number> = {};
+  for (const row of requestRows ?? []) {
+    const groupId = String(row.group_id);
+    counts[groupId] = (counts[groupId] ?? 0) + 1;
+  }
+  return counts;
 }

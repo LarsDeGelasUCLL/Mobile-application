@@ -1,7 +1,7 @@
 import type { PublicUserProfileDto } from "./User";
 
 export type GroupRole = "ADMIN" | "MEMBER";
-export type MembershipStatus = "PENDING" | "ACTIVE";
+export type MembershipStatus = "PENDING" | "ACTIVE" | "REQUESTED";
 
 // Response DTO: public.groups
 export interface GroupDto {
@@ -47,6 +47,13 @@ export interface GroupInviteDto {
   joinedAt: string;
   group: GroupDto;
   invitedByProfile: PublicUserProfileDto | null;
+}
+
+// Response DTO for a join request the user sent with an invite code
+export interface GroupJoinRequestDto {
+  membershipId: string;
+  requestedAt: string;
+  group: GroupDto;
 }
 
 export interface UpdateGroupDto {

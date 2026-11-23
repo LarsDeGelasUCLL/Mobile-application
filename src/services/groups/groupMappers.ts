@@ -15,7 +15,7 @@ function parseGroupRole(value: unknown): GroupRole {
 }
 
 function parseMembershipStatus(value: unknown): MembershipStatus {
-  if (value === "ACTIVE" || value === "PENDING") {
+  if (value === "ACTIVE" || value === "PENDING" || value === "REQUESTED") {
     return value;
   }
   throw new Error(`Unexpected membership status: ${String(value)}`);

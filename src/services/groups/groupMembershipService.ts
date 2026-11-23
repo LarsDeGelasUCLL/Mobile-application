@@ -47,6 +47,22 @@ export async function joinGroupByInviteCode(
   return mapRowToGroupDto(group);
 }
 
+// Reject (admin) and cancel (requester) a join request with removeMembership.
+export async function approveJoinRequest(
+  membershipId: string,
+): Promise<MembershipDto> {
+  const { data: approved, error } = await supabase.rpc("approve_join_request", {
+    _membership_id: membershipId,
+  });
+
+  if (error || !approved) {
+    throw new Error(error?.message ?? "Could not approve join request.");
+  }
+
+  const requesterProfile = await getPublicUserProfile(approved.user_id);
+  return mapRowToMembershipDto(approved, requesterProfile);
+}
+
 export async function respondToGroupInvite(
   membershipId: string,
   accept: boolean,

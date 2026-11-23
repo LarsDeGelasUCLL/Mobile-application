@@ -60,6 +60,16 @@ export default function GroupDetailScreen() {
   const leaveOrRemoveMember = useGroupStore(
     (state) => state.leaveOrRemoveMember,
   );
+  const allJoinRequests = useGroupStore((state) => state.joinRequests);
+  // The store keeps requests of the last loaded group only.
+  const joinRequests = allJoinRequests.filter(
+    (request) => request.groupId === groupId,
+  );
+  const fetchJoinRequestsForGroup = useGroupStore(
+    (state) => state.fetchJoinRequestsForGroup,
+  );
+  const approveJoinRequest = useGroupStore((state) => state.approveJoinRequest);
+  const rejectJoinRequest = useGroupStore((state) => state.rejectJoinRequest);
   const setSelectedGroupId = useGroupStore((state) => state.setSelectedGroupId);
   const clearError = useGroupStore((state) => state.clearError);
   const expensesInStore = useExpenseStore((state) => state.groupExpenses);
@@ -112,7 +122,15 @@ export default function GroupDetailScreen() {
         setSelectedGroupId(null);
         return;
       }
-      await fetchGroupExpensesAndBalances(groupId);
+      const loadedAsAdmin = useGroupStore
+        .getState()
+        .groups.some(
+          (item) => item.group.id === groupId && item.groupRole === "ADMIN",
+        );
+      await Promise.all([
+        fetchGroupExpensesAndBalances(groupId),
+        loadedAsAdmin ? fetchJoinRequestsForGroup(groupId) : undefined,
+      ]);
     } catch {
       // The relevant store exposes the load failure for its retry banner.
     }
@@ -120,6 +138,7 @@ export default function GroupDetailScreen() {
     clearError,
     clearExpenseError,
     fetchGroupExpensesAndBalances,
+    fetchJoinRequestsForGroup,
     fetchGroupsAndInvites,
     fetchMembersForGroup,
     groupId,
@@ -179,6 +198,23 @@ export default function GroupDetailScreen() {
     try {
       await changeMemberRole(membershipId, role);
       setFeedback(`Member role changed to ${role}.`);
+    } catch {
+      setFeedback("");
+    }
+  };
+
+  const handleJoinRequest = async (membershipId: string, approve: boolean) => {
+    setFeedback("");
+    clearError();
+    try {
+      if (approve) {
+        await approveJoinRequest(membershipId);
+      } else {
+        await rejectJoinRequest(membershipId);
+      }
+      setFeedback(
+        approve ? "Join request approved." : "Join request rejected.",
+      );
     } catch {
       setFeedback("");
     }
@@ -564,6 +600,79 @@ export default function GroupDetailScreen() {
 
               {isAdmin ? (
                 <>
+                  <Stack gap="sm">
+                    <Row justify="space-between" align="center">
+                      <Text size="lg" weight="bold">
+                        Join requests
+                      </Text>
+                      <Badge
+                        label={String(joinRequests.length)}
+                        variant={joinRequests.length > 0 ? "error" : "default"}
+                      />
+                    </Row>
+                    {joinRequests.length === 0 ? (
+                      <EmptyState
+                        title="No join requests"
+                        description="People who enter your invite code will appear here for approval."
+                      />
+                    ) : (
+                      joinRequests.map((request) => (
+                        <Card key={request.id}>
+                          <Stack gap="md">
+                            <Row gap="sm" align="center">
+                              <Avatar
+                                name={
+                                  request.userProfile?.displayName ??
+                                  "Group member"
+                                }
+                                uri={
+                                  request.userProfile?.profilePictureUrl ??
+                                  undefined
+                                }
+                                size="sm"
+                              />
+                              <Stack gap="none">
+                                <Text weight="medium">
+                                  {request.userProfile?.displayName ??
+                                    "Group member"}
+                                </Text>
+                                <Text size="sm" color={colors.muted}>
+                                  Requested{" "}
+                                  {new Date(
+                                    request.joinedAt,
+                                  ).toLocaleDateString()}
+                                </Text>
+                              </Stack>
+                            </Row>
+                            <Row gap="sm">
+                              <View style={styles.actionColumn}>
+                                <StyledButton
+                                  label="Approve"
+                                  onPress={() =>
+                                    void handleJoinRequest(request.id, true)
+                                  }
+                                  isLoading={isLoading}
+                                  testID={`join-request-approve-${request.id}`}
+                                />
+                              </View>
+                              <View style={styles.actionColumn}>
+                                <StyledButton
+                                  label="Reject"
+                                  onPress={() =>
+                                    void handleJoinRequest(request.id, false)
+                                  }
+                                  variant="secondary"
+                                  isLoading={isLoading}
+                                  testID={`join-request-reject-${request.id}`}
+                                />
+                              </View>
+                            </Row>
+                          </Stack>
+                        </Card>
+                      ))
+                    )}
+                  </Stack>
+
                   <Card>
                     <Stack gap="md">
                       <Text size="md" weight="bold">

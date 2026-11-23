@@ -1,10 +1,12 @@
 import {
   getUserActiveGroups,
+  getUserJoinRequests,
   getUserPendingInvites,
   inviteUserByEmail,
   joinGroupByInviteCode,
   respondToGroupInvite,
 } from "../../services";
+import { withoutJoinRequest } from "./groupJoinRequestActions";
 import type { GroupActionCreator } from "./groupStoreTypes";
 import { getErrorMessage } from "../shared/storeUtils";
 
@@ -19,6 +21,10 @@ export const createGroupInviteActions: GroupActionCreator<
         senderUserId,
         targetEmail,
       );
+      // ACTIVE here means the invitee had an open join request: the invite approved it.
+      if (membership.status === "ACTIVE") {
+        set(withoutJoinRequest(get(), membership.id, groupId));
+      }
       if (membership.status === "ACTIVE" && get().selectedGroupId === groupId) {
         set({
           activeGroupMembers: [...get().activeGroupMembers, membership],
@@ -39,13 +45,18 @@ export const createGroupInviteActions: GroupActionCreator<
   joinByCode: async (userId, inviteCode) => {
     set({ isLoading: true, error: null });
     try {
-      const joinedGroup = await joinGroupByInviteCode(userId, inviteCode);
-      const [groups, pendingInvites] = await Promise.all([
+      const group = await joinGroupByInviteCode(userId, inviteCode);
+      const [groups, pendingInvites, sentJoinRequests] = await Promise.all([
         getUserActiveGroups(userId),
         getUserPendingInvites(userId),
+        getUserJoinRequests(userId),
       ]);
-      set({ groups, pendingInvites, isLoading: false });
-      return joinedGroup;
+      set({ groups, pendingInvites, sentJoinRequests, isLoading: false });
+      // The RPC returns the group either way; an email invite makes the join instant.
+      const status = groups.some((item) => item.group.id === group.id)
+        ? ("ACTIVE" as const)
+        : ("REQUESTED" as const);
+      return { group, status };
     } catch (error) {
       set({
         error: getErrorMessage(error, "Failed to join group with invite code."),

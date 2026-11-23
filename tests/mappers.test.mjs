@@ -11,8 +11,28 @@ async function loadTypeScriptModule(filePath) {
       target: ts.ScriptTarget.ES2022,
     },
   }).outputText;
-  return import(`data:text/javascript;base64,${Buffer.from(output).toString("base64")}`);
+  return import(
+    `data:text/javascript;base64,${Buffer.from(output).toString("base64")}`
+  );
 }
+
+test("membership mapper accepts join requests", async () => {
+  const groups = await loadTypeScriptModule(
+    "src/services/groups/groupMappers.ts",
+  );
+
+  const membership = groups.mapRowToMembershipDto({
+    id: "membership-id",
+    user_id: "user-id",
+    group_id: "group-id",
+    group_role: "MEMBER",
+    status: "REQUESTED",
+    invited_by: null,
+    joined_at: "2026-11-23T10:00:00Z",
+  });
+
+  assert.equal(membership.status, "REQUESTED");
+});
 
 test("mappers reject unexpected membership and settings database values", async () => {
   const groups = await loadTypeScriptModule(

@@ -210,8 +210,8 @@ test("home summarizes live groups and expenses with working detail routes", asyn
     "app/(app)/group/[groupId].tsx",
     "utf8",
   );
-  assert.match(groupDetail, /expensesError && visibleBalances\.length === 0/);
-  assert.match(groupDetail, /expensesError && groupExpenses\.length === 0/);
+  assert.match(groupDetail, /expensesError &&\s*visibleBalances\.length === 0/);
+  assert.match(groupDetail, /expensesError &&\s*groupExpenses\.length === 0/);
 });
 
 test("screens use the shared accessible feedback banner for status messages", async () => {
@@ -248,6 +248,37 @@ test("screens use the shared accessible feedback banner for status messages", as
     assert.match(source, /FeedbackBanner/);
     assert.doesNotMatch(source, /styles\.(?:error|success|warning)Banner/);
   }
+});
+
+test("join request UI: requester feedback, sent requests, admin badge and approve/reject card", async () => {
+  const groupsScreen = await fs.readFile("app/(app)/(tabs)/groups.tsx", "utf8");
+  assert.match(groupsScreen, /status === "ACTIVE"/);
+  assert.match(groupsScreen, /You joined the group\./);
+  assert.match(groupsScreen, /Request sent\. A group admin must approve it\./);
+  assert.match(groupsScreen, /sentJoinRequests/);
+  assert.match(groupsScreen, /cancelJoinRequest/);
+  assert.match(groupsScreen, /No open join requests/);
+  assert.match(groupsScreen, /`sent-request-cancel-\$\{/);
+  assert.match(groupsScreen, /joinRequestCounts\[group\.id\]/);
+  assert.match(groupsScreen, /`group-join-request-count-\$\{group\.id\}`/);
+
+  const groupDetail = await fs.readFile(
+    "app/(app)/group/[groupId].tsx",
+    "utf8",
+  );
+  assert.match(groupDetail, /fetchJoinRequestsForGroup\(groupId\)/);
+  assert.match(groupDetail, /request\.groupId === groupId/);
+  assert.match(groupDetail, /Join requests/);
+  assert.match(groupDetail, /`join-request-approve-\$\{/);
+  assert.match(groupDetail, /`join-request-reject-\$\{/);
+  assert.match(groupDetail, /approveJoinRequest\(/);
+  assert.match(groupDetail, /rejectJoinRequest\(/);
+
+  const badge = await fs.readFile(
+    "src/components/primitives/Badge.tsx",
+    "utf8",
+  );
+  assert.match(badge, /testID/);
 });
 
 test("session recovery and detail back buttons have route-safe fallbacks", async () => {
@@ -628,7 +659,10 @@ test("pending invite depends on the invitee being able to read the group row", a
       "../supabase": {
         supabase: {
           auth: {
-            getUser: async () => ({ data: { user: { id: "user-2" } }, error: null }),
+            getUser: async () => ({
+              data: { user: { id: "user-2" } },
+              error: null,
+            }),
           },
           from: (table) => ({
             select() {
@@ -670,6 +704,217 @@ test("pending invite depends on the invitee being able to read the group row", a
   assert.equal(invites[0].invitedByProfile.display_name, "Ada");
 });
 
+// Objects built inside the vm context have foreign prototypes; strict deepEqual needs plain copies.
+const plain = (value) => JSON.parse(JSON.stringify(value));
+
+// Fake supabase client: applies eq/in filters to in-memory rows and logs every query.
+function createFakeSupabase(tables, { userId = "user-1", rpc } = {}) {
+  const queries = [];
+  return {
+    queries,
+    supabase: {
+      auth: {
+        getUser: async () => ({ data: { user: { id: userId } }, error: null }),
+      },
+      rpc: async (name, args) => {
+        queries.push({ rpc: name, args });
+        return rpc(name, args);
+      },
+      from: (table) => {
+        const query = { table, eq: [], in: [] };
+        queries.push(query);
+        return {
+          select() {
+            return this;
+          },
+          eq(column, value) {
+            query.eq.push([column, value]);
+            return this;
+          },
+          in(column, values) {
+            query.in.push([column, values]);
+            return this;
+          },
+          then(resolve, reject) {
+            const rows = (tables[table] ?? []).filter(
+              (row) =>
+                query.eq.every(([column, value]) => row[column] === value) &&
+                query.in.every(([column, values]) =>
+                  values.includes(row[column]),
+                ),
+            );
+            return Promise.resolve({ data: rows, error: null }).then(
+              resolve,
+              reject,
+            );
+          },
+        };
+      },
+    },
+  };
+}
+
+const membershipRow = (id, userId, groupId, status) => ({
+  id,
+  user_id: userId,
+  group_id: groupId,
+  group_role: "MEMBER",
+  status,
+  invited_by: null,
+  joined_at: "2026-11-23T10:00:00Z",
+});
+
+const loadGroupQueries = (fake) =>
+  loadTypeScriptModule("src/services/groups/groupQueries.ts", {
+    "./groupMappers": {
+      mapRowToGroupDto: (row) => row,
+      mapRowToMembershipDto: (row, profile) => ({
+        id: row.id,
+        status: row.status,
+        userProfile: profile,
+      }),
+    },
+    "../profiles/profileMappers": {
+      mapRowToPublicUserProfileDto: (row) => row,
+    },
+    "../supabase": { supabase: fake.supabase },
+  });
+
+test("group join requests list only REQUESTED rows with requester profiles", async () => {
+  const fake = createFakeSupabase({
+    memberships: [
+      membershipRow("active", "user-1", "group-1", "ACTIVE"),
+      membershipRow("pending", "user-2", "group-1", "PENDING"),
+      membershipRow("request", "user-3", "group-1", "REQUESTED"),
+      membershipRow("other-group", "user-4", "group-2", "REQUESTED"),
+    ],
+    user_profiles: [{ id: "user-3", display_name: "Requester" }],
+  });
+  const { getGroupJoinRequests } = await loadGroupQueries(fake);
+
+  const requests = await getGroupJoinRequests("group-1");
+
+  assert.deepEqual(
+    requests.map((request) => [request.id, request.status]),
+    [["request", "REQUESTED"]],
+  );
+  assert.equal(requests[0].userProfile.display_name, "Requester");
+});
+
+test("sent join requests return the requester's open requests with their group", async () => {
+  const fake = createFakeSupabase({
+    memberships: [
+      membershipRow("request", "user-1", "group-1", "REQUESTED"),
+      membershipRow("invite", "user-1", "group-2", "PENDING"),
+      membershipRow("someone-else", "user-2", "group-1", "REQUESTED"),
+    ],
+    groups: [
+      { id: "group-1", name: "Trip" },
+      { id: "group-2", name: "Flat" },
+    ],
+  });
+  const { getUserJoinRequests } = await loadGroupQueries(fake);
+
+  const requests = await getUserJoinRequests("user-1");
+
+  assert.deepEqual(plain(requests), [
+    {
+      membershipId: "request",
+      requestedAt: "2026-11-23T10:00:00Z",
+      group: { id: "group-1", name: "Trip" },
+    },
+  ]);
+  await assert.rejects(
+    getUserJoinRequests("user-2"),
+    /Not logged in as this user/,
+  );
+});
+
+test("admin join request counts are grouped per group and skip the query without admin groups", async () => {
+  const fake = createFakeSupabase({
+    memberships: [
+      membershipRow("r1", "user-2", "group-1", "REQUESTED"),
+      membershipRow("r2", "user-3", "group-1", "REQUESTED"),
+      membershipRow("r3", "user-4", "group-2", "REQUESTED"),
+      membershipRow("active", "user-5", "group-1", "ACTIVE"),
+      membershipRow("not-admin", "user-6", "group-3", "REQUESTED"),
+    ],
+  });
+  const { getAdminJoinRequestCounts } = await loadGroupQueries(fake);
+
+  assert.deepEqual(plain(await getAdminJoinRequestCounts([])), {});
+  assert.equal(fake.queries.length, 0);
+
+  assert.deepEqual(
+    plain(await getAdminJoinRequestCounts(["group-1", "group-2"])),
+    {
+      "group-1": 2,
+      "group-2": 1,
+    },
+  );
+  assert.equal(fake.queries.length, 1);
+});
+
+test("approving a join request calls the approve RPC and maps the membership", async () => {
+  const approved = membershipRow("request", "user-3", "group-1", "ACTIVE");
+  const fake = createFakeSupabase(
+    {},
+    {
+      rpc: (name) =>
+        name === "approve_join_request"
+          ? { data: approved, error: null }
+          : { data: null, error: { message: "Join request not found" } },
+    },
+  );
+  const { approveJoinRequest, joinGroupByInviteCode } =
+    await loadTypeScriptModule(
+      "src/services/groups/groupMembershipService.ts",
+      {
+        "./groupMappers": {
+          mapRowToGroupDto: (row) => row,
+          mapRowToMembershipDto: (row, profile) => ({
+            id: row.id,
+            status: row.status,
+            userProfile: profile,
+          }),
+        },
+        "../profiles/profileService": {
+          getPublicUserProfile: async (id) => ({
+            id,
+            display_name: "Requester",
+          }),
+        },
+        "../supabase": { supabase: fake.supabase },
+      },
+    );
+
+  const membership = await approveJoinRequest("request");
+
+  assert.deepEqual(plain(fake.queries[0]), {
+    rpc: "approve_join_request",
+    args: { _membership_id: "request" },
+  });
+  assert.equal(membership.status, "ACTIVE");
+  assert.equal(membership.userProfile.display_name, "Requester");
+
+  // Server errors such as "ongoing request" reach the caller verbatim.
+  fake.supabase.rpc = async () => ({
+    data: null,
+    error: { message: "You already have an ongoing request for this group" },
+  });
+  await assert.rejects(
+    joinGroupByInviteCode("user-1", "abc123"),
+    /^Error: You already have an ongoing request for this group$/,
+  );
+});
+
+// groupInviteActions imports the pure withoutJoinRequest helper from groupJoinRequestActions.
+const loadJoinRequestActions = () =>
+  loadTypeScriptModule("src/state/groups/groupJoinRequestActions.ts", {
+    "../../services": {},
+    "../shared/storeUtils": { getErrorMessage: (error) => String(error) },
+  });
+
 test("sending an invitation does not add a pending member to active members", async () => {
   const pendingMembership = {
     id: "membership-1",
@@ -685,6 +930,7 @@ test("sending an invitation does not add a pending member to active members", as
         joinGroupByInviteCode: async () => ({}),
         respondToGroupInvite: async () => {},
       },
+      "./groupJoinRequestActions": await loadJoinRequestActions(),
       "../shared/storeUtils": {
         getErrorMessage: (error) => String(error),
       },
@@ -733,6 +979,7 @@ test("responding to an invitation updates the store before refresh completes", a
         joinGroupByInviteCode: async () => ({}),
         respondToGroupInvite: async () => markResponseComplete(),
       },
+      "./groupJoinRequestActions": await loadJoinRequestActions(),
       "../shared/storeUtils": {
         getErrorMessage: (error) => String(error),
       },
@@ -794,6 +1041,212 @@ test("responding to an invitation updates the store before refresh completes", a
     state.error,
     /Invitation declined, but group data could not be refreshed/,
   );
+});
+
+// Loads one group action module with fake services and runs it against a plain state object.
+async function createGroupActionsHarness(
+  filePath,
+  exportName,
+  services,
+  state,
+) {
+  const module = await loadTypeScriptModule(filePath, {
+    "../../services": services,
+    "./groupJoinRequestActions": await loadJoinRequestActions(),
+    "../shared/storeUtils": {
+      getErrorMessage: (error, fallback) =>
+        error instanceof Error ? error.message : fallback,
+    },
+  });
+  return module[exportName](
+    (update) => Object.assign(state, update),
+    () => state,
+  );
+}
+
+const userGroup = (groupId, groupRole = "MEMBER") => ({
+  membershipId: `membership-${groupId}`,
+  groupRole,
+  joinedAt: "",
+  group: { id: groupId, name: groupId },
+});
+
+test("joining by code reports ACTIVE or REQUESTED and refreshes sent requests", async () => {
+  let activeGroups = [];
+  const sentRequest = {
+    membershipId: "request-1",
+    requestedAt: "",
+    group: { id: "group-1", name: "group-1" },
+  };
+  const state = { groups: [], pendingInvites: [], sentJoinRequests: [] };
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupInviteActions.ts",
+    "createGroupInviteActions",
+    {
+      joinGroupByInviteCode: async () => ({ id: "group-1", name: "group-1" }),
+      getUserActiveGroups: async () => activeGroups,
+      getUserPendingInvites: async () => [],
+      getUserJoinRequests: async () =>
+        activeGroups.length ? [] : [sentRequest],
+    },
+    state,
+  );
+
+  const requested = await actions.joinByCode("user-1", "ABC123");
+  assert.equal(requested.status, "REQUESTED");
+  assert.equal(requested.group.id, "group-1");
+  assert.deepEqual(state.sentJoinRequests, [sentRequest]);
+
+  activeGroups = [userGroup("group-1")];
+  const joined = await actions.joinByCode("user-1", "ABC123");
+  assert.equal(joined.status, "ACTIVE");
+  assert.deepEqual(state.sentJoinRequests, []);
+});
+
+test("loading groups also loads sent requests and request counts for admin groups only", async () => {
+  const countCalls = [];
+  const state = {};
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupLoadActions.ts",
+    "createGroupLoadActions",
+    {
+      getUserActiveGroups: async () => [
+        userGroup("admin-group", "ADMIN"),
+        userGroup("member-group"),
+      ],
+      getUserPendingInvites: async () => [],
+      getUserJoinRequests: async () => ["sent"],
+      getAdminJoinRequestCounts: async (groupIds) => {
+        countCalls.push(groupIds);
+        return { "admin-group": 2 };
+      },
+    },
+    state,
+  );
+
+  await actions.fetchGroupsAndInvites("user-1");
+
+  assert.deepEqual(plain(countCalls), [["admin-group"]]);
+  assert.deepEqual(state.sentJoinRequests, ["sent"]);
+  assert.deepEqual(state.joinRequestCounts, { "admin-group": 2 });
+});
+
+test("join request actions approve, reject and cancel requests in the store", async () => {
+  const request = (id) => ({ id, groupId: "group-1", status: "REQUESTED" });
+  const removed = [];
+  const state = {
+    selectedGroupId: "group-1",
+    activeGroupMembers: [],
+    joinRequests: [],
+    joinRequestCounts: { "group-1": 9 },
+    sentJoinRequests: [{ membershipId: "sent-1" }, { membershipId: "sent-2" }],
+    isLoading: false,
+    error: null,
+  };
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupJoinRequestActions.ts",
+    "createGroupJoinRequestActions",
+    {
+      getGroupJoinRequests: async () => [
+        request("r1"),
+        request("r2"),
+        request("r3"),
+      ],
+      approveJoinRequest: async (id) => ({ ...request(id), status: "ACTIVE" }),
+      removeMembership: async (id) => {
+        if (id === "fails") throw new Error("Join request not found");
+        removed.push(id);
+      },
+    },
+    state,
+  );
+
+  await actions.fetchJoinRequestsForGroup("group-1");
+  assert.deepEqual(plain(state.joinRequests.map((item) => item.id)), [
+    "r1",
+    "r2",
+    "r3",
+  ]);
+  assert.equal(state.joinRequestCounts["group-1"], 3);
+
+  await actions.approveJoinRequest("r1");
+  assert.deepEqual(plain(state.joinRequests.map((item) => item.id)), [
+    "r2",
+    "r3",
+  ]);
+  assert.deepEqual(plain(state.activeGroupMembers.map((item) => item.id)), [
+    "r1",
+  ]);
+  assert.equal(state.joinRequestCounts["group-1"], 2);
+
+  await actions.rejectJoinRequest("r2");
+  assert.deepEqual(removed, ["r2"]);
+  assert.deepEqual(plain(state.joinRequests.map((item) => item.id)), ["r3"]);
+  assert.equal(state.joinRequestCounts["group-1"], 1);
+
+  await actions.cancelJoinRequest("sent-1");
+  assert.deepEqual(removed, ["r2", "sent-1"]);
+  assert.deepEqual(plain(state.sentJoinRequests), [{ membershipId: "sent-2" }]);
+
+  await assert.rejects(
+    actions.cancelJoinRequest("fails"),
+    /Join request not found/,
+  );
+  assert.equal(state.error, "Join request not found");
+  assert.equal(state.isLoading, false);
+});
+
+test("inviting a user with an open join request approves it in the store", async () => {
+  const state = {
+    selectedGroupId: "group-1",
+    activeGroupMembers: [],
+    joinRequests: [
+      { id: "request-1", groupId: "group-1", status: "REQUESTED" },
+    ],
+    joinRequestCounts: { "group-1": 1 },
+    isLoading: false,
+    error: null,
+  };
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupInviteActions.ts",
+    "createGroupInviteActions",
+    {
+      inviteUserByEmail: async () => ({
+        id: "request-1",
+        groupId: "group-1",
+        status: "ACTIVE",
+      }),
+    },
+    state,
+  );
+
+  await actions.inviteMemberByEmail("group-1", "admin-1", "requester@test.com");
+
+  assert.deepEqual(plain(state.joinRequests), []);
+  assert.equal(state.joinRequestCounts["group-1"], 0);
+  assert.deepEqual(plain(state.activeGroupMembers.map((item) => item.id)), [
+    "request-1",
+  ]);
+});
+
+test("resetting the group store clears join request state", async () => {
+  const state = {
+    joinRequests: ["request"],
+    sentJoinRequests: ["sent"],
+    joinRequestCounts: { "group-1": 1 },
+  };
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupManagementActions.ts",
+    "createGroupManagementActions",
+    {},
+    state,
+  );
+
+  actions.resetGroupStore();
+
+  assert.deepEqual(plain(state.joinRequests), []);
+  assert.deepEqual(plain(state.sentJoinRequests), []);
+  assert.deepEqual(plain(state.joinRequestCounts), {});
 });
 
 test("settings store loads settings and persists returned updates", async () => {
