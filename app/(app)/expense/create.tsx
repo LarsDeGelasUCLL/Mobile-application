@@ -1,25 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Card,
   EmptyState,
   FeedbackBanner,
-  Row,
   Screen,
+  ScreenHeader,
   Skeleton,
   Stack,
   Text,
 } from "../../../src/components/primitives";
 import { StyledButton } from "../../../src/components/common/StyledButton";
-import { ExpenseForm } from "../../../src/features/expenses/components/ExpenseForm";
+import {
+  ExpenseForm,
+  type ExpenseFormHandle,
+} from "../../../src/features/expenses/components/ExpenseForm";
 import type { ValidExpenseForm } from "../../../src/services/expenses/expenseValidation";
 import { getUserExpenseParticipants } from "../../../src/services";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import type { PublicUserProfileDto, User } from "../../../src/types";
-import { colors } from "../../../src/theme/colors";
+import { useTheme } from "../../../src/theme/ThemeProvider";
 
 function currentUserProfile(user: User | null): PublicUserProfileDto | null {
   if (!user) return null;
@@ -55,6 +57,8 @@ export default function CreateExpenseScreen() {
     groupId?: string;
   }>();
   const groupId = typeof routeGroupId === "string" ? routeGroupId : null;
+  const { colors } = useTheme();
+  const formRef = useRef<ExpenseFormHandle>(null);
   const user = useAuthStore((state) => state.user);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
   const expenseError = useExpenseStore((state) => state.error);
@@ -179,42 +183,43 @@ export default function CreateExpenseScreen() {
   };
 
   const loadError = participantsError ?? (groupId ? groupError : null);
+  // Same condition as the form branch below (participants > 0 wins over loading).
+  const showForm = !createdExpenseId && !loadError && participants.length > 0;
 
   return (
     <Screen
       padding="lg"
       refreshing={participantsLoading}
       onRefresh={() => void loadParticipants()}
+      footer={
+        showForm ? (
+          <StyledButton
+            label="Create expense"
+            onPress={() => formRef.current?.submit()}
+            isLoading={expenseLoading || groupLoading}
+            testID="save-expense-button"
+          />
+        ) : undefined
+      }
     >
       <Stack gap="lg">
-        <Row justify="space-between" align="center">
-          <Stack gap="none" flex={1}>
-            <Text size="xxl" weight="bold">
-              New {groupId ? "group" : "personal"} expense
-            </Text>
-            <Text size="sm" color={colors.muted}>
-              Add the cost and decide how to split it.
-            </Text>
-          </Stack>
-          <View style={styles.backButton}>
-            <StyledButton
-              label="Back"
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else if (groupId) {
-                  router.replace({
-                    pathname: "/group/[groupId]",
-                    params: { groupId },
-                  });
-                } else {
-                  router.replace("/expenses");
-                }
-              }}
-              variant="secondary"
-            />
-          </View>
-        </Row>
+        <ScreenHeader
+          title={`New ${groupId ? "group" : "personal"} expense`}
+          subtitle="Add the cost and decide how to split it."
+          onBack={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else if (groupId) {
+              router.replace({
+                pathname: "/group/[groupId]",
+                params: { groupId },
+              });
+            } else {
+              router.replace("/expenses");
+            }
+          }}
+          testID="create-expense-header"
+        />
 
         {createdExpenseId ? (
           <FeedbackBanner tone="warning" testID="expense-partial-success">
@@ -255,6 +260,7 @@ export default function CreateExpenseScreen() {
           />
         ) : (
           <ExpenseForm
+            ref={formRef}
             groupId={groupId}
             currentUserId={user?.id ?? ""}
             participants={participants}
@@ -267,9 +273,3 @@ export default function CreateExpenseScreen() {
     </Screen>
   );
 }
-
-const styles = {
-  backButton: {
-    width: 76,
-  },
-};

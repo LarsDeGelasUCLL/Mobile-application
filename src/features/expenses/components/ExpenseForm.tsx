@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { useEffect, useImperativeHandle, useState, type Ref } from "react";
+import { View } from "react-native";
 import {
   Card,
   Checkbox,
@@ -19,7 +19,7 @@ import {
   type ValidExpenseForm,
 } from "../../../services/expenses/expenseValidation";
 import type { ExpenseDto, PublicUserProfileDto } from "../../../types";
-import { colors } from "../../../theme/colors";
+import { makeStyles, useTheme } from "../../../theme/ThemeProvider";
 
 interface ExpenseFormProps {
   groupId: string | null;
@@ -29,6 +29,12 @@ interface ExpenseFormProps {
   isLoading: boolean;
   error: string | null;
   onSubmit: (payload: ValidExpenseForm) => Promise<void>;
+  /** The page's sticky footer button calls `submit()` (design §4). */
+  ref?: Ref<ExpenseFormHandle>;
+}
+
+export interface ExpenseFormHandle {
+  submit: () => void;
 }
 
 type ExpenseSplitDraft = ExpenseFormDraft["splits"][number];
@@ -55,7 +61,10 @@ export function ExpenseForm({
   isLoading,
   error,
   onSubmit,
+  ref,
 }: ExpenseFormProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [receiptUrl, setReceiptUrl] = useState("");
@@ -145,6 +154,7 @@ export function ExpenseForm({
     setValidationError(undefined);
     void onSubmit(result);
   };
+  useImperativeHandle(ref, () => ({ submit: handleSubmit }));
 
   return (
     <Stack gap="md">
@@ -263,7 +273,7 @@ export function ExpenseForm({
             />
           </Row>
           {splits.length === 0 ? (
-            <Text size="sm" color={colors.muted}>
+            <Text size="sm" color={colors.textMuted}>
               Select at least one participant.
             </Text>
           ) : (
@@ -305,24 +315,17 @@ export function ExpenseForm({
           )}
         </Stack>
       </Card>
-
-      <StyledButton
-        label={initialExpense ? "Save changes" : "Create expense"}
-        onPress={handleSubmit}
-        isLoading={isLoading}
-        testID="save-expense-button"
-      />
     </Stack>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   splitRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: t.spacing.md,
   },
   splitAmount: {
     flex: 1,
   },
-});
+}));

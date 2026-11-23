@@ -18,7 +18,7 @@ import {
   Text,
 } from "../../../../src/components/primitives";
 import { StyledButton } from "../../../../src/components/common/StyledButton";
-import { GroupExpenseRow } from "../../../../src/features/groups/components/GroupExpenseRow";
+import { ExpenseRow } from "../../../../src/features/expenses/components/ExpenseRow";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
 import { useTheme } from "../../../../src/theme/ThemeProvider";
 
@@ -219,7 +219,7 @@ export default function GroupDetailScreen() {
                       .map((expense, index) => (
                         <Fragment key={expense.id}>
                           {index > 0 && <Divider />}
-                          <GroupExpenseRow expense={expense} />
+                          <ExpenseRow expense={expense} />
                         </Fragment>
                       ))}
                     {groupExpenses.length > RECENT_EXPENSES ? (

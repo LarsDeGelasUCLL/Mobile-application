@@ -154,11 +154,10 @@ export default function GroupsScreen() {
                       onPress={() => openPage("/group/create")}
                       testID="groups-empty-create"
                     />
-                    {/* Phase 7 turns this into a text link (variant="link"). */}
                     <StyledButton
                       label="Join with code"
                       onPress={() => openPage("/group/join")}
-                      variant="secondary"
+                      variant="link"
                       testID="groups-empty-join"
                     />
                   </Stack>

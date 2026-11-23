@@ -1,25 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Card,
   EmptyState,
   FeedbackBanner,
-  Row,
   Screen,
+  ScreenHeader,
   Skeleton,
   Stack,
   Text,
 } from "../../../../src/components/primitives";
 import { StyledButton } from "../../../../src/components/common/StyledButton";
-import { ExpenseForm } from "../../../../src/features/expenses/components/ExpenseForm";
+import {
+  ExpenseForm,
+  type ExpenseFormHandle,
+} from "../../../../src/features/expenses/components/ExpenseForm";
 import type { ValidExpenseForm } from "../../../../src/services/expenses/expenseValidation";
 import { getUserExpenseParticipants } from "../../../../src/services";
 import { useAuthStore } from "../../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../../src/state/useGroupStore";
 import type { PublicUserProfileDto, User } from "../../../../src/types";
-import { colors } from "../../../../src/theme/colors";
+import { useTheme } from "../../../../src/theme/ThemeProvider";
 
 function currentUserProfile(user: User | null): PublicUserProfileDto | null {
   if (!user) return null;
@@ -52,6 +54,8 @@ function getErrorMessage(error: unknown): string {
 
 export default function EditExpenseScreen() {
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
+  const { colors } = useTheme();
+  const formRef = useRef<ExpenseFormHandle>(null);
   const user = useAuthStore((state) => state.user);
   const selectedExpense = useExpenseStore((state) => state.selectedExpense);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
@@ -181,27 +185,33 @@ export default function EditExpenseScreen() {
   };
 
   const loadError = participantsError ?? groupError;
+  // Same condition as the form branch below.
+  const showForm =
+    !!expense && canManage && !loadError && participants.length > 0;
 
   return (
     <Screen
       padding="lg"
       refreshing={participantsLoading}
       onRefresh={() => void loadExpense()}
+      footer={
+        showForm ? (
+          <StyledButton
+            label="Save changes"
+            onPress={() => formRef.current?.submit()}
+            isLoading={expenseLoading || groupLoading}
+            testID="save-expense-button"
+          />
+        ) : undefined
+      }
     >
       <Stack gap="lg">
-        <Row justify="space-between" align="center">
-          <Text size="xxl" weight="bold">
-            Edit expense
-          </Text>
-          <View style={styles.backButton}>
-            <StyledButton
-              label="Back"
-              onPress={navigateBack}
-              variant="secondary"
-            />
-          </View>
-        </Row>
-
+        <ScreenHeader
+          title="Edit expense"
+          subtitle={expense?.title}
+          onBack={navigateBack}
+          testID="edit-expense-header"
+        />
         {loadError ? (
           <FeedbackBanner tone="error" testID="expense-edit-error">
             <Text size="sm" color={colors.error}>
@@ -261,6 +271,7 @@ export default function EditExpenseScreen() {
           />
         ) : (
           <ExpenseForm
+            ref={formRef}
             groupId={expense.groupId}
             currentUserId={user?.id ?? ""}
             participants={participants}
@@ -274,9 +285,3 @@ export default function EditExpenseScreen() {
     </Screen>
   );
 }
-
-const styles = {
-  backButton: {
-    width: 76,
-  },
-};

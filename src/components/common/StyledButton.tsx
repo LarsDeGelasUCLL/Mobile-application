@@ -6,8 +6,11 @@ import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 interface StyledButtonProps {
   label: string;
   onPress: () => void;
-  /** Max one `primary` per screen (design §4). `danger` = destructive confirm. */
-  variant?: "primary" | "secondary" | "danger";
+  /**
+   * Max one `primary` per screen (design §4). `danger` = destructive confirm.
+   * `link` = low-emphasis text link ("Forgot password?"), sized to its text.
+   */
+  variant?: "primary" | "secondary" | "danger" | "link";
   isLoading?: boolean;
   disabled?: boolean;
   testID?: string;
@@ -27,6 +30,7 @@ export function StyledButton({
     primary: colors.onPrimary,
     secondary: colors.text,
     danger: colors.error,
+    link: colors.primaryText,
   }[variant];
   const inactive = isLoading || disabled;
 
@@ -34,7 +38,7 @@ export function StyledButton({
     <Pressable
       onPress={onPress}
       disabled={inactive}
-      accessibilityRole="button"
+      accessibilityRole={variant === "link" ? "link" : "button"}
       accessibilityLabel={label}
       accessibilityState={{ disabled: inactive, busy: isLoading }}
       style={({ pressed }) => [
@@ -79,5 +83,12 @@ const useStyles = makeStyles((t) => ({
     borderColor: t.colors.error,
   },
   dangerPressed: { opacity: 0.85 },
+  // 44pt tap height; no fill, so it reads as text.
+  link: {
+    height: 44,
+    width: "auto",
+    paddingHorizontal: t.spacing.xs,
+  },
+  linkPressed: { opacity: 0.6 },
   disabled: { opacity: 0.5 },
 }));

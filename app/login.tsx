@@ -10,11 +10,12 @@ import {
 } from "../src/features/auth/authValidation";
 import { BrandHeader } from "../src/features/auth/components/BrandHeader";
 import { StyledButton } from "../src/components/common/StyledButton";
-import { colors } from "../src/theme/colors";
+import { useTheme } from "../src/theme/ThemeProvider";
 import {
   Card,
   FeedbackBanner,
   InputField,
+  Row,
   Screen,
   Spinner,
   Stack,
@@ -24,6 +25,7 @@ import {
 type AuthMode = "login" | "signup" | "reset" | "set-password" | "confirmation";
 
 export default function LoginScreen() {
+  const { colors } = useTheme();
   const params = useLocalSearchParams<{
     mode?: string;
     authLinkError?: string;
@@ -224,13 +226,13 @@ export default function LoginScreen() {
     return (
       <Screen padding="lg">
         <View style={styles.container} testID="auth-bootstrap">
-          <BrandHeader title="Welcome" testID="login-brand-header" />
+          <BrandHeader testID="login-brand-header" />
           <Card>
             <Stack gap="md" align="center" padding="md">
               {isLoading ? (
                 <>
                   <Spinner size="large" color={colors.primary} />
-                  <Text align="center" color={colors.muted}>
+                  <Text align="center" color={colors.textMuted}>
                     Restoring your session...
                   </Text>
                 </>
@@ -239,7 +241,7 @@ export default function LoginScreen() {
                   <Text align="center" weight="bold">
                     Could not restore your session
                   </Text>
-                  <Text size="sm" align="center" color={colors.muted}>
+                  <Text size="sm" align="center" color={colors.textMuted}>
                     Check your connection and try again.
                   </Text>
                   <StyledButton
@@ -271,21 +273,16 @@ export default function LoginScreen() {
   return (
     <Screen padding="lg">
       <View style={styles.container} testID="login-screen">
-        <BrandHeader title="Welcome" testID="login-brand-header" />
+        <BrandHeader testID="login-brand-header" />
         <Card>
           <Stack gap="lg" padding="md">
-            <Stack gap="sm" align="center">
-              <Text size="sm" weight="bold" color={colors.primary}>
-                Your trusted group activity planner
-              </Text>
-              <Text size="xxl" weight="bold" align="center">
-                {title}
-              </Text>
-            </Stack>
+            <Text size="xxl" weight="bold" align="center">
+              {title}
+            </Text>
 
             {mode === "confirmation" ? (
               <Stack gap="md">
-                <Text align="center" color={colors.muted}>
+                <Text align="center" color={colors.textMuted}>
                   Check {confirmationEmail || "your inbox"} and confirm your
                   email before logging in.
                 </Text>
@@ -312,7 +309,7 @@ export default function LoginScreen() {
                 <StyledButton
                   label="Back to log in"
                   onPress={() => switchMode("login")}
-                  variant="secondary"
+                  variant="link"
                 />
               </Stack>
             ) : (
@@ -350,6 +347,16 @@ export default function LoginScreen() {
                     error={passwordError}
                     testID="password-input"
                   />
+                ) : null}
+
+                {mode === "login" ? (
+                  <Row justify="flex-end">
+                    <StyledButton
+                      label="Forgot password?"
+                      onPress={() => switchMode("reset")}
+                      variant="link"
+                    />
+                  </Row>
                 ) : null}
 
                 {mode === "set-password" ? (
@@ -391,25 +398,12 @@ export default function LoginScreen() {
                 ) : null}
 
                 {mode === "login" ? (
-                  <>
-                    <StyledButton
-                      label="Log in"
-                      onPress={handleLogin}
-                      isLoading={isLoading}
-                      testID="login-button"
-                    />
-                    <StyledButton
-                      label="Forgot password?"
-                      onPress={() => switchMode("reset")}
-                      variant="secondary"
-                    />
-                    <StyledButton
-                      label="Create account"
-                      onPress={() => switchMode("signup")}
-                      variant="secondary"
-                      testID="signup-button"
-                    />
-                  </>
+                  <StyledButton
+                    label="Log in"
+                    onPress={handleLogin}
+                    isLoading={isLoading}
+                    testID="login-button"
+                  />
                 ) : mode === "signup" ? (
                   <>
                     <StyledButton
@@ -421,7 +415,7 @@ export default function LoginScreen() {
                     <StyledButton
                       label="Back to log in"
                       onPress={() => switchMode("login")}
-                      variant="secondary"
+                      variant="link"
                     />
                   </>
                 ) : mode === "reset" ? (
@@ -435,7 +429,7 @@ export default function LoginScreen() {
                     <StyledButton
                       label="Back to log in"
                       onPress={() => switchMode("login")}
-                      variant="secondary"
+                      variant="link"
                     />
                   </>
                 ) : (
@@ -459,14 +453,13 @@ export default function LoginScreen() {
                       <StyledButton
                         label="Request another reset email"
                         onPress={() => switchMode("reset")}
-                        variant="secondary"
                         testID="expired-reset-button"
                       />
                     )}
                     <StyledButton
                       label="Back to log in"
                       onPress={() => switchMode("login")}
-                      variant="secondary"
+                      variant="link"
                     />
                   </>
                 )}
@@ -474,6 +467,19 @@ export default function LoginScreen() {
             )}
           </Stack>
         </Card>
+        {mode === "login" ? (
+          <Row justify="center" align="center" gap="none">
+            <Text size="sm" color={colors.textMuted}>
+              New to Lumin?
+            </Text>
+            <StyledButton
+              label="Create account"
+              onPress={() => switchMode("signup")}
+              variant="link"
+              testID="signup-button"
+            />
+          </Row>
+        ) : null}
       </View>
     </Screen>
   );

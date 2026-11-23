@@ -1,30 +1,24 @@
-import { useCallback, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { Fragment, useCallback, useEffect } from "react";
+import { View } from "react-native";
 import { router } from "expo-router";
 import {
-  Badge,
   Card,
+  Divider,
   EmptyState,
   FeedbackBanner,
-  Row,
   Screen,
   Skeleton,
   Stack,
   Text,
 } from "../../../src/components/primitives";
 import { StyledButton } from "../../../src/components/common/StyledButton";
-import { colors } from "../../../src/theme/colors";
+import { ExpenseRow } from "../../../src/features/expenses/components/ExpenseRow";
+import { useTheme } from "../../../src/theme/ThemeProvider";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
 export default function ExpensesScreen() {
+  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const expenses = useExpenseStore((state) => state.individualExpenses);
   const isLoading = useExpenseStore((state) => state.isLoading);
@@ -50,38 +44,27 @@ export default function ExpensesScreen() {
 
   return (
     <Screen
-      padding="lg"
+      padding="md"
       refreshing={isLoading}
       onRefresh={() => void loadExpenses()}
+      footer={
+        <StyledButton
+          label="Add expense"
+          onPress={() => router.push("/expense/create")}
+          testID="create-personal-expense-button"
+        />
+      }
     >
-      <View style={styles.container} testID="expenses-screen">
-        <Stack gap="lg">
-          <Row justify="space-between" align="center">
-            <Stack gap="none" flex={1}>
-              <Text size="xxl" weight="bold">
-                Personal expenses
-              </Text>
-              <Text size="sm" color={colors.muted}>
-                Hi {user?.displayName ?? "there"}, keep your costs in one place.
-              </Text>
-            </Stack>
-            <View style={styles.createButton}>
-              <StyledButton
-                label="Add expense"
-                onPress={() => router.push("/expense/create")}
-                testID="create-personal-expense-button"
-              />
-            </View>
-          </Row>
-
-          <Row justify="space-between" align="center">
+      <View testID="expenses-screen">
+        <Stack gap="md">
+          <Stack gap="none">
             <Text size="lg" weight="bold">
-              Your expenses
+              Personal expenses
             </Text>
-            <Badge
-              label={`${expenses.length} ${expenses.length === 1 ? "expense" : "expenses"}`}
-            />
-          </Row>
+            <Text size="sm" color={colors.textMuted}>
+              Costs outside a group, shared with anyone you know.
+            </Text>
+          </Stack>
 
           {error ? (
             <FeedbackBanner tone="error" testID="personal-expenses-error">
@@ -109,62 +92,22 @@ export default function ExpensesScreen() {
             </Card>
           ) : expenses.length === 0 ? (
             <EmptyState
+              icon="receipt-outline"
               title="No personal expenses yet"
-              description="Create an expense to start tracking a cost or a shared split."
-              action={
-                <StyledButton
-                  label="Add expense"
-                  onPress={() => router.push("/expense/create")}
-                  testID="empty-create-expense-button"
-                />
-              }
+              description="Add an expense to start tracking a cost or a shared split."
             />
           ) : (
-            <Stack gap="sm">
-              {expenses.map((expense) => (
-                <Card
-                  key={expense.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/expense/[expenseId]",
-                      params: { expenseId: expense.id },
-                    })
-                  }
-                >
-                  <Row justify="space-between" align="center">
-                    <Stack gap="none" flex={1}>
-                      <Text weight="bold">{expense.title}</Text>
-                      <Text size="sm" color={colors.muted}>
-                        Paid by{" "}
-                        {expense.paidByProfile?.displayName ?? "A participant"}
-                        {" · "}
-                        {expense.splits.length}{" "}
-                        {expense.splits.length === 1 ? "share" : "shares"}
-                      </Text>
-                    </Stack>
-                    <Text weight="bold">{formatCurrency(expense.amount)}</Text>
-                  </Row>
-                </Card>
+            <Card flush>
+              {expenses.map((expense, index) => (
+                <Fragment key={expense.id}>
+                  {index > 0 ? <Divider /> : null}
+                  <ExpenseRow expense={expense} />
+                </Fragment>
               ))}
-            </Stack>
+            </Card>
           )}
-
-          <StyledButton
-            label="Browse groups"
-            onPress={() => router.push("/groups")}
-            variant="secondary"
-          />
         </Stack>
       </View>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  createButton: {
-    width: 128,
-  },
-});

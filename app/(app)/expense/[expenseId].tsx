@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Badge,
   Card,
+  ConfirmDialog,
   EmptyState,
   FeedbackBanner,
+  IconButton,
+  ListRow,
   Row,
   Screen,
+  ScreenHeader,
   Skeleton,
   Stack,
   Text,
@@ -16,16 +19,11 @@ import { StyledButton } from "../../../src/components/common/StyledButton";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
-import { colors } from "../../../src/theme/colors";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
+import { useTheme } from "../../../src/theme/ThemeProvider";
+import { formatCurrency } from "../../../src/utils/money";
 
 export default function ExpenseDetailScreen() {
+  const { colors } = useTheme();
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
   const user = useAuthStore((state) => state.user);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
@@ -155,18 +153,27 @@ export default function ExpenseDetailScreen() {
       onRefresh={() => void loadExpense()}
     >
       <Stack gap="lg">
-        <Row justify="space-between" align="center">
-          <Text size="xxl" weight="bold">
-            Expense details
-          </Text>
-          <View style={styles.backButton}>
-            <StyledButton
-              label="Back"
-              onPress={navigateBack}
-              variant="secondary"
-            />
-          </View>
-        </Row>
+        <ScreenHeader
+          title="Expense details"
+          onBack={navigateBack}
+          actions={
+            expense && canManage ? (
+              <IconButton
+                icon="create-outline"
+                accessibilityLabel="Edit expense"
+                onPress={() =>
+                  router.push({
+                    pathname: "/expense/edit/[expenseId]",
+                    params: { expenseId: expense.id },
+                  })
+                }
+                color={colors.text}
+                testID="edit-expense-button"
+              />
+            ) : undefined
+          }
+          testID="expense-detail-header"
+        />
 
         {error ? (
           <FeedbackBanner tone="error" testID="expense-detail-error">
@@ -222,21 +229,21 @@ export default function ExpenseDetailScreen() {
                 <Text size="xxl" weight="bold">
                   {formatCurrency(expense.amount)}
                 </Text>
-                <Text size="sm" color={colors.muted}>
+                <Text size="sm" color={colors.textMuted}>
                   Paid by{" "}
                   {expense.paidByProfile?.displayName ?? "A participant"}
                 </Text>
-                <Text size="sm" color={colors.muted}>
+                <Text size="sm" color={colors.textMuted}>
                   Created by{" "}
                   {expense.createdByProfile?.displayName ??
                     expense.paidByProfile?.displayName ??
                     "A participant"}
                 </Text>
-                <Text size="sm" color={colors.muted}>
+                <Text size="sm" color={colors.textMuted}>
                   {new Date(expense.recordCreated).toLocaleString()}
                 </Text>
                 {expense.receiptUrl ? (
-                  <Text size="sm" color={colors.muted}>
+                  <Text size="sm" color={colors.textMuted}>
                     Receipt: {expense.receiptUrl}
                   </Text>
                 ) : null}
@@ -262,7 +269,7 @@ export default function ExpenseDetailScreen() {
                           {split.userProfile?.displayName ?? "Participant"}
                           {isPayer ? " (payer)" : ""}
                         </Text>
-                        <Text size="sm" color={colors.muted}>
+                        <Text size="sm" color={colors.textMuted}>
                           {split.isSettled ? "Settled" : "Not settled"}
                         </Text>
                       </Stack>
@@ -293,52 +300,29 @@ export default function ExpenseDetailScreen() {
             </Stack>
 
             {canManage ? (
-              <Stack gap="sm">
-                <StyledButton
-                  label="Edit expense"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/expense/edit/[expenseId]",
-                      params: { expenseId: expense.id },
-                    })
-                  }
-                  variant="secondary"
+              <Card flush>
+                <ListRow
+                  icon="trash-outline"
+                  label="Delete expense"
+                  onPress={() => setConfirmDelete(true)}
+                  destructive
+                  testID="delete-expense-row"
                 />
-                {confirmDelete ? (
-                  <Card>
-                    <Stack gap="sm">
-                      <Text>Delete this expense? This cannot be undone.</Text>
-                      <StyledButton
-                        label="Confirm delete"
-                        onPress={() => void handleDelete()}
-                        isLoading={expenseLoading}
-                        testID="confirm-delete-expense"
-                      />
-                      <StyledButton
-                        label="Cancel"
-                        onPress={() => setConfirmDelete(false)}
-                        variant="secondary"
-                      />
-                    </Stack>
-                  </Card>
-                ) : (
-                  <StyledButton
-                    label="Delete expense"
-                    onPress={() => setConfirmDelete(true)}
-                    variant="secondary"
-                  />
-                )}
-              </Stack>
+              </Card>
             ) : null}
+            <ConfirmDialog
+              visible={confirmDelete}
+              title={`Delete '${expense.title}'?`}
+              message="This cannot be undone."
+              confirmLabel="Delete expense"
+              onConfirm={() => void handleDelete()}
+              onCancel={() => setConfirmDelete(false)}
+              isLoading={expenseLoading}
+              testID="confirm-delete-expense"
+            />
           </>
         )}
       </Stack>
     </Screen>
   );
 }
-
-const styles = {
-  backButton: {
-    width: 76,
-  },
-};

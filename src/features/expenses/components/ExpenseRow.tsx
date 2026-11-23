@@ -3,13 +3,13 @@ import { ListRow } from "../../../components/primitives";
 import { formatCurrency } from "../../../utils/money";
 import type { ExpenseDto } from "../../../types";
 
-/** One group expense: title, payer, amount; opens the expense detail. */
-export function GroupExpenseRow({ expense }: { expense: ExpenseDto }) {
+/** One expense (group or personal): title, payer, amount; opens its detail. */
+export function ExpenseRow({ expense }: { expense: ExpenseDto }) {
   return (
     <ListRow
       icon="receipt-outline"
       label={expense.title}
-      description={`Paid by ${expense.paidByProfile?.displayName ?? "Group member"}`}
+      description={`Paid by ${expense.paidByProfile?.displayName ?? "A participant"}`}
       value={formatCurrency(expense.amount)}
       onPress={() =>
         router.push({
@@ -17,7 +17,7 @@ export function GroupExpenseRow({ expense }: { expense: ExpenseDto }) {
           params: { expenseId: expense.id },
         })
       }
-      testID={`group-expense-${expense.id}`}
+      testID={`expense-row-${expense.id}`}
     />
   );
 }

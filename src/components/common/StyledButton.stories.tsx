@@ -23,3 +23,6 @@ export const Loading: Story = {
 export const Disabled: Story = {
   args: { label: "Save", disabled: true, onPress: () => {} },
 };
+export const Link: Story = {
+  args: { label: "Forgot password?", variant: "link", onPress: () => {} },
+};

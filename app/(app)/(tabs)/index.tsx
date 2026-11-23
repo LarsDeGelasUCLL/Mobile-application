@@ -1,11 +1,12 @@
-import { useCallback, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { Fragment, useCallback, useEffect } from "react";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
 import {
-  Badge,
   Card,
+  Divider,
   EmptyState,
   FeedbackBanner,
+  ListRow,
   Row,
   Screen,
   Skeleton,
@@ -13,23 +14,20 @@ import {
   Text,
 } from "../../../src/components/primitives";
 import { StyledButton } from "../../../src/components/common/StyledButton";
+import { ExpenseRow } from "../../../src/features/expenses/components/ExpenseRow";
 import { GroupHighlights } from "../../../src/features/home/components/GroupHighlights";
 import { HomeHeader } from "../../../src/features/home/components/HomeHeader";
-import { colors } from "../../../src/theme/colors";
+import { makeStyles, useTheme } from "../../../src/theme/ThemeProvider";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import type { GroupHighlight } from "../../../src/types";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
+import { describeBalance, summarizeBalances } from "../../../src/utils/money";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const styles = useStyles();
+  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const groups = useGroupStore((state) => state.groups);
   const pendingInvites = useGroupStore((state) => state.pendingInvites);
@@ -74,6 +72,23 @@ export default function HomeScreen() {
     imageUri: group.groupIconUrl ?? undefined,
     fallbackColor: colors.primary,
   }));
+  // Personal expenses only: Home loads no group expenses (see AI_OVERVIEW §7).
+  const { youAreOwed, youOwe } = summarizeBalances(expenses, user?.id ?? "");
+  const owed = describeBalance(youAreOwed);
+  const owe = describeBalance(-youOwe);
+  const toneColor = (tone: "success" | "error" | "muted") =>
+    tone === "muted" ? colors.textMuted : colors[tone];
+
+  const sectionHeader = (title: string, onSeeAll?: () => void) => (
+    <Row justify="space-between" align="center">
+      <Text size="lg" weight="bold">
+        {title}
+      </Text>
+      {onSeeAll ? (
+        <StyledButton label="See all" onPress={onSeeAll} variant="link" />
+      ) : null}
+    </Row>
+  );
 
   return (
     <Screen
@@ -85,63 +100,72 @@ export default function HomeScreen() {
         <Stack gap="lg">
           <HomeHeader name={user?.displayName ?? "User"} />
 
-          {groupError ? (
-            <FeedbackBanner tone="error" testID="home-groups-error">
-              <Text size="sm" color={colors.error}>
-                {groupError}
-              </Text>
-              <StyledButton
-                label="Retry groups"
-                onPress={loadGroups}
-                variant="secondary"
-                isLoading={groupLoading}
-                testID="home-groups-retry-button"
-              />
-            </FeedbackBanner>
-          ) : null}
-
-          {expenseError ? (
-            <FeedbackBanner tone="error" testID="home-expenses-error">
-              <Text size="sm" color={colors.error}>
-                {expenseError}
-              </Text>
-              <StyledButton
-                label="Retry expenses"
-                onPress={loadExpenses}
-                variant="secondary"
-                isLoading={expenseLoading}
-                testID="home-expenses-retry-button"
-              />
-            </FeedbackBanner>
-          ) : null}
+          {expenseError && expenses.length === 0 ? null : (
+            <Card>
+              <View style={styles.summary} testID="home-balance-summary">
+                <Text size="sm" color={colors.textMuted}>
+                  Personal expenses
+                </Text>
+                {expenseLoading && expenses.length === 0 ? (
+                  <Skeleton height={28} width="70%" />
+                ) : (
+                  <Row gap="md">
+                    {[
+                      { label: "You get back", balance: owed },
+                      { label: "You owe", balance: owe },
+                    ].map(({ label, balance }) => (
+                      <View
+                        key={label}
+                        style={styles.balance}
+                        accessible
+                        accessibilityLabel={`${label} ${balance.amount}`}
+                      >
+                        <Text size="sm" color={colors.textMuted}>
+                          {label}
+                        </Text>
+                        <Text
+                          size="xl"
+                          weight="bold"
+                          color={toneColor(balance.tone)}
+                        >
+                          {balance.amount}
+                        </Text>
+                      </View>
+                    ))}
+                  </Row>
+                )}
+              </View>
+            </Card>
+          )}
 
           {pendingInvites.length > 0 ? (
-            <Card>
-              <Row justify="space-between" align="center" gap="sm">
-                <Stack gap="none" flex={1}>
-                  <Text size="sm" weight="medium">
-                    {pendingInvites.length} pending{" "}
-                    {pendingInvites.length === 1
-                      ? "group invitation"
-                      : "group invitations"}
-                  </Text>
-                </Stack>
-                <StyledButton
-                  label="Review"
-                  onPress={() => router.push("/groups")}
-                  variant="secondary"
-                />
-              </Row>
+            <Card flush>
+              <ListRow
+                icon="mail-outline"
+                label={`${pendingInvites.length} ${pendingInvites.length === 1 ? "invitation" : "invitations"}`}
+                description="Waiting for your answer"
+                onPress={() => router.push("/groups")}
+                testID="home-invitations-row"
+              />
             </Card>
           ) : null}
 
           <Stack gap="sm">
-            <Row justify="space-between" align="center">
-              <Text size="lg" weight="bold">
-                Groups
-              </Text>
-              <Badge label={String(groups.length)} />
-            </Row>
+            {sectionHeader("Groups", () => router.push("/groups"))}
+            {groupError ? (
+              <FeedbackBanner tone="error" testID="home-groups-error">
+                <Text size="sm" color={colors.error}>
+                  {groupError}
+                </Text>
+                <StyledButton
+                  label="Retry groups"
+                  onPress={loadGroups}
+                  variant="secondary"
+                  isLoading={groupLoading}
+                  testID="home-groups-retry-button"
+                />
+              </FeedbackBanner>
+            ) : null}
             {groupError && groups.length === 0 ? null : groupLoading &&
               groups.length === 0 ? (
               <Card>
@@ -152,7 +176,8 @@ export default function HomeScreen() {
               </Card>
             ) : groups.length === 0 ? (
               <EmptyState
-                title="No active groups"
+                icon="people-outline"
+                title="No groups yet"
                 description="Create a group or join friends to see it here."
                 action={
                   <StyledButton
@@ -177,14 +202,24 @@ export default function HomeScreen() {
           </Stack>
 
           <Stack gap="sm">
-            <Row justify="space-between" align="center">
-              <Text size="lg" weight="bold">
-                Recent expenses
-              </Text>
-              <Badge
-                label={`${expenses.length} ${expenses.length === 1 ? "expense" : "expenses"}`}
-              />
-            </Row>
+            {sectionHeader(
+              "Recent expenses",
+              expenses.length > 3 ? () => router.push("/expenses") : undefined,
+            )}
+            {expenseError ? (
+              <FeedbackBanner tone="error" testID="home-expenses-error">
+                <Text size="sm" color={colors.error}>
+                  {expenseError}
+                </Text>
+                <StyledButton
+                  label="Retry expenses"
+                  onPress={loadExpenses}
+                  variant="secondary"
+                  isLoading={expenseLoading}
+                  testID="home-expenses-retry-button"
+                />
+              </FeedbackBanner>
+            ) : null}
             {expenseError && expenses.length === 0 ? null : expenseLoading &&
               expenses.length === 0 ? (
               <Card>
@@ -195,6 +230,7 @@ export default function HomeScreen() {
               </Card>
             ) : expenses.length === 0 ? (
               <EmptyState
+                icon="receipt-outline"
                 title="No personal expenses yet"
                 description="Your recent personal expenses will appear here."
                 action={
@@ -205,40 +241,14 @@ export default function HomeScreen() {
                 }
               />
             ) : (
-              <Stack gap="sm">
-                {expenses.slice(0, 3).map((expense) => (
-                  <Card
-                    key={expense.id}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/expense/[expenseId]",
-                        params: { expenseId: expense.id },
-                      })
-                    }
-                  >
-                    <Row justify="space-between" align="center">
-                      <Stack gap="none" flex={1}>
-                        <Text weight="bold">{expense.title}</Text>
-                        <Text size="sm" color={colors.muted}>
-                          Paid by{" "}
-                          {expense.paidByProfile?.displayName ??
-                            "A participant"}
-                        </Text>
-                      </Stack>
-                      <Text weight="bold">
-                        {formatCurrency(expense.amount)}
-                      </Text>
-                    </Row>
-                  </Card>
+              <Card flush>
+                {expenses.slice(0, 3).map((expense, index) => (
+                  <Fragment key={expense.id}>
+                    {index > 0 ? <Divider /> : null}
+                    <ExpenseRow expense={expense} />
+                  </Fragment>
                 ))}
-                {expenses.length > 3 ? (
-                  <StyledButton
-                    label="See all expenses"
-                    onPress={() => router.push("/expenses")}
-                    variant="secondary"
-                  />
-                ) : null}
-              </Stack>
+              </Card>
             )}
           </Stack>
         </Stack>
@@ -247,8 +257,8 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+const useStyles = makeStyles((t) => ({
+  container: { flex: 1 },
+  summary: { gap: t.spacing.sm },
+  balance: { flex: 1, gap: t.spacing.xs },
+}));

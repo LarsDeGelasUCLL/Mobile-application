@@ -1,7 +1,7 @@
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { Icon, Row, Stack, Text } from "../../../components/primitives";
+import { Pressable, ScrollView, View } from "react-native";
+import { Icon, Text } from "../../../components/primitives";
 import { GroupAvatar } from "../../groups/components/GroupAvatar";
-import { colors } from "../../../theme/colors";
+import { makeStyles, useTheme } from "../../../theme/ThemeProvider";
 import type { GroupHighlight } from "../../../types";
 
 interface GroupHighlightsProps {
@@ -10,95 +10,81 @@ interface GroupHighlightsProps {
   onGroupPress: (group: GroupHighlight) => void;
 }
 
+/** Horizontal group carousel. The section title lives on the Home screen. */
 export function GroupHighlights({
   groups,
   onSeeAllPress,
   onGroupPress,
 }: GroupHighlightsProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
-    <Stack gap="sm">
-      <Row justify="space-between" align="center">
-        <Text size="md" weight="bold">
-          Groups
-        </Text>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.groupList}
+      testID="home-group-highlights"
+    >
+      {groups.map((group) => (
         <Pressable
+          key={group.id}
           accessibilityRole="button"
-          onPress={onSeeAllPress}
-          hitSlop={8}
+          accessibilityLabel={`Open ${group.name}`}
+          onPress={() => onGroupPress(group)}
+          style={styles.groupItem}
         >
-          <Text size="sm" weight="medium" color={colors.primary}>
-            See all
+          <GroupAvatar
+            name={group.name}
+            imageUri={group.imageUri}
+            fallbackColor={group.fallbackColor}
+            size={58}
+          />
+          <Text
+            size="sm"
+            align="center"
+            color={colors.textMuted}
+            numberOfLines={1}
+          >
+            {group.name}
           </Text>
         </Pressable>
-      </Row>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.groupList}
-        testID="home-group-highlights"
+      ))}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Browse groups"
+        onPress={onSeeAllPress}
+        style={styles.groupItem}
       >
-        {groups.map((group) => (
-            <Pressable
-              key={group.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Open ${group.name}`}
-              onPress={() => onGroupPress(group)}
-              style={styles.groupItem}
-            >
-              <GroupAvatar
-                name={group.name}
-                imageUri={group.imageUri}
-                fallbackColor={group.fallbackColor}
-                size={58}
-              />
-              <Text size="sm" align="center" color={colors.muted}>
-                {group.name}
-              </Text>
-            </Pressable>
-        ))}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Browse groups"
-          onPress={onSeeAllPress}
-          style={styles.addGroup}
-        >
-          <View style={styles.addIcon}>
-            <Icon name="add" size={23} color={colors.primary} />
-          </View>
-          <Text size="sm" align="center" color={colors.primary}>
-            Find groups
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </Stack>
+        <View style={styles.addIcon}>
+          <Icon name="add" size={24} color={colors.primaryText} />
+        </View>
+        <Text size="sm" align="center" color={colors.primaryText}>
+          Find groups
+        </Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   groupList: {
-    gap: 18,
-    paddingVertical: 4,
+    gap: t.spacing.lg,
+    paddingVertical: t.spacing.xs,
   },
   groupItem: {
     width: 74,
     alignItems: "center",
-    gap: 7,
-  },
-  addGroup: {
-    width: 74,
-    alignItems: "center",
-    gap: 7,
+    gap: t.spacing.sm,
   },
   addIcon: {
     width: 58,
     height: 58,
-    borderRadius: 29,
+    borderRadius: t.radius.full,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primarySoft,
+    backgroundColor: t.colors.primarySoft,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
+    borderColor: t.colors.primaryBorder,
     borderStyle: "dashed",
   },
-});
+}));

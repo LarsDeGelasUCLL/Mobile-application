@@ -348,6 +348,96 @@ test("group detail shows balances then recent expenses; members and admin tools 
   assert.match(expenses, /footer=/);
 });
 
+test("phase 7: text links, one primary per auth view, themed home/expense pages", async () => {
+  const read = (file) => fs.readFile(file, "utf8");
+  const button = await read("src/components/common/StyledButton.tsx");
+  assert.match(button, /"link"/);
+  assert.match(
+    button,
+    /accessibilityRole=\{variant === "link" \? "link" : "button"\}/,
+  );
+  assert.match(
+    await read("src/components/common/StyledButton.stories.tsx"),
+    /variant: "link"/,
+  );
+
+  // Login: Log in is the only filled button; the rest are text links.
+  const login = await read("app/login.tsx");
+  assert.doesNotMatch(login, /Your trusted group activity planner/);
+  // Only the bootstrap "Try again" stays secondary.
+  assert.equal(login.match(/variant="secondary"/g)?.length ?? 0, 1);
+  for (const label of [
+    "Forgot password?",
+    "Create account",
+    "Back to log in",
+  ]) {
+    assert.match(
+      login,
+      new RegExp(
+        `label="${label.replace("?", "\\?")}"[\\s\\S]{0,120}variant="link"`,
+      ),
+    );
+  }
+  assert.match(login, /New to Lumin\?/);
+  assert.match(login, /testID="signup-button"/);
+
+  // Groups empty state: "Join with code" becomes the text link (Phase 5 ruling).
+  const groups = await read("app/(app)/(tabs)/groups.tsx");
+  assert.match(groups, /label="Join with code"[\s\S]{0,120}variant="link"/);
+
+  // Home: balance summary first, invitations as one row, errors per section.
+  const home = await read("app/(app)/(tabs)/index.tsx");
+  assert.match(home, /summarizeBalances\(/);
+  assert.ok(
+    home.indexOf("home-balance-summary") < home.indexOf("<GroupHighlights"),
+  );
+  assert.match(home, /<ListRow[\s\S]{0,400}home-invitations-row/);
+  assert.ok(
+    home.indexOf("home-groups-error") > home.indexOf("home-balance-summary"),
+  );
+
+  // Expenses tab + expense pages: sticky primary in Screen footer, ScreenHeader.
+  const expensesTab = await read("app/(app)/(tabs)/expenses.tsx");
+  assert.match(expensesTab, /footer=\{/);
+  assert.match(expensesTab, /create-personal-expense-button/);
+  for (const page of [
+    "app/(app)/expense/create.tsx",
+    "app/(app)/expense/edit/[expenseId].tsx",
+    "app/(app)/expense/[expenseId].tsx",
+  ]) {
+    const source = await read(page);
+    assert.match(source, /<ScreenHeader/, page);
+    assert.doesNotMatch(source, /label="Back"/, page);
+  }
+  for (const page of [
+    "app/(app)/expense/create.tsx",
+    "app/(app)/expense/edit/[expenseId].tsx",
+  ]) {
+    assert.match(await read(page), /footer=\{[\s\S]*save-expense-button/, page);
+  }
+  const form = await read("src/features/expenses/components/ExpenseForm.tsx");
+  assert.match(form, /useImperativeHandle/);
+  assert.doesNotMatch(form, /save-expense-button/);
+  const detail = await read("app/(app)/expense/[expenseId].tsx");
+  assert.match(detail, /<ConfirmDialog/);
+  assert.match(detail, /testID="confirm-delete-expense"/);
+
+  // No deprecated colours in any Phase 7 file.
+  for (const file of [
+    "app/login.tsx",
+    "app/(app)/(tabs)/index.tsx",
+    "app/(app)/(tabs)/expenses.tsx",
+    "app/(app)/expense/create.tsx",
+    "app/(app)/expense/[expenseId].tsx",
+    "app/(app)/expense/edit/[expenseId].tsx",
+    "src/features/auth/components/BrandHeader.tsx",
+    "src/features/expenses/components/ExpenseForm.tsx",
+    "src/features/home/components/GroupHighlights.tsx",
+  ]) {
+    assert.doesNotMatch(await read(file), /theme\/colors/, file);
+  }
+});
+
 test("expense create, detail, and edit routes are sibling stack screens", async () => {
   const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
   const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
@@ -369,7 +459,14 @@ test("home summarizes live groups and expenses with working detail routes", asyn
   assert.match(home, /useExpenseStore/);
   assert.match(home, /fetchIndividualExpenses/);
   assert.match(home, /pathname:\s*"\/group\/\[groupId\]"/);
-  assert.match(home, /pathname:\s*"\/expense\/\[expenseId\]"/);
+  assert.match(home, /<ExpenseRow/);
+  assert.match(
+    await fs.readFile(
+      "src/features/expenses/components/ExpenseRow.tsx",
+      "utf8",
+    ),
+    /pathname:\s*"\/expense\/\[expenseId\]"/,
+  );
   assert.doesNotMatch(
     home,
     /FeedPostCard|FeedFilterMenu|Alert\.alert|UCLL Community|Weekend crew/,

@@ -10,7 +10,7 @@ import {
   Text,
 } from "../../../../src/components/primitives";
 import { StyledButton } from "../../../../src/components/common/StyledButton";
-import { GroupExpenseRow } from "../../../../src/features/groups/components/GroupExpenseRow";
+import { ExpenseRow } from "../../../../src/features/expenses/components/ExpenseRow";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
 import { makeStyles, useTheme } from "../../../../src/theme/ThemeProvider";
 
@@ -75,7 +75,7 @@ export default function GroupExpensesScreen() {
         <FlatList
           data={groupExpenses}
           keyExtractor={(expense) => expense.id}
-          renderItem={({ item }) => <GroupExpenseRow expense={item} />}
+          renderItem={({ item }) => <ExpenseRow expense={item} />}
           ItemSeparatorComponent={Divider}
           refreshing={expensesLoading}
           onRefresh={() => void reload()}
