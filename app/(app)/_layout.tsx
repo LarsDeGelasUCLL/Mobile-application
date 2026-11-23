@@ -54,6 +54,8 @@ export default function AppLayout() {
       <Stack.Screen name="settings/profile" />
       <Stack.Screen name="settings/email" />
       <Stack.Screen name="settings/password" />
+      <Stack.Screen name="group/create" />
+      <Stack.Screen name="group/join" />
       <Stack.Screen name="group/[groupId]" />
       <Stack.Screen name="expense/create" />
       <Stack.Screen name="expense/[expenseId]" />

@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { router } from "expo-router";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { View } from "react-native";
+import { router, Tabs } from "expo-router";
 import {
-  Badge,
   Card,
+  CollapsibleSection,
+  Divider,
   EmptyState,
   FeedbackBanner,
-  InputField,
+  IconButton,
+  ListRow,
   Row,
   Screen,
+  Sheet,
   Skeleton,
   Stack,
   Text,
@@ -16,13 +19,11 @@ import {
 import { StyledButton } from "../../../src/components/common/StyledButton";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
-import {
-  validateGroupName,
-  validateInviteCode,
-} from "../../../src/features/groups/groupValidation";
-import { colors } from "../../../src/theme/colors";
+import { makeStyles, useTheme } from "../../../src/theme/ThemeProvider";
 
 export default function GroupsScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const groups = useGroupStore((state) => state.groups);
   const pendingInvites = useGroupStore((state) => state.pendingInvites);
@@ -34,16 +35,10 @@ export default function GroupsScreen() {
   const fetchGroupsAndInvites = useGroupStore(
     (state) => state.fetchGroupsAndInvites,
   );
-  const createNewGroup = useGroupStore((state) => state.createNewGroup);
-  const joinByCode = useGroupStore((state) => state.joinByCode);
   const respondToInvite = useGroupStore((state) => state.respondToInvite);
   const clearError = useGroupStore((state) => state.clearError);
 
-  const [groupName, setGroupName] = useState("");
-  const [groupDescription, setGroupDescription] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
-  const [groupNameError, setGroupNameError] = useState<string>();
-  const [inviteCodeError, setInviteCodeError] = useState<string>();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   const loadGroups = useCallback(() => {
@@ -56,44 +51,9 @@ export default function GroupsScreen() {
     loadGroups();
   }, [loadGroups]);
 
-  const handleCreateGroup = async () => {
-    const validationError = validateGroupName(groupName);
-    setGroupNameError(validationError);
-    setFeedback("");
-    clearError();
-    if (validationError || !user?.id) return;
-
-    try {
-      await createNewGroup(user.id, {
-        name: groupName.trim(),
-        description: groupDescription.trim() || undefined,
-      });
-      setGroupName("");
-      setGroupDescription("");
-      setFeedback("Your group was created.");
-    } catch {
-      setFeedback("");
-    }
-  };
-
-  const handleJoinGroup = async () => {
-    const validationError = validateInviteCode(inviteCode);
-    setInviteCodeError(validationError);
-    setFeedback("");
-    clearError();
-    if (validationError || !user?.id) return;
-
-    try {
-      const { status } = await joinByCode(user.id, inviteCode.trim());
-      setInviteCode("");
-      setFeedback(
-        status === "ACTIVE"
-          ? "You joined the group."
-          : "Request sent. A group admin must approve it.",
-      );
-    } catch {
-      setFeedback("");
-    }
+  const openPage = (path: "/group/create" | "/group/join") => {
+    setMenuOpen(false);
+    router.push(path);
   };
 
   const handleCancelRequest = async (membershipId: string) => {
@@ -122,24 +82,31 @@ export default function GroupsScreen() {
     }
   };
 
+  const groupSummary = (groupId: string, isAdmin: boolean) => {
+    const requests = isAdmin ? (joinRequestCounts[groupId] ?? 0) : 0;
+    const role = isAdmin ? "Admin" : "Member";
+    return requests > 0
+      ? `${role} · ${requests} ${requests === 1 ? "request" : "requests"}`
+      : role;
+  };
+
   return (
     <Screen padding="lg" refreshing={isLoading} onRefresh={loadGroups}>
-      <View style={styles.container} testID="groups-screen">
-        <Stack gap="lg">
-          <Row justify="space-between" align="center">
-            <Stack gap="none">
-              <Text size="xxl" weight="bold">
-                Your groups
-              </Text>
-              <Text size="sm" color={colors.muted}>
-                Shared plans, made easier to manage
-              </Text>
-            </Stack>
-            <Badge
-              label={`${groups.length} ${groups.length === 1 ? "group" : "groups"}`}
+      <Tabs.Screen
+        options={{
+          headerRight: () => (
+            <IconButton
+              icon="add"
+              accessibilityLabel="Create or join a group"
+              onPress={() => setMenuOpen(true)}
+              color={colors.text}
+              testID="groups-add-button"
             />
-          </Row>
-
+          ),
+        }}
+      />
+      <View testID="groups-screen">
+        <Stack gap="lg">
           {storeError ? (
             <FeedbackBanner tone="error" testID="groups-error">
               <Text size="sm" color={colors.error}>
@@ -163,260 +130,168 @@ export default function GroupsScreen() {
             </FeedbackBanner>
           ) : null}
 
-          <Card>
-            <Stack gap="md">
-              <Text size="md" weight="bold">
-                Create a group
-              </Text>
-              <InputField
-                label="Group name"
-                value={groupName}
-                onChangeText={(value) => {
-                  setGroupName(value);
-                  setGroupNameError(undefined);
-                }}
-                placeholder="Weekend trip"
-                error={groupNameError}
-                testID="create-group-name-input"
-              />
-              <InputField
-                label="Description (optional)"
-                value={groupDescription}
-                onChangeText={setGroupDescription}
-                placeholder="What are you planning together?"
-                testID="create-group-description-input"
-              />
-              <StyledButton
-                label="Create group"
-                onPress={() => void handleCreateGroup()}
-                isLoading={isLoading}
-                testID="create-group-button"
-              />
-            </Stack>
-          </Card>
-
-          <Card>
-            <Stack gap="md">
-              <Text size="md" weight="bold">
-                Join a group
-              </Text>
-              <Text size="sm" color={colors.muted}>
-                A group admin must approve your request, unless they already
-                invited you.
-              </Text>
-              <InputField
-                label="Invite code"
-                value={inviteCode}
-                onChangeText={(value) => {
-                  setInviteCode(value);
-                  setInviteCodeError(undefined);
-                }}
-                placeholder="Enter your invite code"
-                error={inviteCodeError}
-                testID="join-group-code-input"
-              />
-              <StyledButton
-                label="Join with code"
-                onPress={() => void handleJoinGroup()}
-                variant="secondary"
-                isLoading={isLoading}
-                testID="join-group-button"
-              />
-            </Stack>
-          </Card>
-
           <Stack gap="sm">
-            <Row justify="space-between" align="center">
-              <Text size="lg" weight="bold">
-                Active groups
-              </Text>
-              <Badge label={String(groups.length)} variant="success" />
-            </Row>
+            <Text size="sm" weight="bold" color={colors.textMuted}>
+              YOUR GROUPS
+            </Text>
             {storeError && groups.length === 0 ? null : isLoading &&
               groups.length === 0 ? (
               <Card>
                 <Stack gap="sm">
                   <Skeleton height={22} width="60%" />
-                  <Skeleton height={16} width="85%" />
                   <Skeleton height={16} width="35%" />
                 </Stack>
               </Card>
             ) : groups.length === 0 ? (
               <EmptyState
-                title="No active groups"
-                description="Create a group or join friends with an invite code. Groups you belong to will appear here."
-              />
-            ) : (
-              groups.map(({ group, groupRole }) => (
-                <Card
-                  key={group.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/group/[groupId]",
-                      params: { groupId: group.id },
-                    })
-                  }
-                >
+                icon="people-outline"
+                title="No groups yet"
+                description="Create a group, or join friends with an invite code."
+                action={
                   <Stack gap="sm">
-                    <Row justify="space-between" align="center">
-                      <Text size="md" weight="bold">
-                        {group.name}
-                      </Text>
-                      <Row gap="sm" align="center">
-                        {groupRole === "ADMIN" &&
-                        joinRequestCounts[group.id] > 0 ? (
-                          <Badge
-                            label={`${joinRequestCounts[group.id]} ${joinRequestCounts[group.id] === 1 ? "request" : "requests"}`}
-                            variant="error"
-                            testID={`group-join-request-count-${group.id}`}
-                          />
-                        ) : null}
-                        <Badge
-                          label={groupRole}
-                          variant={
-                            groupRole === "ADMIN" ? "warning" : "default"
-                          }
-                        />
-                      </Row>
-                    </Row>
-                    {group.description ? (
-                      <Text size="sm" color={colors.muted}>
-                        {group.description}
-                      </Text>
-                    ) : null}
-                    <Text size="sm" color={colors.primary}>
-                      View group
-                    </Text>
-                  </Stack>
-                </Card>
-              ))
-            )}
-          </Stack>
-
-          <Stack gap="sm">
-            <Row justify="space-between" align="center">
-              <Text size="lg" weight="bold">
-                Invitations
-              </Text>
-              <Badge label={String(pendingInvites.length)} />
-            </Row>
-            {storeError && pendingInvites.length === 0 ? null : isLoading &&
-              pendingInvites.length === 0 ? (
-              <Card>
-                <Stack gap="sm">
-                  <Skeleton height={22} width="55%" />
-                  <Skeleton height={16} width="75%" />
-                </Stack>
-              </Card>
-            ) : pendingInvites.length === 0 ? (
-              <EmptyState
-                title="No pending invitations"
-                description="Invitations sent to you will show up here."
-              />
-            ) : (
-              pendingInvites.map((invite) => (
-                <Card key={invite.membershipId}>
-                  <Stack gap="md">
-                    <Stack gap="sm">
-                      <Text size="md" weight="bold">
-                        {invite.group.name}
-                      </Text>
-                      <Text size="sm" color={colors.muted}>
-                        {invite.invitedByProfile
-                          ? `Invited by ${invite.invitedByProfile.displayName}`
-                          : "You have been invited to this group."}
-                      </Text>
-                    </Stack>
-                    <Row gap="sm">
-                      <View style={styles.buttonColumn}>
-                        <StyledButton
-                          label="Accept"
-                          onPress={() =>
-                            void handleInviteResponse(invite.membershipId, true)
-                          }
-                          isLoading={isLoading}
-                          testID={`accept-invite-${invite.membershipId}`}
-                        />
-                      </View>
-                      <View style={styles.buttonColumn}>
-                        <StyledButton
-                          label="Decline"
-                          onPress={() =>
-                            void handleInviteResponse(
-                              invite.membershipId,
-                              false,
-                            )
-                          }
-                          variant="secondary"
-                          isLoading={isLoading}
-                          testID={`decline-invite-${invite.membershipId}`}
-                        />
-                      </View>
-                    </Row>
-                  </Stack>
-                </Card>
-              ))
-            )}
-          </Stack>
-
-          <Stack gap="sm">
-            <Row justify="space-between" align="center">
-              <Text size="lg" weight="bold">
-                Sent requests
-              </Text>
-              <Badge label={String(sentJoinRequests.length)} />
-            </Row>
-            {storeError && sentJoinRequests.length === 0 ? null : isLoading &&
-              sentJoinRequests.length === 0 ? (
-              <Card>
-                <Stack gap="sm">
-                  <Skeleton height={22} width="55%" />
-                  <Skeleton height={16} width="40%" />
-                </Stack>
-              </Card>
-            ) : sentJoinRequests.length === 0 ? (
-              <EmptyState
-                title="No open join requests"
-                description="Groups you asked to join with an invite code will show up here until an admin responds."
-              />
-            ) : (
-              sentJoinRequests.map((request) => (
-                <Card key={request.membershipId}>
-                  <Stack gap="md">
-                    <Stack gap="sm">
-                      <Text size="md" weight="bold">
-                        {request.group.name}
-                      </Text>
-                      <Text size="sm" color={colors.muted}>
-                        Requested{" "}
-                        {new Date(request.requestedAt).toLocaleDateString()}
-                      </Text>
-                    </Stack>
                     <StyledButton
-                      label="Cancel request"
-                      onPress={() =>
-                        void handleCancelRequest(request.membershipId)
-                      }
+                      label="Create group"
+                      onPress={() => openPage("/group/create")}
+                      testID="groups-empty-create"
+                    />
+                    {/* Phase 7 turns this into a text link (variant="link"). */}
+                    <StyledButton
+                      label="Join with code"
+                      onPress={() => openPage("/group/join")}
                       variant="secondary"
-                      isLoading={isLoading}
-                      testID={`sent-request-cancel-${request.membershipId}`}
+                      testID="groups-empty-join"
                     />
                   </Stack>
-                </Card>
-              ))
+                }
+              />
+            ) : (
+              <Card flush>
+                {groups.map(({ group, groupRole }, index) => (
+                  <Fragment key={group.id}>
+                    {index > 0 && <Divider />}
+                    <ListRow
+                      icon="people-outline"
+                      label={group.name}
+                      description={groupSummary(
+                        group.id,
+                        groupRole === "ADMIN",
+                      )}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/group/[groupId]",
+                          params: { groupId: group.id },
+                        })
+                      }
+                      testID={`group-row-${group.id}`}
+                    />
+                  </Fragment>
+                ))}
+              </Card>
             )}
           </Stack>
+
+          {pendingInvites.length > 0 ? (
+            <CollapsibleSection
+              title="Invitations"
+              count={pendingInvites.length}
+              testID="groups-invitations"
+            >
+              {pendingInvites.map((invite, index) => (
+                <Stack gap="sm" key={invite.membershipId}>
+                  {index > 0 && <Divider />}
+                  <Text weight="bold">{invite.group.name}</Text>
+                  <Text size="sm" color={colors.textMuted}>
+                    {invite.invitedByProfile
+                      ? `Invited by ${invite.invitedByProfile.displayName}`
+                      : "You have been invited to this group."}
+                  </Text>
+                  <Row gap="sm">
+                    <View style={styles.buttonColumn}>
+                      <StyledButton
+                        label="Accept"
+                        onPress={() =>
+                          void handleInviteResponse(invite.membershipId, true)
+                        }
+                        variant="secondary"
+                        isLoading={isLoading}
+                        testID={`accept-invite-${invite.membershipId}`}
+                      />
+                    </View>
+                    <View style={styles.buttonColumn}>
+                      <StyledButton
+                        label="Decline"
+                        onPress={() =>
+                          void handleInviteResponse(invite.membershipId, false)
+                        }
+                        variant="secondary"
+                        isLoading={isLoading}
+                        testID={`decline-invite-${invite.membershipId}`}
+                      />
+                    </View>
+                  </Row>
+                </Stack>
+              ))}
+            </CollapsibleSection>
+          ) : null}
+
+          {sentJoinRequests.length > 0 ? (
+            <CollapsibleSection
+              title="Sent join requests"
+              count={sentJoinRequests.length}
+              testID="groups-sent-requests"
+            >
+              {sentJoinRequests.map((request, index) => (
+                <Stack gap="sm" key={request.membershipId}>
+                  {index > 0 && <Divider />}
+                  <Text weight="bold">{request.group.name}</Text>
+                  <Text size="sm" color={colors.textMuted}>
+                    Requested{" "}
+                    {new Date(request.requestedAt).toLocaleDateString()}
+                  </Text>
+                  <StyledButton
+                    label="Cancel request"
+                    onPress={() =>
+                      void handleCancelRequest(request.membershipId)
+                    }
+                    variant="secondary"
+                    isLoading={isLoading}
+                    testID={`sent-request-cancel-${request.membershipId}`}
+                  />
+                </Stack>
+              ))}
+            </CollapsibleSection>
+          ) : null}
         </Stack>
       </View>
+
+      <Sheet
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title="Add a group"
+        testID="groups-add-sheet"
+      >
+        <Card flush>
+          <ListRow
+            icon="add-circle-outline"
+            label="Create group"
+            description="Start a new group and invite people."
+            onPress={() => openPage("/group/create")}
+            testID="groups-menu-create"
+          />
+          <Divider />
+          <ListRow
+            icon="enter-outline"
+            label="Join with code"
+            description="Use an invite code from a group admin."
+            onPress={() => openPage("/group/join")}
+            testID="groups-menu-join"
+          />
+        </Card>
+      </Sheet>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  buttonColumn: {
-    flex: 1,
-  },
-});
+const useStyles = makeStyles(() => ({
+  buttonColumn: { flex: 1 },
+}));

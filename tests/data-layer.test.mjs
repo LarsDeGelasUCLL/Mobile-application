@@ -217,6 +217,55 @@ test("profile is display-only; settings holds account sub-pages, dropdowns and t
   }
 });
 
+test("groups tab lists groups first; create and join live on their own pages behind +", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  const groups = await fs.readFile("app/(app)/(tabs)/groups.tsx", "utf8");
+
+  // Design §6.2: no inline forms; + opens a sheet with two choices.
+  assert.doesNotMatch(
+    groups,
+    /InputField|createNewGroup|joinByCode|theme\/colors/,
+  );
+  assert.match(groups, /<Sheet/);
+  assert.match(groups, /headerRight/);
+  for (const page of ["create", "join"]) {
+    assert.match(groups, new RegExp(`openPage\\("/group/${page}"\\)`));
+    assert.match(appLayout, new RegExp(`name="group/${page}"`));
+  }
+  // List first, then invitations + sent requests collapsed below it.
+  const listPos = groups.indexOf("groups.map(");
+  const invitesPos = groups.indexOf('title="Invitations"');
+  const sentPos = groups.indexOf('title="Sent join requests"');
+  assert.ok(listPos >= 0 && listPos < invitesPos && invitesPos < sentPos);
+  assert.match(groups, /<CollapsibleSection/);
+  assert.match(groups, /<EmptyState/);
+
+  // Form pages: header with back, sticky primary, logic + Cypress testIDs kept.
+  const pages = {
+    create: [
+      "validateGroupName",
+      "createNewGroup",
+      "create-group-name-input",
+      "create-group-button",
+    ],
+    join: [
+      "validateInviteCode",
+      "joinByCode",
+      "join-group-code-input",
+      "join-group-button",
+    ],
+  };
+  for (const [page, needles] of Object.entries(pages)) {
+    const source = await fs.readFile(`app/(app)/group/${page}.tsx`, "utf8");
+    assert.match(source, /<ScreenHeader/);
+    assert.match(source, /footer=/);
+    assert.match(source, /router\.replace\("\/groups"\)/);
+    assert.doesNotMatch(source, /theme\/colors/);
+    for (const needle of needles)
+      assert.ok(source.includes(needle), `${page}: ${needle}`);
+  }
+});
+
 test("expense create, detail, and edit routes are sibling stack screens", async () => {
   const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
   const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
@@ -296,6 +345,8 @@ test("screens use the shared accessible feedback banner for status messages", as
     "app/(app)/settings/email.tsx",
     "app/(app)/settings/password.tsx",
     "app/(app)/group/[groupId].tsx",
+    "app/(app)/group/create.tsx",
+    "app/(app)/group/join.tsx",
     "app/(app)/expense/create.tsx",
     "app/(app)/expense/[expenseId].tsx",
     "app/(app)/expense/edit/[expenseId].tsx",
@@ -316,17 +367,13 @@ test("screens use the shared accessible feedback banner for status messages", as
 
 test("join request UI: requester feedback, sent requests, admin badge and approve/reject card", async () => {
   const groupsScreen = await fs.readFile("app/(app)/(tabs)/groups.tsx", "utf8");
-  assert.match(groupsScreen, /status === "ACTIVE"/);
-  assert.match(groupsScreen, /You joined the group\./);
-  assert.match(groupsScreen, /Request sent\. A group admin must approve it\./);
+  const joinPage = await fs.readFile("app/(app)/group/join.tsx", "utf8");
+  assert.match(joinPage, /status === "ACTIVE"/);
+  assert.match(joinPage, /Request sent\. A group admin must approve it\./);
   assert.match(groupsScreen, /sentJoinRequests/);
   assert.match(groupsScreen, /cancelJoinRequest/);
-  assert.match(groupsScreen, /No open join requests/);
-  assert.match(groupsScreen, /storeError && sentJoinRequests\.length === 0/);
-  assert.match(groupsScreen, /isLoading &&\s*sentJoinRequests\.length === 0/);
   assert.match(groupsScreen, /`sent-request-cancel-\$\{/);
-  assert.match(groupsScreen, /joinRequestCounts\[group\.id\]/);
-  assert.match(groupsScreen, /`group-join-request-count-\$\{group\.id\}`/);
+  assert.match(groupsScreen, /joinRequestCounts\[groupId\]/);
 
   const groupDetail = await fs.readFile(
     "app/(app)/group/[groupId].tsx",
