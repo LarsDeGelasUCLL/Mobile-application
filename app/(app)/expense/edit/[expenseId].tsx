@@ -83,6 +83,8 @@ export default function EditExpenseScreen() {
     PublicUserProfileDto[]
   >([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
+  // `participants` always holds the current user, so length cannot signal the first load.
+  const [participantsLoaded, setParticipantsLoaded] = useState(false);
   const [participantsError, setParticipantsError] = useState<string | null>(
     null,
   );
@@ -151,6 +153,7 @@ export default function EditExpenseScreen() {
       setParticipantsError(getErrorMessage(error));
     } finally {
       setParticipantsLoading(false);
+      setParticipantsLoaded(true);
     }
   }, [
     clearExpenseError,
@@ -187,7 +190,11 @@ export default function EditExpenseScreen() {
   const loadError = participantsError ?? groupError;
   // Same condition as the form branch below.
   const showForm =
-    !!expense && canManage && !loadError && participants.length > 0;
+    !!expense &&
+    canManage &&
+    !loadError &&
+    participantsLoaded &&
+    participants.length > 0;
 
   return (
     <Screen
@@ -256,7 +263,7 @@ export default function EditExpenseScreen() {
               />
             }
           />
-        ) : participantsLoading && participants.length === 0 ? (
+        ) : !participantsLoaded ? (
           <Card>
             <Stack gap="sm">
               <Skeleton height={24} width="65%" />

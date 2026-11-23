@@ -81,6 +81,8 @@ export default function CreateExpenseScreen() {
     PublicUserProfileDto[]
   >([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
+  // `participants` always holds the current user, so length cannot signal the first load.
+  const [participantsLoaded, setParticipantsLoaded] = useState(false);
   const [participantsError, setParticipantsError] = useState<string | null>(
     null,
   );
@@ -115,6 +117,7 @@ export default function CreateExpenseScreen() {
         setParticipantsError(getErrorMessage(error));
       } finally {
         setParticipantsLoading(false);
+        setParticipantsLoaded(true);
       }
       return;
     }
@@ -132,6 +135,7 @@ export default function CreateExpenseScreen() {
       setParticipantsError(getErrorMessage(error));
     } finally {
       setParticipantsLoading(false);
+      setParticipantsLoaded(true);
     }
   }, [
     clearExpenseError,
@@ -183,8 +187,12 @@ export default function CreateExpenseScreen() {
   };
 
   const loadError = participantsError ?? (groupId ? groupError : null);
-  // Same condition as the form branch below (participants > 0 wins over loading).
-  const showForm = !createdExpenseId && !loadError && participants.length > 0;
+  // Same condition as the form branch below.
+  const showForm =
+    !createdExpenseId &&
+    !loadError &&
+    participantsLoaded &&
+    participants.length > 0;
 
   return (
     <Screen
@@ -245,7 +253,7 @@ export default function CreateExpenseScreen() {
               isLoading={participantsLoading || groupLoading}
             />
           </FeedbackBanner>
-        ) : participantsLoading && participants.length === 0 ? (
+        ) : !participantsLoaded ? (
           <Card>
             <Stack gap="sm">
               <Skeleton height={24} width="65%" />
