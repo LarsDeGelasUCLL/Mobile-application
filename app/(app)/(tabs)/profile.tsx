@@ -6,6 +6,7 @@ import {
   Avatar,
   Badge,
   Card,
+  FeedbackBanner,
   InputField,
   Screen,
   Stack,
@@ -220,31 +221,25 @@ export default function ProfileScreen() {
                 testID="profile-bio-input"
               />
               {profileError !== "" ? (
-                <View style={styles.errorBanner} testID="profile-save-error">
+                <FeedbackBanner tone="error" testID="profile-save-error">
                   <Text size="sm" color={colors.error}>
                     {profileError}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               {savedMessage !== "" ? (
-                <View
-                  style={styles.successBanner}
-                  testID="profile-saved-message"
-                >
+                <FeedbackBanner tone="success" testID="profile-saved-message">
                   <Text size="sm" color={colors.success}>
                     {savedMessage}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               {partialSuccessWarning !== "" ? (
-                <View
-                  style={styles.warningBanner}
-                  testID="profile-save-warning"
-                >
+                <FeedbackBanner tone="warning" testID="profile-save-warning">
                   <Text size="sm" color={colors.warning}>
                     {partialSuccessWarning}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               <StyledButton
                 label={profileError ? "Retry save" : "Save changes"}
@@ -273,21 +268,18 @@ export default function ProfileScreen() {
                 testID="profile-new-email-input"
               />
               {emailRequestError !== "" ? (
-                <View style={styles.errorBanner} testID="change-email-error">
+                <FeedbackBanner tone="error" testID="change-email-error">
                   <Text size="sm" color={colors.error}>
                     {emailRequestError}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               {emailMessage !== "" ? (
-                <View
-                  style={styles.successBanner}
-                  testID="change-email-success"
-                >
+                <FeedbackBanner tone="success" testID="change-email-success">
                   <Text size="sm" color={colors.success}>
                     {emailMessage}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               <StyledButton
                 label="Request email change"
@@ -300,11 +292,11 @@ export default function ProfileScreen() {
           </Card>
 
           {logoutError !== "" ? (
-            <View style={styles.errorBanner} testID="logout-error">
+            <FeedbackBanner tone="error" testID="logout-error">
               <Text size="sm" color={colors.error}>
                 {logoutError}
               </Text>
-            </View>
+            </FeedbackBanner>
           ) : null}
           <StyledButton
             label="Log out"
@@ -322,26 +314,5 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  errorBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.errorSoft,
-    padding: 12,
-  },
-  successBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.success,
-    backgroundColor: colors.successSoft,
-    padding: 12,
-  },
-  warningBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.warning,
-    backgroundColor: colors.warningSoft,
-    padding: 12,
   },
 });

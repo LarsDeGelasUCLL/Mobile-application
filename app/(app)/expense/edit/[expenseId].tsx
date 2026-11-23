@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import {
   Card,
   EmptyState,
+  FeedbackBanner,
   Row,
   Screen,
   Skeleton,
@@ -107,6 +108,18 @@ export default function EditExpenseScreen() {
     (groupMembership?.groupRole === "ADMIN" ||
       expense.createdByUserId === user.id ||
       expense.paidByUserId === user.id);
+  const navigateBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else if (expense) {
+      router.replace({
+        pathname: "/expense/[expenseId]",
+        params: { expenseId: expense.id },
+      });
+    } else {
+      router.replace("/expenses");
+    }
+  };
 
   const loadExpense = useCallback(async () => {
     if (!expenseId) return;
@@ -183,26 +196,24 @@ export default function EditExpenseScreen() {
           <View style={styles.backButton}>
             <StyledButton
               label="Back"
-              onPress={() => router.back()}
+              onPress={navigateBack}
               variant="secondary"
             />
           </View>
         </Row>
 
         {loadError ? (
-          <Card>
-            <Stack gap="sm">
-              <Text size="sm" color={colors.error}>
-                {loadError}
-              </Text>
-              <StyledButton
-                label="Retry"
-                onPress={() => void loadExpense()}
-                variant="secondary"
-                isLoading={participantsLoading || groupLoading}
-              />
-            </Stack>
-          </Card>
+          <FeedbackBanner tone="error" testID="expense-edit-error">
+            <Text size="sm" color={colors.error}>
+              {loadError}
+            </Text>
+            <StyledButton
+              label="Retry"
+              onPress={() => void loadExpense()}
+              variant="secondary"
+              isLoading={participantsLoading || groupLoading}
+            />
+          </FeedbackBanner>
         ) : null}
 
         {expenseLoading && !expense ? (

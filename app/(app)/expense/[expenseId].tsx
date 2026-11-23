@@ -5,6 +5,7 @@ import {
   Badge,
   Card,
   EmptyState,
+  FeedbackBanner,
   Row,
   Screen,
   Skeleton,
@@ -130,6 +131,22 @@ export default function ExpenseDetailScreen() {
   };
 
   const error = expenseError ?? groupError;
+  const navigateBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    const groupId = expense?.groupId ?? deletedGroupId;
+    if (groupId) {
+      router.replace({
+        pathname: "/group/[groupId]",
+        params: { groupId },
+      });
+    } else {
+      router.replace("/expenses");
+    }
+  };
 
   return (
     <Screen
@@ -145,27 +162,25 @@ export default function ExpenseDetailScreen() {
           <View style={styles.backButton}>
             <StyledButton
               label="Back"
-              onPress={() => router.back()}
+              onPress={navigateBack}
               variant="secondary"
             />
           </View>
         </Row>
 
         {error ? (
-          <Card>
-            <Stack gap="sm">
-              <Text size="sm" color={colors.error}>
-                {error}
-              </Text>
-              <StyledButton
-                label="Retry"
-                onPress={() => void retry()}
-                variant="secondary"
-                isLoading={isLoading}
-                testID="expense-detail-retry-button"
-              />
-            </Stack>
-          </Card>
+          <FeedbackBanner tone="error" testID="expense-detail-error">
+            <Text size="sm" color={colors.error}>
+              {error}
+            </Text>
+            <StyledButton
+              label="Retry"
+              onPress={() => void retry()}
+              variant="secondary"
+              isLoading={isLoading}
+              testID="expense-detail-retry-button"
+            />
+          </FeedbackBanner>
         ) : null}
 
         {expenseLoading && !expense ? (
@@ -187,7 +202,7 @@ export default function ExpenseDetailScreen() {
             action={
               <StyledButton
                 label="Go back"
-                onPress={() => router.back()}
+                onPress={navigateBack}
                 variant="secondary"
               />
             }

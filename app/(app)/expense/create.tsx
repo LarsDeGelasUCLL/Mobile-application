@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import {
   Card,
   EmptyState,
+  FeedbackBanner,
   Row,
   Screen,
   Skeleton,
@@ -198,40 +199,47 @@ export default function CreateExpenseScreen() {
           <View style={styles.backButton}>
             <StyledButton
               label="Back"
-              onPress={() => router.back()}
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else if (groupId) {
+                  router.replace({
+                    pathname: "/group/[groupId]",
+                    params: { groupId },
+                  });
+                } else {
+                  router.replace("/expenses");
+                }
+              }}
               variant="secondary"
             />
           </View>
         </Row>
 
         {createdExpenseId ? (
-          <Card>
-            <Stack gap="sm">
-              <Text size="sm" color={colors.error}>
-                {expenseError ?? partialMutationError}
-              </Text>
-              <StyledButton
-                label="Retry balance refresh"
-                onPress={() => void retryBalances()}
-                variant="secondary"
-                isLoading={expenseLoading}
-              />
-            </Stack>
-          </Card>
+          <FeedbackBanner tone="warning" testID="expense-partial-success">
+            <Text size="sm" color={colors.warning}>
+              {expenseError ?? partialMutationError}
+            </Text>
+            <StyledButton
+              label="Retry balance refresh"
+              onPress={() => void retryBalances()}
+              variant="secondary"
+              isLoading={expenseLoading}
+            />
+          </FeedbackBanner>
         ) : loadError ? (
-          <Card>
-            <Stack gap="sm">
-              <Text size="sm" color={colors.error}>
-                {loadError}
-              </Text>
-              <StyledButton
-                label="Retry participants"
-                onPress={() => void loadParticipants()}
-                variant="secondary"
-                isLoading={participantsLoading || groupLoading}
-              />
-            </Stack>
-          </Card>
+          <FeedbackBanner tone="error" testID="expense-participants-error">
+            <Text size="sm" color={colors.error}>
+              {loadError}
+            </Text>
+            <StyledButton
+              label="Retry participants"
+              onPress={() => void loadParticipants()}
+              variant="secondary"
+              isLoading={participantsLoading || groupLoading}
+            />
+          </FeedbackBanner>
         ) : participantsLoading && participants.length === 0 ? (
           <Card>
             <Stack gap="sm">

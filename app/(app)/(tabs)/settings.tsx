@@ -8,6 +8,7 @@ import {
   Card,
   Checkbox,
   Divider,
+  FeedbackBanner,
   InputField,
   Radio,
   Screen,
@@ -234,18 +235,18 @@ export default function SettingsScreen() {
                 </Text>
               )}
               {settingsActionError || error ? (
-                <View style={styles.errorBanner} testID="settings-error">
+                <FeedbackBanner tone="error" testID="settings-error">
                   <Text size="sm" color={colors.error}>
                     {settingsActionError || error}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               {settingsMessage !== "" ? (
-                <View style={styles.successBanner} testID="settings-success">
+                <FeedbackBanner tone="success" testID="settings-success">
                   <Text size="sm" color={colors.success}>
                     {settingsMessage}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               {pendingSettings ? (
                 <StyledButton
@@ -301,21 +302,18 @@ export default function SettingsScreen() {
                 testID="settings-confirm-password-input"
               />
               {passwordRequestError !== "" ? (
-                <View style={styles.errorBanner} testID="change-password-error">
+                <FeedbackBanner tone="error" testID="change-password-error">
                   <Text size="sm" color={colors.error}>
                     {passwordRequestError}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               {passwordMessage !== "" ? (
-                <View
-                  style={styles.successBanner}
-                  testID="change-password-success"
-                >
+                <FeedbackBanner tone="success" testID="change-password-success">
                   <Text size="sm" color={colors.success}>
                     {passwordMessage}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               <StyledButton
                 label="Update password"
@@ -325,11 +323,11 @@ export default function SettingsScreen() {
               />
               <Divider spacing="sm" />
               {logoutError !== "" ? (
-                <View style={styles.errorBanner} testID="settings-logout-error">
+                <FeedbackBanner tone="error" testID="settings-logout-error">
                   <Text size="sm" color={colors.error}>
                     {logoutError}
                   </Text>
-                </View>
+                </FeedbackBanner>
               ) : null}
               <StyledButton
                 label="Log out"
@@ -349,19 +347,5 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  errorBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.errorSoft,
-    padding: 12,
-  },
-  successBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.success,
-    backgroundColor: colors.successSoft,
-    padding: 12,
   },
 });

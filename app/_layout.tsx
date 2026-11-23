@@ -1,14 +1,28 @@
 import { router, Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useEffect } from "react";
-import { Linking, Platform } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Linking, Platform, StyleSheet, View } from "react-native";
 import { useAuthStore } from "../src/state/useAuthStore";
 import { supabase } from "../src/services";
 import { exchangeAuthLinkCode } from "../src/features/auth/authLink";
+import { FeedbackBanner, Text } from "../src/components/primitives";
+import { StyledButton } from "../src/components/common/StyledButton";
+import { colors } from "../src/theme/colors";
 
 export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
+  const [serviceWorkerError, setServiceWorkerError] = useState(false);
+
+  const registerServiceWorker = useCallback(async () => {
+    try {
+      await navigator.serviceWorker.register("/sw.js");
+      setServiceWorkerError(false);
+    } catch (error) {
+      console.error("Could not register the service worker.", error);
+      setServiceWorkerError(true);
+    }
+  }, []);
 
   useEffect(() => {
     void initialize();
@@ -47,20 +61,37 @@ export default function RootLayout() {
       }
 
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((reg) =>
-            console.log("Service Worker geregistreerd:", reg.scope),
-          )
-          .catch((err) => console.error("Service Worker fout:", err));
+        void registerServiceWorker();
       }
     }
-  }, [initialize]);
+  }, [initialize, registerServiceWorker]);
 
   return (
     <SafeAreaProvider>
       <StatusBar style="auto" />
+      {serviceWorkerError ? (
+        <View style={styles.serviceWorkerNotice}>
+          <FeedbackBanner tone="warning" testID="service-worker-error">
+            <Text size="sm" color={colors.warning}>
+              Offline support could not start. The app is still available
+              online.
+            </Text>
+            <StyledButton
+              label="Retry offline support"
+              onPress={() => void registerServiceWorker()}
+              variant="secondary"
+            />
+          </FeedbackBanner>
+        </View>
+      ) : null}
       <Slot />
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  serviceWorkerNotice: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+});

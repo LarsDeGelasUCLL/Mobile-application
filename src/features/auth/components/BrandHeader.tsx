@@ -9,7 +9,6 @@ interface BrandHeaderProps {
   testID?: string;
 }
 
-// TODO: find a logo and implement it in the header of my app.
 export function BrandHeader({
   title,
   iconName = "people",

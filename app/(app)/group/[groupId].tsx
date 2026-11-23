@@ -6,6 +6,7 @@ import {
   Badge,
   Card,
   EmptyState,
+  FeedbackBanner,
   InputField,
   Row,
   Screen,
@@ -242,56 +243,58 @@ export default function GroupDetailScreen() {
             <View style={styles.backButton}>
               <StyledButton
                 label="Back"
-                onPress={() => router.back()}
+                onPress={() => {
+                  if (router.canGoBack()) {
+                    router.back();
+                  } else {
+                    router.replace("/groups");
+                  }
+                }}
                 variant="secondary"
               />
             </View>
           </Row>
 
           {storeError ? (
-            <Card>
-              <Stack gap="sm">
-                <Text size="sm" color={colors.error}>
-                  {storeError}
-                </Text>
-                <StyledButton
-                  label="Retry"
-                  onPress={() => void loadGroup()}
-                  variant="secondary"
-                  isLoading={isLoading}
-                  testID="group-detail-retry-button"
-                />
-              </Stack>
-            </Card>
+            <FeedbackBanner tone="error" testID="group-detail-error">
+              <Text size="sm" color={colors.error}>
+                {storeError}
+              </Text>
+              <StyledButton
+                label="Retry"
+                onPress={() => void loadGroup()}
+                variant="secondary"
+                isLoading={isLoading}
+                testID="group-detail-retry-button"
+              />
+            </FeedbackBanner>
           ) : null}
 
           {expensesError ? (
-            <Card>
-              <Stack gap="sm">
-                <Text size="sm" color={colors.error}>
-                  {expensesError}
-                </Text>
-                <StyledButton
-                  label="Retry expenses"
-                  onPress={() =>
-                    void fetchGroupExpensesAndBalances(groupId).catch(
-                      () => undefined,
-                    )
-                  }
-                  variant="secondary"
-                  isLoading={expensesLoading}
-                  testID="group-expenses-retry-button"
-                />
-              </Stack>
-            </Card>
+            <FeedbackBanner tone="error" testID="group-expenses-error">
+              <Text size="sm" color={colors.error}>
+                {expensesError}
+              </Text>
+              <StyledButton
+                label="Retry expenses"
+                onPress={() =>
+                  void fetchGroupExpensesAndBalances(groupId).catch(
+                    () => undefined,
+                  )
+                }
+                variant="secondary"
+                isLoading={expensesLoading}
+                testID="group-expenses-retry-button"
+              />
+            </FeedbackBanner>
           ) : null}
 
           {feedback ? (
-            <View style={styles.successBanner} testID="group-feedback">
+            <FeedbackBanner tone="success" testID="group-feedback">
               <Text size="sm" color={colors.success}>
                 {feedback}
               </Text>
-            </View>
+            </FeedbackBanner>
           ) : null}
 
           {!group && isLoading ? (
@@ -349,7 +352,9 @@ export default function GroupDetailScreen() {
                 <Text size="md" weight="bold">
                   Group balances
                 </Text>
-                {expensesLoading && visibleBalances.length === 0 ? (
+                {expensesError &&
+                visibleBalances.length === 0 ? null : expensesLoading &&
+                  visibleBalances.length === 0 ? (
                   <Card>
                     <Stack gap="sm">
                       <Skeleton height={20} width="60%" />
@@ -396,7 +401,9 @@ export default function GroupDetailScreen() {
                 <Text size="md" weight="bold">
                   Recent expenses
                 </Text>
-                {expensesLoading && groupExpenses.length === 0 ? (
+                {expensesError &&
+                groupExpenses.length === 0 ? null : expensesLoading &&
+                  groupExpenses.length === 0 ? (
                   <Card>
                     <Stack gap="sm">
                       <Skeleton height={22} width="55%" />
@@ -687,12 +694,5 @@ const styles = StyleSheet.create({
   },
   backButton: {
     width: 76,
-  },
-  successBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.success,
-    backgroundColor: colors.successSoft,
-    padding: 12,
   },
 });

@@ -170,18 +170,30 @@ test("expense create, detail, and edit routes are sibling stack screens", async 
   assert.doesNotMatch(tabsLayout, /name="expense\//);
 });
 
-test("home stays the event placeholder and expenses use the fifth tab", async () => {
+test("home summarizes live groups and expenses with working detail routes", async () => {
   const home = await fs.readFile("app/(app)/(tabs)/index.tsx", "utf8");
   const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
   const tabFiles = await fs.readdir("app/(app)/(tabs)");
 
   assert.match(home, /<GroupHighlights/);
-  assert.match(home, /<FeedPostCard/);
-  assert.doesNotMatch(home, /useExpenseStore/);
+  assert.match(home, /useGroupStore/);
+  assert.match(home, /fetchGroupsAndInvites/);
+  assert.match(home, /useExpenseStore/);
+  assert.match(home, /fetchIndividualExpenses/);
+  assert.match(home, /pathname:\s*"\/group\/\[groupId\]"/);
+  assert.match(home, /pathname:\s*"\/expense\/\[expenseId\]"/);
+  assert.doesNotMatch(
+    home,
+    /FeedPostCard|FeedFilterMenu|Alert\.alert|UCLL Community|Weekend crew/,
+  );
+  assert.match(home, /groupError && groups\.length === 0/);
+  assert.match(home, /expenseError && expenses\.length === 0/);
+  assert.match(home, /<EmptyState/);
   assert.ok(tabFiles.includes("expenses.tsx"));
 
   const expenses = await fs.readFile("app/(app)/(tabs)/expenses.tsx", "utf8");
   assert.match(expenses, /fetchIndividualExpenses/);
+  assert.match(expenses, /error && expenses\.length === 0/);
   assert.match(tabsLayout, /name="expenses"/);
   assert.ok(
     tabsLayout.indexOf('name="profile"') <
@@ -193,6 +205,100 @@ test("home stays the event placeholder and expenses use the fifth tab", async ()
     "utf8",
   );
   assert.match(expenseDetail, /router\.replace\("\/expenses"\)/);
+
+  const groupDetail = await fs.readFile(
+    "app/(app)/group/[groupId].tsx",
+    "utf8",
+  );
+  assert.match(groupDetail, /expensesError && visibleBalances\.length === 0/);
+  assert.match(groupDetail, /expensesError && groupExpenses\.length === 0/);
+});
+
+test("screens use the shared accessible feedback banner for status messages", async () => {
+  const feedback = await fs.readFile(
+    "src/components/primitives/FeedbackBanner.tsx",
+    "utf8",
+  );
+  const primitiveExports = await fs.readFile(
+    "src/components/primitives/index.ts",
+    "utf8",
+  );
+  const statusScreens = [
+    "app/login.tsx",
+    "app/(app)/_layout.tsx",
+    "app/(app)/(tabs)/index.tsx",
+    "app/(app)/(tabs)/groups.tsx",
+    "app/(app)/(tabs)/expenses.tsx",
+    "app/(app)/(tabs)/profile.tsx",
+    "app/(app)/(tabs)/settings.tsx",
+    "app/(app)/group/[groupId].tsx",
+    "app/(app)/expense/create.tsx",
+    "app/(app)/expense/[expenseId].tsx",
+    "app/(app)/expense/edit/[expenseId].tsx",
+    "src/features/expenses/components/ExpenseForm.tsx",
+  ];
+
+  assert.match(feedback, /accessibilityRole="alert"/);
+  assert.match(feedback, /error:/);
+  assert.match(feedback, /success:/);
+  assert.match(feedback, /warning:/);
+  assert.match(primitiveExports, /FeedbackBanner/);
+  for (const screen of statusScreens) {
+    const source = await fs.readFile(screen, "utf8");
+    assert.match(source, /FeedbackBanner/);
+    assert.doesNotMatch(source, /styles\.(?:error|success|warning)Banner/);
+  }
+});
+
+test("session recovery and detail back buttons have route-safe fallbacks", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  assert.match(appLayout, /if \(!isInitialized\)/);
+  assert.match(appLayout, /Redirect href="\/login"/);
+  assert.match(appLayout, /initialize\(\)/);
+
+  const detailScreens = [
+    "app/(app)/group/[groupId].tsx",
+    "app/(app)/expense/create.tsx",
+    "app/(app)/expense/[expenseId].tsx",
+    "app/(app)/expense/edit/[expenseId].tsx",
+  ];
+  for (const screen of detailScreens) {
+    assert.match(await fs.readFile(screen, "utf8"), /router\.canGoBack\(\)/);
+  }
+});
+
+test("unused mock Home components and filter types are removed", async () => {
+  for (const file of [
+    "src/features/home/components/FeedFilterMenu.tsx",
+    "src/features/home/components/FeedPostCard.tsx",
+    "src/features/home/components/HeroBanner.tsx",
+  ]) {
+    await assert.rejects(fs.access(file), { code: "ENOENT" });
+  }
+
+  const homeTypes = await fs.readFile("src/types/Home.ts", "utf8");
+  assert.doesNotMatch(homeTypes, /FeedFilter/);
+});
+
+test("service-worker failures are actionable and produce no debug success log", async () => {
+  const rootLayout = await fs.readFile("app/_layout.tsx", "utf8");
+
+  assert.doesNotMatch(rootLayout, /console\.log/);
+  assert.doesNotMatch(rootLayout, /\.catch\(\(err\)\s*=>\s*console\.error/);
+  assert.match(rootLayout, /FeedbackBanner/);
+  assert.match(rootLayout, /service-worker-error/);
+  assert.match(rootLayout, /Retry offline support/);
+});
+
+test("login does not display provisional app-brand copy", async () => {
+  const login = await fs.readFile("app/login.tsx", "utf8");
+  const brandHeader = await fs.readFile(
+    "src/features/auth/components/BrandHeader.tsx",
+    "utf8",
+  );
+
+  assert.doesNotMatch(login, /Appname, To Be Determined/);
+  assert.doesNotMatch(brandHeader, /TODO:/);
 });
 
 test("auth deep-link exchange distinguishes unrelated, completed, and failed links", async () => {

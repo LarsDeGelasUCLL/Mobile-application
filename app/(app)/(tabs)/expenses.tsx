@@ -5,6 +5,7 @@ import {
   Badge,
   Card,
   EmptyState,
+  FeedbackBanner,
   Row,
   Screen,
   Skeleton,
@@ -83,23 +84,22 @@ export default function ExpensesScreen() {
           </Row>
 
           {error ? (
-            <Card>
-              <Stack gap="sm">
-                <Text size="sm" color={colors.error}>
-                  {error}
-                </Text>
-                <StyledButton
-                  label="Retry"
-                  onPress={() => void loadExpenses()}
-                  variant="secondary"
-                  isLoading={isLoading}
-                  testID="personal-expenses-retry-button"
-                />
-              </Stack>
-            </Card>
+            <FeedbackBanner tone="error" testID="personal-expenses-error">
+              <Text size="sm" color={colors.error}>
+                {error}
+              </Text>
+              <StyledButton
+                label="Retry"
+                onPress={() => void loadExpenses()}
+                variant="secondary"
+                isLoading={isLoading}
+                testID="personal-expenses-retry-button"
+              />
+            </FeedbackBanner>
           ) : null}
 
-          {isLoading && expenses.length === 0 ? (
+          {error && expenses.length === 0 ? null : isLoading &&
+            expenses.length === 0 ? (
             <Card>
               <Stack gap="sm">
                 <Skeleton height={22} width="60%" />

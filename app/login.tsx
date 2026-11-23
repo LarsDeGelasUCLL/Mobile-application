@@ -13,6 +13,7 @@ import { StyledButton } from "../src/components/common/StyledButton";
 import { colors } from "../src/theme/colors";
 import {
   Card,
+  FeedbackBanner,
   InputField,
   Screen,
   Spinner,
@@ -223,10 +224,7 @@ export default function LoginScreen() {
     return (
       <Screen padding="lg">
         <View style={styles.container} testID="auth-bootstrap">
-          <BrandHeader
-            title="Appname, To Be Determined"
-            testID="login-brand-header"
-          />
+          <BrandHeader title="Welcome" testID="login-brand-header" />
           <Card>
             <Stack gap="md" align="center" padding="md">
               {isLoading ? (
@@ -273,10 +271,7 @@ export default function LoginScreen() {
   return (
     <Screen padding="lg">
       <View style={styles.container} testID="login-screen">
-        <BrandHeader
-          title="Appname, To Be Determined"
-          testID="login-brand-header"
-        />
+        <BrandHeader title="Welcome" testID="login-brand-header" />
         <Card>
           <Stack gap="lg" padding="md">
             <Stack gap="sm" align="center">
@@ -295,21 +290,18 @@ export default function LoginScreen() {
                   email before logging in.
                 </Text>
                 {successMessage !== "" ? (
-                  <View
-                    style={styles.successBanner}
-                    testID="confirmation-success"
-                  >
+                  <FeedbackBanner tone="success" testID="confirmation-success">
                     <Text size="sm" color={colors.success}>
                       {successMessage}
                     </Text>
-                  </View>
+                  </FeedbackBanner>
                 ) : null}
                 {formError !== "" ? (
-                  <View style={styles.errorBanner} testID="confirmation-error">
+                  <FeedbackBanner tone="error" testID="confirmation-error">
                     <Text size="sm" color={colors.error}>
                       {formError}
                     </Text>
-                  </View>
+                  </FeedbackBanner>
                 ) : null}
                 <StyledButton
                   label="Resend confirmation"
@@ -383,19 +375,19 @@ export default function LoginScreen() {
                 ) : null}
 
                 {formError !== "" ? (
-                  <View style={styles.errorBanner} testID="auth-error">
+                  <FeedbackBanner tone="error" testID="auth-error">
                     <Text size="sm" color={colors.error}>
                       {formError}
                     </Text>
-                  </View>
+                  </FeedbackBanner>
                 ) : null}
 
                 {successMessage !== "" ? (
-                  <View style={styles.successBanner} testID="auth-success">
+                  <FeedbackBanner tone="success" testID="auth-success">
                     <Text size="sm" color={colors.success}>
                       {successMessage}
                     </Text>
-                  </View>
+                  </FeedbackBanner>
                 ) : null}
 
                 {mode === "login" ? (
@@ -449,12 +441,12 @@ export default function LoginScreen() {
                 ) : (
                   <>
                     {!isAuthenticated ? (
-                      <View style={styles.errorBanner}>
+                      <FeedbackBanner tone="error" testID="expired-auth-link">
                         <Text size="sm" color={colors.error}>
                           This reset link is no longer active. Request a new
                           reset email to continue.
                         </Text>
-                      </View>
+                      </FeedbackBanner>
                     ) : null}
                     {isAuthenticated ? (
                       <StyledButton
@@ -491,19 +483,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-  },
-  errorBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.errorSoft,
-    padding: 12,
-  },
-  successBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.success,
-    backgroundColor: colors.successSoft,
-    padding: 12,
   },
 });

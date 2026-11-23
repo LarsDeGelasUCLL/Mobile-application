@@ -1,8 +1,10 @@
 import { Redirect, Stack } from "expo-router";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import {
+  FeedbackBanner,
   Screen,
   Stack as ContentStack,
+  Spinner,
   Text,
 } from "../../src/components/primitives";
 import { StyledButton } from "../../src/components/common/StyledButton";
@@ -17,20 +19,25 @@ export default function AppLayout() {
     return (
       <Screen padding="lg">
         <ContentStack gap="md">
-          <Text>
-            {isLoading
-              ? "Restoring your session..."
-              : isAuthenticated
-                ? "Could not load your profile."
-                : "Could not restore your session."}
-          </Text>
-          {!isLoading ? (
-            <StyledButton
-              label="Try again"
-              onPress={() => void initialize()}
-              variant="secondary"
-            />
-          ) : null}
+          {isLoading ? (
+            <>
+              <Spinner />
+              <Text>Restoring your session...</Text>
+            </>
+          ) : (
+            <FeedbackBanner tone="error" testID="session-recovery-error">
+              <Text size="sm">
+                {isAuthenticated
+                  ? "Could not load your profile."
+                  : "Could not restore your session."}
+              </Text>
+              <StyledButton
+                label="Try again"
+                onPress={() => void initialize()}
+                variant="secondary"
+              />
+            </FeedbackBanner>
+          )}
         </ContentStack>
       </Screen>
     );

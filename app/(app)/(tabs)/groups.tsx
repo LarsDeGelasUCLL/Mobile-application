@@ -5,6 +5,7 @@ import {
   Badge,
   Card,
   EmptyState,
+  FeedbackBanner,
   InputField,
   Row,
   Screen,
@@ -104,11 +105,7 @@ export default function GroupsScreen() {
   };
 
   return (
-    <Screen
-      padding="lg"
-      refreshing={isLoading}
-      onRefresh={loadGroups}
-    >
+    <Screen padding="lg" refreshing={isLoading} onRefresh={loadGroups}>
       <View style={styles.container} testID="groups-screen">
         <Stack gap="lg">
           <Row justify="space-between" align="center">
@@ -126,28 +123,26 @@ export default function GroupsScreen() {
           </Row>
 
           {storeError ? (
-            <Card>
-              <Stack gap="sm">
-                <Text size="sm" color={colors.error}>
-                  {storeError}
-                </Text>
-                <StyledButton
-                  label="Retry"
-                  onPress={loadGroups}
-                  variant="secondary"
-                  isLoading={isLoading}
-                  testID="groups-retry-button"
-                />
-              </Stack>
-            </Card>
+            <FeedbackBanner tone="error" testID="groups-error">
+              <Text size="sm" color={colors.error}>
+                {storeError}
+              </Text>
+              <StyledButton
+                label="Retry"
+                onPress={loadGroups}
+                variant="secondary"
+                isLoading={isLoading}
+                testID="groups-retry-button"
+              />
+            </FeedbackBanner>
           ) : null}
 
           {feedback ? (
-            <View style={styles.successBanner} testID="groups-feedback">
+            <FeedbackBanner tone="success" testID="groups-feedback">
               <Text size="sm" color={colors.success}>
                 {feedback}
               </Text>
-            </View>
+            </FeedbackBanner>
           ) : null}
 
           <Card>
@@ -313,7 +308,10 @@ export default function GroupsScreen() {
                         <StyledButton
                           label="Decline"
                           onPress={() =>
-                            void handleInviteResponse(invite.membershipId, false)
+                            void handleInviteResponse(
+                              invite.membershipId,
+                              false,
+                            )
                           }
                           variant="secondary"
                           isLoading={isLoading}
@@ -338,12 +336,5 @@ const styles = StyleSheet.create({
   },
   buttonColumn: {
     flex: 1,
-  },
-  successBanner: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.success,
-    backgroundColor: colors.successSoft,
-    padding: 12,
   },
 });

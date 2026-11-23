@@ -4,6 +4,7 @@ import {
   Card,
   Checkbox,
   EmptyState,
+  FeedbackBanner,
   InputField,
   Radio,
   Row,
@@ -148,21 +149,19 @@ export function ExpenseForm({
   return (
     <Stack gap="md">
       {error || validationError ? (
-        <Card>
-          <Stack gap="sm">
-            <Text size="sm" color={colors.error}>
-              {validationError ?? error}
-            </Text>
-            {error ? (
-              <StyledButton
-                label="Retry"
-                onPress={handleSubmit}
-                variant="secondary"
-                isLoading={isLoading}
-              />
-            ) : null}
-          </Stack>
-        </Card>
+        <FeedbackBanner tone="error" testID="expense-form-error">
+          <Text size="sm" color={colors.error}>
+            {validationError ?? error}
+          </Text>
+          {error ? (
+            <StyledButton
+              label="Retry"
+              onPress={handleSubmit}
+              variant="secondary"
+              isLoading={isLoading}
+            />
+          ) : null}
+        </FeedbackBanner>
       ) : null}
 
       <Card>
