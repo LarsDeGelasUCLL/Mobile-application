@@ -605,6 +605,71 @@ test("group member queries exclude pending invitations", async () => {
   );
 });
 
+test("pending invite depends on the invitee being able to read the group row", async () => {
+  const pendingRow = {
+    id: "membership-1",
+    user_id: "user-2",
+    group_id: "group-1",
+    status: "PENDING",
+    invited_by: "user-1",
+    joined_at: null,
+  };
+  const group = { id: "group-1", name: "Trip" };
+  const inviter = { id: "user-1", display_name: "Ada" };
+  const loadWithVisibleGroups = (visibleGroups) =>
+    loadTypeScriptModule("src/services/groups/groupQueries.ts", {
+      "./groupMappers": {
+        mapRowToGroupDto: (row) => row,
+        mapRowToMembershipDto: (row) => row,
+      },
+      "../profiles/profileMappers": {
+        mapRowToPublicUserProfileDto: (row) => row,
+      },
+      "../supabase": {
+        supabase: {
+          auth: {
+            getUser: async () => ({ data: { user: { id: "user-2" } }, error: null }),
+          },
+          from: (table) => ({
+            select() {
+              return this;
+            },
+            eq() {
+              return this;
+            },
+            in() {
+              return this;
+            },
+            then(resolve, reject) {
+              const rows = {
+                memberships: [pendingRow],
+                // RLS on groups filters silently: no error, just fewer rows.
+                groups: visibleGroups,
+                user_profiles: [inviter],
+              }[table];
+              return Promise.resolve({ data: rows, error: null }).then(
+                resolve,
+                reject,
+              );
+            },
+          }),
+        },
+      },
+    });
+
+  // Current RLS: "View groups" hides the group from a PENDING invitee, so the invite is dropped.
+  const hidden = await loadWithVisibleGroups([]);
+  assert.deepEqual(await hidden.getUserPendingInvites("user-2"), []);
+
+  // After sql_v1-3.sql (has_pending_invite) the group row is visible and the invite is returned.
+  const visible = await loadWithVisibleGroups([group]);
+  const invites = await visible.getUserPendingInvites("user-2");
+  assert.equal(invites.length, 1);
+  assert.equal(invites[0].membershipId, "membership-1");
+  assert.equal(invites[0].group.name, "Trip");
+  assert.equal(invites[0].invitedByProfile.display_name, "Ada");
+});
+
 test("sending an invitation does not add a pending member to active members", async () => {
   const pendingMembership = {
     id: "membership-1",
