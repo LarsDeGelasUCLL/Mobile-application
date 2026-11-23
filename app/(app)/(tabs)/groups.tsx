@@ -366,7 +366,15 @@ export default function GroupsScreen() {
               </Text>
               <Badge label={String(sentJoinRequests.length)} />
             </Row>
-            {sentJoinRequests.length === 0 ? (
+            {storeError && sentJoinRequests.length === 0 ? null : isLoading &&
+              sentJoinRequests.length === 0 ? (
+              <Card>
+                <Stack gap="sm">
+                  <Skeleton height={22} width="55%" />
+                  <Skeleton height={16} width="40%" />
+                </Stack>
+              </Card>
+            ) : sentJoinRequests.length === 0 ? (
               <EmptyState
                 title="No open join requests"
                 description="Groups you asked to join with an invite code will show up here until an admin responds."

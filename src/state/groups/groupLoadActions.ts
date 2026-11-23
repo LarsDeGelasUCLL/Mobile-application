@@ -10,33 +10,39 @@ import { getErrorMessage } from "../shared/storeUtils";
 
 export const createGroupLoadActions: GroupActionCreator<
   "fetchGroupsAndInvites" | "fetchMembersForGroup"
-> = (set) => ({
+> = (set, get) => ({
   fetchGroupsAndInvites: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      const [groups, pendingInvites, sentJoinRequests] = await Promise.all([
+      const [groups, pendingInvites] = await Promise.all([
         getUserActiveGroups(userId),
         getUserPendingInvites(userId),
-        getUserJoinRequests(userId),
       ]);
-      const joinRequestCounts = await getAdminJoinRequestCounts(
-        groups
-          .filter((item) => item.groupRole === "ADMIN")
-          .map((item) => item.group.id),
-      );
-      set({
-        groups,
-        pendingInvites,
-        sentJoinRequests,
-        joinRequestCounts,
-        isLoading: false,
-      });
+      set({ groups, pendingInvites });
     } catch (error) {
       set({
         error: getErrorMessage(error, "Could not load groups and inbox."),
         isLoading: false,
       });
       throw error;
+    }
+
+    // Join request data is secondary: a failure keeps the old values and must not hide the groups.
+    try {
+      const [sentJoinRequests, joinRequestCounts] = await Promise.all([
+        getUserJoinRequests(userId),
+        getAdminJoinRequestCounts(
+          get()
+            .groups.filter((item) => item.groupRole === "ADMIN")
+            .map((item) => item.group.id),
+        ),
+      ]);
+      set({ sentJoinRequests, joinRequestCounts, isLoading: false });
+    } catch (error) {
+      set({
+        error: `Groups loaded, but join requests could not be loaded: ${getErrorMessage(error, "Please retry.")}`,
+        isLoading: false,
+      });
     }
   },
 

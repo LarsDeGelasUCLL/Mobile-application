@@ -258,6 +258,8 @@ test("join request UI: requester feedback, sent requests, admin badge and approv
   assert.match(groupsScreen, /sentJoinRequests/);
   assert.match(groupsScreen, /cancelJoinRequest/);
   assert.match(groupsScreen, /No open join requests/);
+  assert.match(groupsScreen, /storeError && sentJoinRequests\.length === 0/);
+  assert.match(groupsScreen, /isLoading &&\s*sentJoinRequests\.length === 0/);
   assert.match(groupsScreen, /`sent-request-cancel-\$\{/);
   assert.match(groupsScreen, /joinRequestCounts\[group\.id\]/);
   assert.match(groupsScreen, /`group-join-request-count-\$\{group\.id\}`/);
@@ -1103,6 +1105,33 @@ test("joining by code reports ACTIVE or REQUESTED and refreshes sent requests", 
   assert.deepEqual(state.sentJoinRequests, []);
 });
 
+test("joining by code says the code worked when only the refresh fails", async () => {
+  const state = { groups: [], pendingInvites: [], sentJoinRequests: [] };
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupInviteActions.ts",
+    "createGroupInviteActions",
+    {
+      joinGroupByInviteCode: async () => ({ id: "group-1", name: "group-1" }),
+      getUserActiveGroups: async () => {
+        throw new Error("Refresh failed");
+      },
+      getUserPendingInvites: async () => [],
+      getUserJoinRequests: async () => [],
+    },
+    state,
+  );
+
+  await assert.rejects(
+    actions.joinByCode("user-1", "ABC123"),
+    /Refresh failed/,
+  );
+  assert.match(
+    state.error,
+    /Invite code accepted, but group data could not be refreshed: Refresh failed/,
+  );
+  assert.equal(state.isLoading, false);
+});
+
 test("loading groups also loads sent requests and request counts for admin groups only", async () => {
   const countCalls = [];
   const state = {};
@@ -1129,6 +1158,34 @@ test("loading groups also loads sent requests and request counts for admin group
   assert.deepEqual(plain(countCalls), [["admin-group"]]);
   assert.deepEqual(state.sentJoinRequests, ["sent"]);
   assert.deepEqual(state.joinRequestCounts, { "admin-group": 2 });
+});
+
+test("loading groups still shows groups when join request data fails to load", async () => {
+  const state = { sentJoinRequests: ["old"], joinRequestCounts: { old: 1 } };
+  const actions = await createGroupActionsHarness(
+    "src/state/groups/groupLoadActions.ts",
+    "createGroupLoadActions",
+    {
+      getUserActiveGroups: async () => [userGroup("admin-group", "ADMIN")],
+      getUserPendingInvites: async () => [],
+      getUserJoinRequests: async () => [],
+      getAdminJoinRequestCounts: async () => {
+        throw new Error("Counts failed");
+      },
+    },
+    state,
+  );
+
+  await actions.fetchGroupsAndInvites("user-1");
+
+  assert.equal(state.groups[0].group.id, "admin-group");
+  assert.deepEqual(state.sentJoinRequests, ["old"]);
+  assert.deepEqual(plain(state.joinRequestCounts), { old: 1 });
+  assert.match(
+    state.error,
+    /Groups loaded, but join requests could not be loaded: Counts failed/,
+  );
+  assert.equal(state.isLoading, false);
 });
 
 test("join request actions approve, reject and cancel requests in the store", async () => {

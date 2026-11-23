@@ -44,8 +44,18 @@ export const createGroupInviteActions: GroupActionCreator<
 
   joinByCode: async (userId, inviteCode) => {
     set({ isLoading: true, error: null });
+    let group;
     try {
-      const group = await joinGroupByInviteCode(userId, inviteCode);
+      group = await joinGroupByInviteCode(userId, inviteCode);
+    } catch (error) {
+      set({
+        error: getErrorMessage(error, "Failed to join group with invite code."),
+        isLoading: false,
+      });
+      throw error;
+    }
+
+    try {
       const [groups, pendingInvites, sentJoinRequests] = await Promise.all([
         getUserActiveGroups(userId),
         getUserPendingInvites(userId),
@@ -58,8 +68,9 @@ export const createGroupInviteActions: GroupActionCreator<
         : ("REQUESTED" as const);
       return { group, status };
     } catch (error) {
+      // The join or request exists on the server; only the reload failed.
       set({
-        error: getErrorMessage(error, "Failed to join group with invite code."),
+        error: `Invite code accepted, but group data could not be refreshed: ${getErrorMessage(error, "Please retry.")}`,
         isLoading: false,
       });
       throw error;
