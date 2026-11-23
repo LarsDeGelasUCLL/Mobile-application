@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet } from "react-native";
+import { Animated } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -12,13 +13,14 @@ export function Skeleton({
   height = 16,
   borderRadius = 4,
 }: SkeletonProps) {
+  const styles = useStyles();
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
-          toValue: 0.3,
+          toValue: 0.4,
           duration: 800,
           useNativeDriver: true,
         }),
@@ -40,8 +42,8 @@ export function Skeleton({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
-    backgroundColor: "#E5E7EB",
+    backgroundColor: t.colors.surfaceTint,
   },
-});
+}));

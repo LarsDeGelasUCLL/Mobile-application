@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface RowProps {
   children: React.ReactNode;
@@ -15,11 +16,12 @@ export function Row({
   justify = "flex-start",
   wrap = false,
 }: RowProps) {
+  const styles = useStyles();
   return (
     <View
       style={[
         styles.base,
-        styles[`gap_${gap}` as keyof typeof styles],
+        styles[`gap_${gap}`],
         { alignItems: align, justifyContent: justify },
         wrap && styles.wrap,
       ]}
@@ -29,11 +31,11 @@ export function Row({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: { flexDirection: "row" },
   wrap: { flexWrap: "wrap" },
   gap_none: { gap: 0 },
-  gap_sm: { gap: 8 },
-  gap_md: { gap: 16 },
-  gap_lg: { gap: 24 },
-});
+  gap_sm: { gap: t.spacing.sm },
+  gap_md: { gap: t.spacing.lg },
+  gap_lg: { gap: t.spacing.xl },
+}));

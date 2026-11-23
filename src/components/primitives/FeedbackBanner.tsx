@@ -1,5 +1,5 @@
-import { StyleSheet, View } from "react-native";
-import { colors } from "../../theme/colors";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 type FeedbackTone = "error" | "success" | "warning";
 
@@ -14,6 +14,7 @@ export function FeedbackBanner({
   children,
   testID,
 }: FeedbackBannerProps) {
+  const styles = useStyles();
   return (
     <View
       accessibilityRole="alert"
@@ -25,23 +26,23 @@ export function FeedbackBanner({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
-    borderRadius: 8,
+    borderRadius: t.radius.sm,
     borderWidth: 1,
-    padding: 12,
-    gap: 8,
+    padding: t.spacing.md,
+    gap: t.spacing.sm,
   },
   error: {
-    borderColor: colors.error,
-    backgroundColor: colors.errorSoft,
+    borderColor: t.colors.error,
+    backgroundColor: t.colors.errorSoft,
   },
   success: {
-    borderColor: colors.success,
-    backgroundColor: colors.successSoft,
+    borderColor: t.colors.success,
+    backgroundColor: t.colors.successSoft,
   },
   warning: {
-    borderColor: colors.warning,
-    backgroundColor: colors.warningSoft,
+    borderColor: t.colors.warning,
+    backgroundColor: t.colors.warningSoft,
   },
-});
+}));

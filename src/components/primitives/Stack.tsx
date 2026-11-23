@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface StackProps {
   children: React.ReactNode;
@@ -17,12 +18,13 @@ export function Stack({
   padding = "none",
   flex,
 }: StackProps) {
+  const styles = useStyles();
   return (
     <View
       style={[
         styles.base,
-        styles[`gap_${gap}` as keyof typeof styles],
-        styles[`padding_${padding}` as keyof typeof styles],
+        styles[`gap_${gap}`],
+        styles[`padding_${padding}`],
         { alignItems: align, justifyContent: justify },
         flex !== undefined && { flex },
       ]}
@@ -32,14 +34,14 @@ export function Stack({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: { flexDirection: "column" },
   gap_none: { gap: 0 },
-  gap_sm: { gap: 8 },
-  gap_md: { gap: 16 },
-  gap_lg: { gap: 24 },
+  gap_sm: { gap: t.spacing.sm },
+  gap_md: { gap: t.spacing.lg },
+  gap_lg: { gap: t.spacing.xl },
   padding_none: { padding: 0 },
-  padding_sm: { padding: 8 },
-  padding_md: { padding: 16 },
-  padding_lg: { padding: 24 },
-});
+  padding_sm: { padding: t.spacing.sm },
+  padding_md: { padding: t.spacing.lg },
+  padding_lg: { padding: t.spacing.xl },
+}));

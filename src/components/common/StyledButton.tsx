@@ -1,13 +1,15 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import { Spinner } from "../primitives/Spinner";
 import { Text } from "../primitives/Text";
-import { colors } from "../../theme/colors";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface StyledButtonProps {
   label: string;
   onPress: () => void;
-  variant?: "primary" | "secondary";
+  /** Max one `primary` per screen (design §4). `danger` = destructive confirm. */
+  variant?: "primary" | "secondary" | "danger";
   isLoading?: boolean;
+  disabled?: boolean;
   testID?: string;
 }
 
@@ -16,27 +18,37 @@ export function StyledButton({
   onPress,
   variant = "primary",
   isLoading = false,
+  disabled = false,
   testID,
 }: StyledButtonProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const textColor = {
+    primary: colors.onPrimary,
+    secondary: colors.text,
+    danger: colors.error,
+  }[variant];
+  const inactive = isLoading || disabled;
+
   return (
     <Pressable
       onPress={onPress}
-      disabled={isLoading}
+      disabled={inactive}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: inactive, busy: isLoading }}
       style={({ pressed }) => [
         styles.base,
         styles[variant],
-        pressed && styles.pressed,
-        isLoading && styles.disabled,
+        pressed && styles[`${variant}Pressed`],
+        inactive && styles.disabled,
       ]}
       testID={testID}
     >
       {isLoading ? (
-        <Spinner size="small" />
+        <Spinner size="small" color={textColor} />
       ) : (
-        <Text
-          weight="medium"
-          color={variant === "primary" ? "#FFFFFF" : colors.text}
-        >
+        <Text weight="medium" color={textColor}>
           {label}
         </Text>
       )}
@@ -44,27 +56,28 @@ export function StyledButton({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
     height: 48,
-    borderRadius: 10,
-    paddingHorizontal: 16,
+    borderRadius: t.radius.md,
+    paddingHorizontal: t.spacing.lg,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
   },
-  primary: {
-    backgroundColor: colors.primary,
-  },
+  primary: { backgroundColor: t.colors.primary },
+  primaryPressed: { backgroundColor: t.colors.primaryPressed },
   secondary: {
-    backgroundColor: colors.surfaceTint,
+    backgroundColor: t.colors.surfaceTint,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.colors.border,
   },
-  pressed: {
-    opacity: 0.85,
+  secondaryPressed: { backgroundColor: t.colors.primarySoft },
+  danger: {
+    backgroundColor: t.colors.errorSoft,
+    borderWidth: 1,
+    borderColor: t.colors.error,
   },
-  disabled: {
-    opacity: 0.5,
-  },
-});
+  dangerPressed: { opacity: 0.85 },
+  disabled: { opacity: 0.5 },
+}));

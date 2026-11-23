@@ -1,6 +1,6 @@
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../primitives";
-import { colors } from "../../theme/colors";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface InfoRowProps {
   label: string;
@@ -17,18 +17,20 @@ export function InfoRow({
   highlightValue = false,
   testID,
 }: InfoRowProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.row} testID={testID}>
       <View style={styles.copy}>
         <Text
           size="sm"
           weight={description !== undefined ? "medium" : "normal"}
-          color={description !== undefined ? colors.text : colors.muted}
+          color={description !== undefined ? colors.text : colors.textMuted}
         >
           {label}
         </Text>
         {description !== undefined && (
-          <Text size="sm" color={colors.muted}>
+          <Text size="sm" color={colors.textMuted}>
             {description}
           </Text>
         )}
@@ -37,7 +39,7 @@ export function InfoRow({
         <Text
           size="sm"
           weight="medium"
-          color={highlightValue ? colors.primaryDark : colors.text}
+          color={highlightValue ? colors.primaryText : colors.text}
           align="right"
         >
           {value}
@@ -47,13 +49,13 @@ export function InfoRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 4,
+    gap: t.spacing.md,
+    paddingVertical: t.spacing.xs,
   },
   copy: {
     flex: 1,
@@ -63,4 +65,4 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     alignItems: "flex-end",
   },
-});
+}));

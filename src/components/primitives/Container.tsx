@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export function Container({
   flex,
   padding = "none",
 }: ContainerProps) {
+  const styles = useStyles();
   return (
     <View
       style={[styles.base, flex !== undefined && { flex }, styles[padding]]}
@@ -20,10 +22,10 @@ export function Container({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: { width: "100%" },
   none: { padding: 0 },
-  sm: { padding: 8 },
-  md: { padding: 16 },
-  lg: { padding: 24 },
-});
+  sm: { padding: t.spacing.sm },
+  md: { padding: t.spacing.lg },
+  lg: { padding: t.spacing.xl },
+}));

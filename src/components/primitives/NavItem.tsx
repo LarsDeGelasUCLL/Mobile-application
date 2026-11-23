@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import { Text } from "./Text";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface NavItemProps {
   label: string;
@@ -9,25 +10,36 @@ interface NavItemProps {
 }
 
 export function NavItem({ label, onPress, active = false }: NavItemProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
-    <Pressable onPress={onPress} style={[styles.base, active && styles.active]}>
-      <Text size="md" weight={active ? "bold" : "normal"}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      style={[styles.base, active && styles.active]}
+    >
+      <Text
+        size="md"
+        weight={active ? "bold" : "normal"}
+        color={active ? colors.primaryText : colors.textMuted}
+      >
         {label}
       </Text>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: t.spacing.md,
+    paddingHorizontal: t.spacing.lg,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
   },
   active: {
-    borderBottomColor: "#2563EB",
+    borderBottomColor: t.colors.primary,
   },
-});
+}));

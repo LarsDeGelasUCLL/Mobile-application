@@ -4,9 +4,9 @@ import {
   RefreshControl,
   ScrollView,
   View,
-  StyleSheet,
 } from "react-native";
-import { colors } from "../../theme/colors";
+import { StickyFooter } from "./StickyFooter";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -14,6 +14,8 @@ interface ScreenProps {
   scrollable?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
+  /** Sticky bottom bar (primary action). Stays above the keyboard. */
+  footer?: React.ReactNode;
 }
 
 export function Screen({
@@ -22,59 +24,64 @@ export function Screen({
   scrollable = true,
   refreshing = false,
   onRefresh,
+  footer,
 }: ScreenProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const footerBar =
+    footer !== undefined ? <StickyFooter>{footer}</StickyFooter> : null;
+
   if (!scrollable) {
-    return <View style={[styles.container, styles[padding]]}>{children}</View>;
+    return (
+      <View style={styles.container}>
+        <View style={[styles.fill, styles[padding]]}>{children}</View>
+        {footerBar}
+      </View>
+    );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.keyboardAvoiding}
+      style={styles.container}
       behavior={Platform.OS === "android" ? "height" : undefined}
     >
       <ScrollView
-        style={styles.scroll}
+        style={styles.fill}
         contentContainerStyle={[styles.content, styles[padding]]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
         automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         refreshControl={
           onRefresh !== undefined ? (
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
           ) : undefined
         }
       >
         {children}
       </ScrollView>
+      {footerBar}
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardAvoiding: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+const useStyles = makeStyles((t) => ({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.colors.background,
+  },
+  fill: {
+    flex: 1,
   },
   content: {
     flexGrow: 1,
   },
-  none: {
-    padding: 0,
-  },
-  sm: {
-    padding: 8,
-  },
-  md: {
-    padding: 16,
-  },
-  lg: {
-    padding: 24,
-  },
-});
+  none: { padding: 0 },
+  sm: { padding: t.spacing.sm },
+  md: { padding: t.spacing.lg },
+  lg: { padding: t.spacing.xl },
+}));

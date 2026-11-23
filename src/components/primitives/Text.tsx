@@ -8,6 +8,7 @@ interface TextProps {
   weight?: "normal" | "medium" | "bold";
   align?: "left" | "center" | "right";
   color?: string;
+  numberOfLines?: number;
 }
 
 // Design allows only 400/600/700; "medium" renders as 600.
@@ -23,10 +24,12 @@ export function Text({
   weight = "normal",
   align = "left",
   color,
+  numberOfLines,
 }: TextProps) {
   const { colors } = useTheme();
   return (
     <RNText
+      numberOfLines={numberOfLines}
       style={[
         typeScale[size],
         {

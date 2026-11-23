@@ -1,6 +1,6 @@
-import { TextInput, View, StyleSheet } from "react-native";
+import { TextInput, View } from "react-native";
 import { Text } from "./Text";
-import { colors } from "../../theme/colors";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface InputFieldProps {
   label: string;
@@ -36,6 +36,8 @@ export function InputField({
   maxLength,
   editable = true,
 }: InputFieldProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
       <Text size="sm" weight="medium">
@@ -46,12 +48,14 @@ export function InputField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         secureTextEntry={secureTextEntry}
+        accessibilityLabel={label}
         style={[
           styles.input,
           multiline && styles.multiline,
+          !editable && styles.readOnly,
           error !== undefined && styles.inputError,
         ]}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.textMuted}
         selectionColor={colors.primary}
         testID={testID}
         keyboardType={keyboardType}
@@ -66,7 +70,7 @@ export function InputField({
         }
       />
       {error !== undefined && (
-        <Text size="sm" color="red">
+        <Text size="sm" color={colors.error}>
           {error}
         </Text>
       )}
@@ -74,29 +78,34 @@ export function InputField({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   container: {
     width: "100%",
     gap: 6,
-    marginBottom: 4,
+    marginBottom: t.spacing.xs,
   },
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
+    borderColor: t.colors.borderStrong,
+    borderRadius: t.radius.sm,
     paddingHorizontal: 14,
-    fontSize: 16,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    ...t.type.md,
+    fontFamily: t.fontFamily.regular,
+    backgroundColor: t.colors.surface,
+    color: t.colors.text,
+  },
+  readOnly: {
+    backgroundColor: t.colors.surfaceTint,
+    borderColor: t.colors.border,
   },
   inputError: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FEF2F2",
+    borderColor: t.colors.error,
+    backgroundColor: t.colors.errorSoft,
   },
   multiline: {
     height: 100,
-    paddingTop: 12,
+    paddingTop: t.spacing.md,
     textAlignVertical: "top",
   },
-});
+}));

@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
 import { StyleSheet } from "react-native";
-import { lightPalette, type Palette } from "./palettes";
+import { darkPalette, lightPalette, type Palette } from "./palettes";
 import {
   fontFamily,
   iconSize,
@@ -32,13 +32,23 @@ const lightTheme: Theme = {
   scheme: "light",
 };
 
+const darkTheme: Theme = { ...lightTheme, colors: darkPalette, scheme: "dark" };
+
 // Default value lets primitives render outside the provider (Storybook).
 const ThemeContext = createContext<Theme>(lightTheme);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // shortcut: forced light, Phase 8 resolves user_settings.ui_theme + useColorScheme() here.
+export function ThemeProvider({
+  children,
+  scheme = "light",
+}: {
+  children: React.ReactNode;
+  scheme?: Theme["scheme"];
+}) {
+  // shortcut: app passes no scheme (forced light); Phase 8 resolves user_settings.ui_theme + useColorScheme() here.
   return (
-    <ThemeContext.Provider value={lightTheme}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={scheme === "dark" ? darkTheme : lightTheme}>
+      {children}
+    </ThemeContext.Provider>
   );
 }
 

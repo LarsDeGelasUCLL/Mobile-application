@@ -1,20 +1,22 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface NavProps {
   children: React.ReactNode;
 }
 
 export function Nav({ children }: NavProps) {
+  const styles = useStyles();
   return <View style={styles.base}>{children}</View>;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 8,
-    gap: 8,
+    borderColor: t.colors.border,
+    paddingHorizontal: t.spacing.sm,
+    gap: t.spacing.sm,
   },
-});
+}));

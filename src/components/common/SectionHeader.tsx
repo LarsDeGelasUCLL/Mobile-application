@@ -1,6 +1,6 @@
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { Badge, Stack, Text } from "../primitives";
-import { colors } from "../../theme/colors";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface SectionHeaderProps {
   title: string;
@@ -15,6 +15,8 @@ export function SectionHeader({
   badgeLabel,
   testID = "section-header",
 }: SectionHeaderProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.sectionHeading} testID={testID}>
       <View style={styles.copy}>
@@ -23,7 +25,7 @@ export function SectionHeader({
             {title}
           </Text>
           {description !== undefined && (
-            <Text size="sm" color={colors.muted}>
+            <Text size="sm" color={colors.textMuted}>
               {description}
             </Text>
           )}
@@ -34,14 +36,14 @@ export function SectionHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   sectionHeading: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
+    gap: t.spacing.md,
   },
   copy: {
     flex: 1,
   },
-});
+}));

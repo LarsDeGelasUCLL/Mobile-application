@@ -1,5 +1,7 @@
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, Pressable } from "react-native";
+import { Icon } from "./Icon";
 import { Text } from "./Text";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface TagProps {
   label: string;
@@ -7,32 +9,38 @@ interface TagProps {
 }
 
 export function Tag({ label, onRemove }: TagProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.base}>
-      <Text size="sm">{label}</Text>
+      <Text size="sm" color={colors.primaryText}>
+        {label}
+      </Text>
       {onRemove !== undefined && (
-        <Pressable onPress={onRemove} style={styles.removeButton}>
-          <Text size="sm">×</Text>
+        <Pressable
+          onPress={onRemove}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${label}`}
+        >
+          <Icon name="close" size={16} color={colors.primaryText} />
         </Pressable>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
     gap: 6,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: t.colors.primarySoft,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
+    borderColor: t.colors.primaryBorder,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingVertical: t.spacing.xs,
+    borderRadius: t.radius.full,
   },
-  removeButton: {
-    paddingHorizontal: 4,
-  },
-});
+}));

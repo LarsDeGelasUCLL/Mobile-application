@@ -48,10 +48,11 @@ const textPairs = [
   ["warning", "warningSoft"],
   ["error", "errorSoft"],
 ];
-// Non-text UI (button fill against the page) needs 3:1.
+// Non-text UI (button fill, input/checkbox edge against the page) needs 3:1.
 const uiPairs = [
   ["primary", "background"],
   ["primary", "surface"],
+  ...pages.map((bg) => ["borderStrong", bg]),
 ];
 
 const { lightPalette, darkPalette } = await loadTypeScriptModule(

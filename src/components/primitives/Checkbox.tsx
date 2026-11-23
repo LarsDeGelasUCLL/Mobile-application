@@ -1,6 +1,7 @@
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View } from "react-native";
+import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { colors } from "../../theme/colors";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface CheckboxProps {
   label: string;
@@ -9,6 +10,8 @@ interface CheckboxProps {
 }
 
 export function Checkbox({ label, checked, onChange }: CheckboxProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <Pressable
       onPress={() => onChange(!checked)}
@@ -18,9 +21,7 @@ export function Checkbox({ label, checked, onChange }: CheckboxProps) {
     >
       <View style={[styles.box, checked && styles.boxChecked]}>
         {checked && (
-          <Text size="sm" color="#FFFFFF" weight="bold">
-            ✓
-          </Text>
+          <Icon name="checkmark" size={16} color={colors.onPrimary} />
         )}
       </View>
       <Text size="md">{label}</Text>
@@ -28,25 +29,25 @@ export function Checkbox({ label, checked, onChange }: CheckboxProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   container: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 4,
+    minHeight: 44,
   },
   box: {
     width: 22,
     height: 22,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: t.colors.borderStrong,
+    backgroundColor: t.colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   boxChecked: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: t.colors.primary,
+    borderColor: t.colors.primary,
   },
-});
+}));
