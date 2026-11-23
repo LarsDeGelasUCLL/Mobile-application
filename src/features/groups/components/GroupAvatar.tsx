@@ -1,6 +1,6 @@
 import { Image, StyleSheet, View } from "react-native";
 import { Text } from "../../../components/primitives";
-import { colors } from "../../../theme/colors";
+import { useTheme } from "../../../theme/ThemeProvider";
 
 interface GroupAvatarProps {
   name: string;
@@ -12,9 +12,10 @@ interface GroupAvatarProps {
 export function GroupAvatar({
   name,
   imageUri,
-  fallbackColor = colors.primary,
+  fallbackColor,
   size = 56,
 }: GroupAvatarProps) {
+  const { colors } = useTheme();
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -41,9 +42,16 @@ export function GroupAvatar({
   return (
     <View
       accessibilityLabel={`${name} group profile picture`}
-      style={[...avatarStyle, { backgroundColor: fallbackColor }]}
+      style={[
+        ...avatarStyle,
+        { backgroundColor: fallbackColor ?? colors.primary },
+      ]}
     >
-      <Text size={size < 48 ? "sm" : "md"} weight="bold" color="#FFFFFF">
+      <Text
+        size={size < 48 ? "sm" : "md"}
+        weight="bold"
+        color={colors.onPrimary}
+      >
         {initials}
       </Text>
     </View>

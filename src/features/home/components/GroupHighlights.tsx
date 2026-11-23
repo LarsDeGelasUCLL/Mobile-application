@@ -31,7 +31,7 @@ export function GroupHighlights({
           accessibilityRole="button"
           accessibilityLabel={`Open ${group.name}`}
           onPress={() => onGroupPress(group)}
-          style={styles.groupItem}
+          style={({ pressed }) => [styles.groupItem, pressed && styles.pressed]}
         >
           <GroupAvatar
             name={group.name}
@@ -51,9 +51,9 @@ export function GroupHighlights({
       ))}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Browse groups"
+        accessibilityLabel="Find groups"
         onPress={onSeeAllPress}
-        style={styles.groupItem}
+        style={({ pressed }) => [styles.groupItem, pressed && styles.pressed]}
       >
         <View style={styles.addIcon}>
           <Icon name="add" size={24} color={colors.primaryText} />
@@ -76,6 +76,7 @@ const useStyles = makeStyles((t) => ({
     alignItems: "center",
     gap: t.spacing.sm,
   },
+  pressed: { opacity: 0.6 },
   addIcon: {
     width: 58,
     height: 58,

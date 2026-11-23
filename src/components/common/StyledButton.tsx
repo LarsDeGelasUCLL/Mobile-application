@@ -62,9 +62,10 @@ export function StyledButton({
 
 const useStyles = makeStyles((t) => ({
   base: {
-    height: 48,
+    minHeight: 48,
     borderRadius: t.radius.md,
     paddingHorizontal: t.spacing.lg,
+    paddingVertical: t.spacing.sm,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
@@ -85,7 +86,7 @@ const useStyles = makeStyles((t) => ({
   dangerPressed: { opacity: 0.85 },
   // 44pt tap height; no fill, so it reads as text.
   link: {
-    height: 44,
+    minHeight: 44,
     width: "auto",
     paddingHorizontal: t.spacing.xs,
   },

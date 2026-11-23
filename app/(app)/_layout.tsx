@@ -1,5 +1,7 @@
 import { Redirect, Stack } from "expo-router";
+import { useEffect } from "react";
 import { useAuthStore } from "../../src/state/useAuthStore";
+import { useSettingsStore } from "../../src/state/useSettingsStore";
 import {
   FeedbackBanner,
   Screen,
@@ -14,6 +16,13 @@ export default function AppLayout() {
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const isLoading = useAuthStore((state) => state.isLoading);
   const initialize = useAuthStore((state) => state.initialize);
+  const userId = useAuthStore((state) => state.user?.id);
+  const fetchSettings = useSettingsStore((state) => state.fetchSettings);
+
+  // Loads the saved theme app-wide; on failure the app follows the device (Settings shows the error).
+  useEffect(() => {
+    if (userId) void fetchSettings(userId).catch(() => undefined);
+  }, [userId, fetchSettings]);
 
   if (!isInitialized) {
     return (

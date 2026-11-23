@@ -84,3 +84,35 @@ for (const [name, palette] of [
     assert.deepEqual(failures(uiPairs, 3), []);
   });
 }
+
+test("resolveScheme follows the saved theme, SYSTEM follows the device", async () => {
+  const { resolveScheme } = await loadTypeScriptModule("src/theme/scheme.ts");
+  assert.equal(resolveScheme("LIGHT", "dark"), "light");
+  assert.equal(resolveScheme("DARK", "light"), "dark");
+  assert.equal(resolveScheme("SYSTEM", "dark"), "dark");
+  assert.equal(resolveScheme("SYSTEM", "light"), "light");
+  // No saved settings (logged out) or unknown device scheme → light fallback.
+  assert.equal(resolveScheme(undefined, "dark"), "dark");
+  assert.equal(resolveScheme("SYSTEM", null), "light");
+  assert.equal(resolveScheme(undefined, undefined), "light");
+});
+
+test("colours live only in src/theme: no hex literals elsewhere, deprecated colors.ts gone", async () => {
+  const files = [
+    ...(await fs.readdir("app", { recursive: true })).map((f) => `app/${f}`),
+    ...(await fs.readdir("src", { recursive: true })).map((f) => `src/${f}`),
+  ].filter(
+    (f) =>
+      /\.(ts|tsx)$/.test(f) &&
+      !f.replaceAll("\\", "/").startsWith("src/theme/"),
+  );
+  const offenders = [];
+  for (const file of files) {
+    const source = await fs.readFile(file, "utf8");
+    if (/["'`]#[0-9A-Fa-f]{3,8}\b/.test(source)) offenders.push(file);
+    if (/theme\/colors["']/.test(source))
+      offenders.push(`${file} (imports colors.ts)`);
+  }
+  assert.deepEqual(offenders, []);
+  await assert.rejects(fs.access("src/theme/colors.ts"));
+});

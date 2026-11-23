@@ -12,5 +12,13 @@ interface IconProps {
 
 export function Icon({ name, size = 24, color }: IconProps) {
   const { colors } = useTheme();
-  return <Ionicons name={name} size={size} color={color ?? colors.text} />;
+  // Decorative: every icon sits beside visible text or inside a labelled control.
+  return (
+    <Ionicons
+      name={name}
+      size={size}
+      color={color ?? colors.text}
+      aria-hidden
+    />
+  );
 }

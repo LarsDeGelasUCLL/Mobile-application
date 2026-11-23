@@ -1,4 +1,5 @@
 import { router, Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, IconButton } from "../../../src/components/primitives";
 import type { IconName } from "../../../src/components/primitives/Icon";
 import { useGroupStore } from "../../../src/state/useGroupStore";
@@ -7,6 +8,7 @@ import { useTheme } from "../../../src/theme/ThemeProvider";
 export default function TabsLayout() {
   const { colors, fontFamily } = useTheme();
   const inviteCount = useGroupStore((state) => state.pendingInvites.length);
+  const tabBarBottom = Math.max(useSafeAreaInsets().bottom, 8);
 
   const tabIcon =
     (active: IconName, inactive: IconName) =>
@@ -14,21 +16,22 @@ export default function TabsLayout() {
       <Icon
         name={focused ? active : inactive}
         size={24}
-        color={focused ? colors.primary : colors.textMuted}
+        color={focused ? colors.primaryText : colors.textMuted}
       />
     );
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: colors.primaryText,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          height: 64,
-          paddingBottom: 8,
+          // Keep the home-indicator inset; a fixed height would drop it.
+          height: 56 + tabBarBottom,
+          paddingBottom: tabBarBottom,
           paddingTop: 6,
         },
         tabBarLabelStyle: { fontFamily: fontFamily.semibold },

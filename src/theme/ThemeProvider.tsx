@@ -44,7 +44,7 @@ export function ThemeProvider({
   children: React.ReactNode;
   scheme?: Theme["scheme"];
 }) {
-  // shortcut: app passes no scheme (forced light); Phase 8 resolves user_settings.ui_theme + useColorScheme() here.
+  // The app root resolves the scheme (resolveScheme in ./scheme); Storybook passes its toolbar value.
   return (
     <ThemeContext.Provider value={scheme === "dark" ? darkTheme : lightTheme}>
       {children}

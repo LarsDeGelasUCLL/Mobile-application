@@ -2280,3 +2280,68 @@ test("personal expense participants merge group members and all known expense pr
     ],
   );
 });
+
+test("dark mode: root resolves the scheme from settings + device and themes nav, status bar and web", async () => {
+  const read = (file) => fs.readFile(file, "utf8");
+  const root = await read("app/_layout.tsx");
+  assert.match(root, /useColorScheme\(\)/);
+  assert.match(root, /useSettingsStore\(/);
+  assert.match(root, /resolveScheme\(/);
+  assert.match(root, /<ThemeProvider scheme=\{scheme\}>/);
+  assert.match(root, /<NavigationThemeProvider value=\{/);
+  assert.doesNotMatch(root, /<StatusBar style="auto"/);
+  assert.match(root, /theme-color/);
+  assert.doesNotMatch(root, /theme\/colors/);
+
+  // Saved theme applies app-wide, not only after opening Settings.
+  const appLayout = await read("app/(app)/_layout.tsx");
+  assert.match(appLayout, /fetchSettings\(/);
+
+  assert.doesNotMatch(
+    await read("src/features/groups/components/GroupAvatar.tsx"),
+    /theme\/colors|#FFFFFF/,
+  );
+
+  // Active tab label is text: dark `primary` on `surface` is only 3.57:1.
+  assert.match(
+    await read("app/(app)/(tabs)/_layout.tsx"),
+    /tabBarActiveTintColor: colors\.primaryText/,
+  );
+});
+
+test("phase 9 a11y: skeleton honours reduced motion, icons are decorative, carousel tiles give pressed feedback", async () => {
+  const read = (file) => fs.readFile(file, "utf8");
+  const skeleton = await read("src/components/primitives/Skeleton.tsx");
+  assert.match(skeleton, /isReduceMotionEnabled\(\)/);
+  assert.match(skeleton, /reduceMotionChanged/);
+  // Native driver does not exist on web; asking for it only logs a warning.
+  assert.match(skeleton, /useNativeDriver: Platform\.OS !== "web"/);
+
+  // Icons sit beside visible text or inside a labelled IconButton.
+  assert.match(await read("src/components/primitives/Icon.tsx"), /aria-hidden/);
+
+  const highlights = await read(
+    "src/features/home/components/GroupHighlights.tsx",
+  );
+  assert.match(highlights, /style=\{\(\{ pressed \}\) =>/);
+  // Accessible name matches the visible label (WCAG 2.5.3).
+  assert.match(highlights, /accessibilityLabel="Find groups"/);
+});
+
+test("phase 9 layout: text controls grow with font scale; tab bar keeps the home-indicator inset", async () => {
+  const read = (file) => fs.readFile(file, "utf8");
+  // A fixed height clips the label at large Dynamic Type / font scale.
+  for (const file of [
+    "src/components/common/StyledButton.tsx",
+    "src/components/primitives/InputField.tsx",
+    "src/components/primitives/Select.tsx",
+  ]) {
+    const source = await read(file);
+    assert.doesNotMatch(source, /^\s+height: (44|48),/m, file);
+    assert.match(source, /minHeight: (44|48),/, file);
+  }
+
+  const tabs = await read("app/(app)/(tabs)/_layout.tsx");
+  assert.match(tabs, /useSafeAreaInsets\(\)/);
+  assert.doesNotMatch(tabs, /height: 64,/);
+});

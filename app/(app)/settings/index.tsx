@@ -172,8 +172,8 @@ export default function SettingsScreen() {
                       testID="settings-language-select"
                     />
                     <Text size="sm" color={colors.textMuted}>
-                      Both are saved to your account. Dark mode and translations
-                      follow in a later update.
+                      Both are saved to your account. Translations follow in a
+                      later update.
                     </Text>
                   </Stack>
                 </Card>

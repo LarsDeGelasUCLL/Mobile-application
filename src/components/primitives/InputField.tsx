@@ -85,7 +85,7 @@ const useStyles = makeStyles((t) => ({
     marginBottom: t.spacing.xs,
   },
   input: {
-    height: 48,
+    minHeight: 48,
     borderWidth: 1,
     borderColor: t.colors.borderStrong,
     borderRadius: t.radius.sm,
