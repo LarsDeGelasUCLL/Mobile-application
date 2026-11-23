@@ -1,0 +1,99 @@
+import { useState } from "react";
+import { router } from "expo-router";
+import { useAuthStore } from "../../../src/state/useAuthStore";
+import {
+  FeedbackBanner,
+  InputField,
+  Screen,
+  ScreenHeader,
+  Stack,
+  Text,
+} from "../../../src/components/primitives";
+import { StyledButton } from "../../../src/components/common/StyledButton";
+import { useTheme } from "../../../src/theme/ThemeProvider";
+import { validateEmail } from "../../../src/features/auth/authValidation";
+
+export default function ChangeEmailScreen() {
+  const { colors } = useTheme();
+  const user = useAuthStore((state) => state.user);
+  const changeEmail = useAuthStore((state) => state.changeEmail);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailError, setEmailError] = useState<string>();
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailRequestError, setEmailRequestError] = useState("");
+
+  const handleChangeEmail = async () => {
+    const nextEmailError = validateEmail(newEmail);
+    setEmailError(nextEmailError);
+    setEmailMessage("");
+    setEmailRequestError("");
+    if (nextEmailError) return;
+
+    try {
+      await changeEmail({ email: newEmail });
+      setEmailMessage(
+        "Confirmation was sent. Check both email addresses to finish the change.",
+      );
+      setNewEmail("");
+    } catch (emailError) {
+      setEmailRequestError(
+        emailError instanceof Error
+          ? emailError.message
+          : "Could not request the email change. Please retry.",
+      );
+    }
+  };
+
+  return (
+    <Screen
+      padding="lg"
+      footer={
+        <StyledButton
+          label="Request email change"
+          onPress={handleChangeEmail}
+          isLoading={isLoading}
+          testID="change-email-button"
+        />
+      }
+    >
+      <Stack gap="lg">
+        <ScreenHeader
+          title="Email"
+          subtitle={`Current: ${user?.email ?? "Not available"}`}
+          onBack={() =>
+            router.canGoBack() ? router.back() : router.replace("/settings")
+          }
+          testID="change-email-header"
+        />
+        <InputField
+          label="New email"
+          value={newEmail}
+          onChangeText={setNewEmail}
+          placeholder="new@example.com"
+          keyboardType="email-address"
+          error={emailError}
+          testID="profile-new-email-input"
+        />
+        <Text size="sm" color={colors.textMuted}>
+          We send a confirmation link to both addresses. The change finishes
+          once you confirm.
+        </Text>
+        {emailRequestError !== "" ? (
+          <FeedbackBanner tone="error" testID="change-email-error">
+            <Text size="sm" color={colors.error}>
+              {emailRequestError}
+            </Text>
+          </FeedbackBanner>
+        ) : null}
+        {emailMessage !== "" ? (
+          <FeedbackBanner tone="success" testID="change-email-success">
+            <Text size="sm" color={colors.success}>
+              {emailMessage}
+            </Text>
+          </FeedbackBanner>
+        ) : null}
+      </Stack>
+    </Screen>
+  );
+}

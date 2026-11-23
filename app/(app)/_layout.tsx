@@ -50,6 +50,10 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="settings/index" />
+      <Stack.Screen name="settings/profile" />
+      <Stack.Screen name="settings/email" />
+      <Stack.Screen name="settings/password" />
       <Stack.Screen name="group/[groupId]" />
       <Stack.Screen name="expense/create" />
       <Stack.Screen name="expense/[expenseId]" />

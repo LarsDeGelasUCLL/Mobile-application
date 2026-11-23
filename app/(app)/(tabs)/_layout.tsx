@@ -1,17 +1,43 @@
-import { StyleSheet } from "react-native";
-import { Tabs } from "expo-router";
-import { Icon } from "../../../src/components/primitives";
-import { colors } from "../../../src/theme/colors";
+import { router, Tabs } from "expo-router";
+import { Icon, IconButton } from "../../../src/components/primitives";
+import type { IconName } from "../../../src/components/primitives/Icon";
+import { useGroupStore } from "../../../src/state/useGroupStore";
+import { useTheme } from "../../../src/theme/ThemeProvider";
 
 export default function TabsLayout() {
+  const { colors, fontFamily } = useTheme();
+  const inviteCount = useGroupStore((state) => state.pendingInvites.length);
+
+  const tabIcon =
+    (active: IconName, inactive: IconName) =>
+    ({ focused }: { focused: boolean }) => (
+      <Icon
+        name={focused ? active : inactive}
+        size={24}
+        color={focused ? colors.primary : colors.textMuted}
+      />
+    );
+
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: styles.tabBar,
-        headerStyle: styles.header,
-        headerTitleStyle: styles.headerTitle,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarLabelStyle: { fontFamily: fontFamily.semibold },
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          fontFamily: fontFamily.bold,
+          color: colors.text,
+        },
       }}
     >
       <Tabs.Screen
@@ -19,13 +45,7 @@ export default function TabsLayout() {
         options={{
           title: "Home",
           tabBarButtonTestID: "tab-home",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "home" : "home-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
+          tabBarIcon: tabIcon("home", "home-outline"),
         }}
       />
       <Tabs.Screen
@@ -33,41 +53,16 @@ export default function TabsLayout() {
         options={{
           title: "Groups",
           tabBarButtonTestID: "tab-groups",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "people" : "people-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarButtonTestID: "tab-settings",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "settings" : "settings-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarButtonTestID: "tab-profile",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "person" : "person-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
+          tabBarIcon: tabIcon("people", "people-outline"),
+          tabBarBadge: inviteCount > 0 ? inviteCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.primary,
+            color: colors.onPrimary,
+          },
+          tabBarAccessibilityLabel:
+            inviteCount > 0
+              ? `Groups, ${inviteCount} pending invitation${inviteCount === 1 ? "" : "s"}`
+              : "Groups",
         }}
       />
       <Tabs.Screen
@@ -75,11 +70,22 @@ export default function TabsLayout() {
         options={{
           title: "Expenses",
           tabBarButtonTestID: "tab-expenses",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "wallet" : "wallet-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
+          tabBarIcon: tabIcon("wallet", "wallet-outline"),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarButtonTestID: "tab-profile",
+          tabBarIcon: tabIcon("person", "person-outline"),
+          headerRight: () => (
+            <IconButton
+              icon="settings-outline"
+              accessibilityLabel="Open settings"
+              onPress={() => router.push("/settings")}
+              color={colors.text}
+              testID="open-settings-button"
             />
           ),
         }}
@@ -87,21 +93,3 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    height: 64,
-    paddingBottom: 8,
-    paddingTop: 6,
-  },
-  header: {
-    backgroundColor: colors.surface,
-  },
-  headerTitle: {
-    fontWeight: "700",
-    color: colors.text,
-  },
-});

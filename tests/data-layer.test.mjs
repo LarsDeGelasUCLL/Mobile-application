@@ -160,6 +160,63 @@ test("group details are a sibling route to tabs in the authenticated stack", asy
   assert.doesNotMatch(tabsLayout, /name="group"/);
 });
 
+test("settings is a stack page opened from Profile, not a tab", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
+  const tabFiles = await fs.readdir("app/(app)/(tabs)");
+  const settings = await fs.readFile("app/(app)/settings/index.tsx", "utf8");
+
+  assert.ok(!tabFiles.includes("settings.tsx"));
+  assert.doesNotMatch(tabsLayout, /name="settings"|tab-settings/);
+  assert.match(appLayout, /name="settings\/index"/);
+  assert.match(tabsLayout, /router\.push\("\/settings"\)/);
+  assert.match(tabsLayout, /useTheme\(\)/);
+  assert.doesNotMatch(tabsLayout, /theme\/colors/);
+  assert.match(tabsLayout, /tabBarBadge/);
+  assert.match(settings, /<ScreenHeader/);
+  assert.match(settings, /router\.canGoBack\(\)/);
+});
+
+test("profile is display-only; settings holds account sub-pages, dropdowns and the only logout", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  const profile = await fs.readFile("app/(app)/(tabs)/profile.tsx", "utf8");
+  const settings = await fs.readFile("app/(app)/settings/index.tsx", "utf8");
+
+  // Design §6.5: no forms, no logout, no email change; IBAN masked.
+  assert.doesNotMatch(profile, /InputField|logout|changeEmail|updateProfile/);
+  assert.match(profile, /<MaskedValue/);
+  assert.doesNotMatch(profile, /theme\/colors/);
+
+  // Design §6.6: dropdowns, account rows → sub-pages, confirmed logout.
+  assert.match(settings, /<Select/);
+  assert.doesNotMatch(settings, /<Radio|InputField|theme\/colors/);
+  for (const page of ["profile", "email", "password"]) {
+    assert.match(
+      settings,
+      new RegExp(`router\\.push\\("/settings/${page}"\\)`),
+    );
+    assert.match(appLayout, new RegExp(`name="settings/${page}"`));
+    const source = await fs.readFile(`app/(app)/settings/${page}.tsx`, "utf8");
+    assert.match(source, /<ScreenHeader/);
+    assert.match(source, /footer=/);
+    assert.doesNotMatch(source, /theme\/colors/);
+  }
+  assert.match(settings, /<ConfirmDialog/);
+  assert.match(settings, /settings-logout-button/);
+
+  // Moved actions keep their store call and Cypress testID.
+  const subPages = {
+    profile: ["updateProfile", "save-profile-button"],
+    email: ["changeEmail", "change-email-button"],
+    password: ["setPassword", "change-password-button"],
+  };
+  for (const [page, needles] of Object.entries(subPages)) {
+    const source = await fs.readFile(`app/(app)/settings/${page}.tsx`, "utf8");
+    for (const needle of needles)
+      assert.ok(source.includes(needle), `${page}: ${needle}`);
+  }
+});
+
 test("expense create, detail, and edit routes are sibling stack screens", async () => {
   const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
   const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
@@ -195,9 +252,14 @@ test("home summarizes live groups and expenses with working detail routes", asyn
   assert.match(expenses, /fetchIndividualExpenses/);
   assert.match(expenses, /error && expenses\.length === 0/);
   assert.match(tabsLayout, /name="expenses"/);
-  assert.ok(
-    tabsLayout.indexOf('name="profile"') <
-      tabsLayout.indexOf('name="expenses"'),
+  // Tab order (design §5.1): Home · Groups · Expenses · Profile.
+  const tabOrder = ["index", "groups", "expenses", "profile"].map((name) =>
+    tabsLayout.indexOf(`name="${name}"`),
+  );
+  assert.ok(tabOrder.every((pos) => pos >= 0));
+  assert.deepEqual(
+    [...tabOrder].sort((a, b) => a - b),
+    tabOrder,
   );
 
   const expenseDetail = await fs.readFile(
@@ -229,8 +291,10 @@ test("screens use the shared accessible feedback banner for status messages", as
     "app/(app)/(tabs)/index.tsx",
     "app/(app)/(tabs)/groups.tsx",
     "app/(app)/(tabs)/expenses.tsx",
-    "app/(app)/(tabs)/profile.tsx",
-    "app/(app)/(tabs)/settings.tsx",
+    "app/(app)/settings/index.tsx",
+    "app/(app)/settings/profile.tsx",
+    "app/(app)/settings/email.tsx",
+    "app/(app)/settings/password.tsx",
     "app/(app)/group/[groupId].tsx",
     "app/(app)/expense/create.tsx",
     "app/(app)/expense/[expenseId].tsx",
@@ -1358,7 +1422,7 @@ test("settings store loads settings and persists returned updates", async () => 
 });
 
 test("settings exposes load retry when refresh fails with cached preferences", async () => {
-  const screen = await fs.readFile("app/(app)/(tabs)/settings.tsx", "utf8");
+  const screen = await fs.readFile("app/(app)/settings/index.tsx", "utf8");
 
   assert.match(
     screen,

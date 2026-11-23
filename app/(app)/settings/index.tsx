@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useSettingsStore } from "../../../src/state/useSettingsStore";
@@ -7,42 +7,38 @@ import type { UiTheme, UpdateUserSettingsDto } from "../../../src/types";
 import {
   Card,
   Checkbox,
+  ConfirmDialog,
   Divider,
   FeedbackBanner,
-  InputField,
-  Radio,
+  ListRow,
   Screen,
+  ScreenHeader,
+  Select,
   Stack,
   Text,
+  type SelectOption,
 } from "../../../src/components/primitives";
 import { StyledButton } from "../../../src/components/common/StyledButton";
-import { colors } from "../../../src/theme/colors";
-import { validatePassword } from "../../../src/features/auth/authValidation";
+import { useTheme } from "../../../src/theme/ThemeProvider";
 
-const themes: { label: string; value: UiTheme }[] = [
+const themes: SelectOption<UiTheme>[] = [
   { label: "System", value: "SYSTEM" },
   { label: "Light", value: "LIGHT" },
   { label: "Dark", value: "DARK" },
 ];
 
-const languages = [
+const languages: SelectOption<string>[] = [
   { label: "English", value: "en" },
   { label: "Nederlands", value: "nl" },
 ];
 
 export default function SettingsScreen() {
+  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const setPassword = useAuthStore((state) => state.setPassword);
-  const isAuthLoading = useAuthStore((state) => state.isLoading);
-  const [password, setPasswordValue] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState<string>();
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string>();
-  const [passwordMessage, setPasswordMessage] = useState("");
-  const [passwordRequestError, setPasswordRequestError] = useState("");
   const [logoutError, setLogoutError] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [settingsActionError, setSettingsActionError] = useState("");
   const [settingsMessage, setSettingsMessage] = useState("");
   const [pendingSettings, setPendingSettings] =
@@ -90,30 +86,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleSetPassword = async () => {
-    const nextPasswordError = validatePassword(password);
-    const nextConfirmPasswordError =
-      confirmPassword === password ? undefined : "Passwords must match.";
-    setPasswordError(nextPasswordError);
-    setConfirmPasswordError(nextConfirmPasswordError);
-    setPasswordMessage("");
-    setPasswordRequestError("");
-    if (nextPasswordError || nextConfirmPasswordError) return;
-
-    try {
-      await setPassword({ password });
-      setPasswordValue("");
-      setConfirmPassword("");
-      setPasswordMessage("Your password was updated.");
-    } catch (passwordError) {
-      setPasswordRequestError(
-        passwordError instanceof Error
-          ? passwordError.message
-          : "Could not update the password. Please retry.",
-      );
-    }
-  };
-
   const handleLogout = async () => {
     setLogoutError("");
     setIsLoggingOut(true);
@@ -121,6 +93,7 @@ export default function SettingsScreen() {
       await logout();
       router.replace("/login");
     } catch (logoutError) {
+      setConfirmLogout(false);
       setLogoutError(
         logoutError instanceof Error
           ? logoutError.message
@@ -131,78 +104,84 @@ export default function SettingsScreen() {
     }
   };
 
+  const sectionLabel = (label: string) => (
+    <Text size="sm" weight="bold" color={colors.textMuted}>
+      {label}
+    </Text>
+  );
+
   return (
     <Screen padding="lg">
-      <View style={styles.container} testID="settings-screen">
+      <View testID="settings-screen">
         <Stack gap="lg">
+          <ScreenHeader
+            title="Settings"
+            onBack={() =>
+              router.canGoBack() ? router.back() : router.replace("/profile")
+            }
+            testID="settings-header"
+          />
+
           <Stack gap="sm">
-            <Text size="sm" weight="bold" color={colors.primary}>
-              MAKE IT YOURS
-            </Text>
-            <Text size="xxl" weight="bold">
-              Settings
-            </Text>
-            <Text size="sm" color={colors.muted}>
-              Your preferences, gathered in one place.
-            </Text>
+            {sectionLabel("ACCOUNT")}
+            <Card flush>
+              <ListRow
+                icon="person-outline"
+                label="Edit profile"
+                onPress={() => router.push("/settings/profile")}
+                testID="settings-edit-profile"
+              />
+              <Divider />
+              <ListRow
+                icon="mail-outline"
+                label="Email"
+                description={user?.email}
+                onPress={() => router.push("/settings/email")}
+                testID="settings-email"
+              />
+              <Divider />
+              <ListRow
+                icon="lock-closed-outline"
+                label="Password"
+                onPress={() => router.push("/settings/password")}
+                testID="settings-password"
+              />
+            </Card>
           </Stack>
 
-          <Card>
-            <Stack gap="md">
-              <Text size="md" weight="bold">
-                Preferences
-              </Text>
-              {settings ? (
-                <>
-                  <Text size="sm" weight="medium">
-                    Theme
-                  </Text>
-                  {themes.map((theme) => (
-                    <Radio
-                      key={theme.value}
-                      label={theme.label}
-                      value={theme.value}
-                      selected={settings.uiTheme === theme.value}
-                      onSelect={(value) => {
-                        const selected = themes.find(
-                          (option) => option.value === value,
-                        );
-                        if (selected) {
-                          void saveSettings({ uiTheme: selected.value });
-                        }
-                      }}
+          {settings ? (
+            <>
+              <Stack gap="sm">
+                {sectionLabel("PREFERENCES")}
+                <Card>
+                  <Stack gap="md">
+                    <Select
+                      label="Theme"
+                      value={settings.uiTheme}
+                      options={themes}
+                      onChange={(uiTheme) => void saveSettings({ uiTheme })}
+                      testID="settings-theme-select"
                     />
-                  ))}
-                  <Text size="sm" color={colors.muted}>
-                    The selected theme is saved to your account. App-wide colors
-                    are not switched yet.
-                  </Text>
-                  <Divider spacing="sm" />
-                  <Text size="sm" weight="medium">
-                    Language
-                  </Text>
-                  {languages.map((language) => (
-                    <Radio
-                      key={language.value}
-                      label={language.label}
-                      value={language.value}
-                      selected={settings.languageCode === language.value}
-                      onSelect={(value) =>
-                        void saveSettings({ languageCode: value })
+                    <Select
+                      label="Language"
+                      value={settings.languageCode}
+                      options={languages}
+                      onChange={(languageCode) =>
+                        void saveSettings({ languageCode })
                       }
+                      testID="settings-language-select"
                     />
-                  ))}
-                  <Text size="sm" color={colors.muted}>
-                    This preference is saved; translated interface text is not
-                    available yet.
-                  </Text>
-                  <Divider spacing="sm" />
-                  <Text size="sm" weight="medium">
-                    Notifications
-                  </Text>
-                  <Text size="sm" color={colors.muted}>
-                    Choose which group updates you would like to receive.
-                  </Text>
+                    <Text size="sm" color={colors.textMuted}>
+                      Both are saved to your account. Dark mode and translations
+                      follow in a later update.
+                    </Text>
+                  </Stack>
+                </Card>
+              </Stack>
+
+              <Stack gap="sm">
+                {sectionLabel("NOTIFICATIONS")}
+                <Card>
                   <Checkbox
                     label="New group expenses"
                     checked={settings.notifyNewExpense}
@@ -224,128 +203,79 @@ export default function SettingsScreen() {
                       void saveSettings({ notifyGroupUpdates })
                     }
                   />
-                </>
-              ) : (
-                <Text size="sm" color={colors.muted}>
-                  {isLoading
-                    ? "Loading your saved preferences..."
-                    : settingsActionError ||
-                      error ||
-                      "Settings are unavailable."}
-                </Text>
-              )}
-              {settingsActionError || error ? (
-                <FeedbackBanner tone="error" testID="settings-error">
-                  <Text size="sm" color={colors.error}>
-                    {settingsActionError || error}
-                  </Text>
-                </FeedbackBanner>
-              ) : null}
-              {settingsMessage !== "" ? (
-                <FeedbackBanner tone="success" testID="settings-success">
-                  <Text size="sm" color={colors.success}>
-                    {settingsMessage}
-                  </Text>
-                </FeedbackBanner>
-              ) : null}
-              {pendingSettings ? (
-                <StyledButton
-                  label="Retry saving"
-                  onPress={() => void saveSettings(pendingSettings)}
-                  isLoading={isSavingSettings}
-                  variant="secondary"
-                  testID="retry-save-settings"
-                />
-              ) : null}
-              {!pendingSettings &&
-              !isLoading &&
-              (!settings || settingsActionError || error) ? (
-                <StyledButton
-                  label="Retry loading settings"
-                  onPress={() => void loadSettings()}
-                  variant="secondary"
-                  testID="retry-load-settings"
-                />
-              ) : null}
-              <Text size="sm" color={colors.muted}>
-                Device push-token setup and payment-status alerts are not
-                available as editable settings here.
-              </Text>
-              <Text size="sm" color={colors.muted}>
-                Currency, week-start, profile visibility, and data export are
-                not represented by the current settings DTO.
-              </Text>
-            </Stack>
-          </Card>
+                </Card>
+              </Stack>
+            </>
+          ) : (
+            <Text size="sm" color={colors.textMuted}>
+              {isLoading
+                ? "Loading your saved preferences..."
+                : settingsActionError || error || "Settings are unavailable."}
+            </Text>
+          )}
 
-          <Card>
-            <Stack gap="md">
-              <Text size="md" weight="bold">
-                Change password
+          {settingsActionError || error ? (
+            <FeedbackBanner tone="error" testID="settings-error">
+              <Text size="sm" color={colors.error}>
+                {settingsActionError || error}
               </Text>
-              <InputField
-                label="New password"
-                value={password}
-                onChangeText={setPasswordValue}
-                placeholder="At least 8 characters"
-                secureTextEntry
-                error={passwordError}
-                testID="settings-new-password-input"
-              />
-              <InputField
-                label="Confirm password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Repeat your password"
-                secureTextEntry
-                error={confirmPasswordError}
-                testID="settings-confirm-password-input"
-              />
-              {passwordRequestError !== "" ? (
-                <FeedbackBanner tone="error" testID="change-password-error">
-                  <Text size="sm" color={colors.error}>
-                    {passwordRequestError}
-                  </Text>
-                </FeedbackBanner>
-              ) : null}
-              {passwordMessage !== "" ? (
-                <FeedbackBanner tone="success" testID="change-password-success">
-                  <Text size="sm" color={colors.success}>
-                    {passwordMessage}
-                  </Text>
-                </FeedbackBanner>
-              ) : null}
-              <StyledButton
-                label="Update password"
-                onPress={handleSetPassword}
-                isLoading={isAuthLoading}
-                testID="change-password-button"
-              />
-              <Divider spacing="sm" />
-              {logoutError !== "" ? (
-                <FeedbackBanner tone="error" testID="settings-logout-error">
-                  <Text size="sm" color={colors.error}>
-                    {logoutError}
-                  </Text>
-                </FeedbackBanner>
-              ) : null}
-              <StyledButton
-                label="Log out"
-                onPress={handleLogout}
-                isLoading={isLoggingOut}
-                variant="secondary"
-                testID="settings-logout-button"
-              />
-            </Stack>
+            </FeedbackBanner>
+          ) : null}
+          {settingsMessage !== "" ? (
+            <FeedbackBanner tone="success" testID="settings-success">
+              <Text size="sm" color={colors.success}>
+                {settingsMessage}
+              </Text>
+            </FeedbackBanner>
+          ) : null}
+          {pendingSettings ? (
+            <StyledButton
+              label="Retry saving"
+              onPress={() => void saveSettings(pendingSettings)}
+              isLoading={isSavingSettings}
+              variant="secondary"
+              testID="retry-save-settings"
+            />
+          ) : null}
+          {!pendingSettings &&
+          !isLoading &&
+          (!settings || settingsActionError || error) ? (
+            <StyledButton
+              label="Retry loading settings"
+              onPress={() => void loadSettings()}
+              variant="secondary"
+              testID="retry-load-settings"
+            />
+          ) : null}
+
+          {logoutError !== "" ? (
+            <FeedbackBanner tone="error" testID="settings-logout-error">
+              <Text size="sm" color={colors.error}>
+                {logoutError}
+              </Text>
+            </FeedbackBanner>
+          ) : null}
+          <Card flush>
+            <ListRow
+              icon="log-out-outline"
+              label="Log out"
+              destructive
+              onPress={() => setConfirmLogout(true)}
+              testID="settings-logout-button"
+            />
           </Card>
         </Stack>
       </View>
+      <ConfirmDialog
+        visible={confirmLogout}
+        title="Log out of Lumin?"
+        message="You can log back in with your email and password."
+        confirmLabel="Log out"
+        onConfirm={() => void handleLogout()}
+        onCancel={() => setConfirmLogout(false)}
+        isLoading={isLoggingOut}
+        testID="logout-dialog"
+      />
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
