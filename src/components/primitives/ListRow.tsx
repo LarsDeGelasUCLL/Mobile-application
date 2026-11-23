@@ -6,6 +6,8 @@ import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 interface ListRowProps {
   label: string;
   icon?: IconName;
+  /** Replaces icon (e.g. an avatar). */
+  leading?: React.ReactNode;
   description?: string;
   value?: string;
   /** Replaces value + chevron (e.g. a switch, avatar, badge). */
@@ -20,6 +22,7 @@ interface ListRowProps {
 export function ListRow({
   label,
   icon,
+  leading,
   description,
   value,
   trailing,
@@ -33,13 +36,14 @@ export function ListRow({
 
   const content = (
     <>
-      {icon !== undefined && (
-        <Icon
-          name={icon}
-          size={iconSize.md}
-          color={destructive ? colors.error : colors.primaryText}
-        />
-      )}
+      {leading ??
+        (icon !== undefined && (
+          <Icon
+            name={icon}
+            size={iconSize.md}
+            color={destructive ? colors.error : colors.primaryText}
+          />
+        ))}
       <View style={styles.copy}>
         <Text weight="medium" color={labelColor} numberOfLines={1}>
           {label}

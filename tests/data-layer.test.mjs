@@ -155,7 +155,7 @@ test("group details are a sibling route to tabs in the authenticated stack", asy
 
   assert.match(appLayout, /<Stack/);
   assert.match(appLayout, /name="\(tabs\)"/);
-  assert.match(appLayout, /name="group\/\[groupId\]"/);
+  assert.match(appLayout, /name="group\/\[groupId\]\/index"/);
   assert.match(tabsLayout, /<Tabs/);
   assert.doesNotMatch(tabsLayout, /name="group"/);
 });
@@ -266,6 +266,88 @@ test("groups tab lists groups first; create and join live on their own pages beh
   }
 });
 
+test("group detail shows balances then recent expenses; members and admin tools live in group settings", async () => {
+  const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
+  await assert.rejects(fs.access("app/(app)/group/[groupId].tsx"), {
+    code: "ENOENT",
+  });
+  for (const page of ["index", "settings", "expenses"]) {
+    assert.match(appLayout, new RegExp(`name="group/\\[groupId\\]/${page}"`));
+    const source = await fs.readFile(
+      `app/(app)/group/[groupId]/${page}.tsx`,
+      "utf8",
+    );
+    assert.match(source, /<ScreenHeader/);
+    assert.match(source, /router\.canGoBack\(\)/);
+    assert.match(source, /useGroupDetail\(/);
+    assert.doesNotMatch(source, /theme\/colors/);
+  }
+  const detail = await fs.readFile(
+    "app/(app)/group/[groupId]/index.tsx",
+    "utf8",
+  );
+  const settings = await fs.readFile(
+    "app/(app)/group/[groupId]/settings.tsx",
+    "utf8",
+  );
+  const expenses = await fs.readFile(
+    "app/(app)/group/[groupId]/expenses.tsx",
+    "utf8",
+  );
+
+  // Design §6.3: balances → 5 recent expenses → sticky Add expense; 🔑 + ⚙.
+  assert.doesNotMatch(
+    detail,
+    /InputField|inviteMemberByEmail|leaveOrRemoveMember|deleteGroup|changeMemberRole/,
+  );
+  assert.ok(detail.indexOf("<BalanceRow") < detail.indexOf("RECENT EXPENSES"));
+  assert.match(detail, /slice\(0, RECENT_EXPENSES\)/);
+  assert.match(detail, /RECENT_EXPENSES = 5/);
+  assert.match(detail, /pathname: "\/group\/\[groupId\]\/expenses"/);
+  assert.match(detail, /pathname: "\/group\/\[groupId\]\/settings"/);
+  assert.match(detail, /footer=/);
+  assert.match(detail, /create-group-expense-button/);
+  // Invite code only in a sheet, masked.
+  assert.doesNotMatch(detail, />\s*\{group\.inviteCode\}/);
+  assert.match(detail, /<Sheet[\s\S]*<MaskedValue[\s\S]*<\/Sheet>/);
+
+  // Design §6.4: Group info → Join requests (>0) → Members → Invite → danger zone.
+  const order = [
+    'title="Group info"',
+    "JOIN REQUESTS",
+    "MEMBERS",
+    'title="Invite by email"',
+    "leave-group-button",
+    "delete-group-button",
+  ].map((needle) => settings.indexOf(needle));
+  assert.ok(
+    order.every((pos) => pos >= 0),
+    String(order),
+  );
+  assert.deepEqual(
+    [...order].sort((a, b) => a - b),
+    order,
+  );
+  assert.match(settings, /joinRequests\.length > 0/);
+  assert.match(settings, /<ConfirmDialog/);
+  assert.match(settings, /router\.dismissTo\("\/groups"\)/);
+  for (const needle of [
+    "updateGroup(",
+    "inviteMemberByEmail(",
+    "changeMemberRole(",
+    "leaveOrRemoveMember(",
+    "deleteGroup(",
+    "group-name-input",
+    "update-group-button",
+    "group-invite-email-input",
+    "group-invite-button",
+  ])
+    assert.ok(settings.includes(needle), `settings: ${needle}`);
+
+  assert.match(expenses, /<FlatList/);
+  assert.match(expenses, /footer=/);
+});
+
 test("expense create, detail, and edit routes are sibling stack screens", async () => {
   const appLayout = await fs.readFile("app/(app)/_layout.tsx", "utf8");
   const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
@@ -318,7 +400,7 @@ test("home summarizes live groups and expenses with working detail routes", asyn
   assert.match(expenseDetail, /router\.replace\("\/expenses"\)/);
 
   const groupDetail = await fs.readFile(
-    "app/(app)/group/[groupId].tsx",
+    "app/(app)/group/[groupId]/index.tsx",
     "utf8",
   );
   assert.match(groupDetail, /expensesError &&\s*visibleBalances\.length === 0/);
@@ -344,7 +426,8 @@ test("screens use the shared accessible feedback banner for status messages", as
     "app/(app)/settings/profile.tsx",
     "app/(app)/settings/email.tsx",
     "app/(app)/settings/password.tsx",
-    "app/(app)/group/[groupId].tsx",
+    "app/(app)/group/[groupId]/index.tsx",
+    "app/(app)/group/[groupId]/settings.tsx",
     "app/(app)/group/create.tsx",
     "app/(app)/group/join.tsx",
     "app/(app)/expense/create.tsx",
@@ -375,13 +458,17 @@ test("join request UI: requester feedback, sent requests, admin badge and approv
   assert.match(groupsScreen, /`sent-request-cancel-\$\{/);
   assert.match(groupsScreen, /joinRequestCounts\[groupId\]/);
 
-  const groupDetail = await fs.readFile(
-    "app/(app)/group/[groupId].tsx",
+  const groupDetailHook = await fs.readFile(
+    "src/features/groups/useGroupDetail.ts",
     "utf8",
   );
-  assert.match(groupDetail, /fetchJoinRequestsForGroup\(groupId\)/);
-  assert.match(groupDetail, /request\.groupId === groupId/);
-  assert.match(groupDetail, /Join requests/);
+  assert.match(groupDetailHook, /fetchJoinRequestsForGroup\(groupId\)/);
+  assert.match(groupDetailHook, /request\.groupId === groupId/);
+  const groupDetail = await fs.readFile(
+    "app/(app)/group/[groupId]/settings.tsx",
+    "utf8",
+  );
+  assert.match(groupDetail, /JOIN REQUESTS/);
   assert.match(groupDetail, /`join-request-approve-\$\{/);
   assert.match(groupDetail, /`join-request-reject-\$\{/);
   assert.match(groupDetail, /approveJoinRequest\(/);
@@ -401,7 +488,7 @@ test("session recovery and detail back buttons have route-safe fallbacks", async
   assert.match(appLayout, /initialize\(\)/);
 
   const detailScreens = [
-    "app/(app)/group/[groupId].tsx",
+    "app/(app)/group/[groupId]/index.tsx",
     "app/(app)/expense/create.tsx",
     "app/(app)/expense/[expenseId].tsx",
     "app/(app)/expense/edit/[expenseId].tsx",

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Avatar } from "./Avatar";
 import { ListRow } from "./ListRow";
 
 const meta: Meta<typeof ListRow> = {
@@ -34,6 +35,14 @@ export const Destructive: Story = {
     icon: "log-out-outline",
     label: "Log out",
     destructive: true,
+    onPress: () => {},
+  },
+};
+export const WithAvatar: Story = {
+  args: {
+    leading: <Avatar name="Sarah Peeters" size="sm" />,
+    label: "Sarah Peeters",
+    description: "Admin",
     onPress: () => {},
   },
 };
