@@ -156,7 +156,7 @@ export default function ExpenseDetailScreen() {
     >
       <Stack gap="lg">
         <Row justify="space-between" align="center">
-          <Text size="xl" weight="bold">
+          <Text size="xxl" weight="bold">
             Expense details
           </Text>
           <View style={styles.backButton}>
@@ -219,7 +219,7 @@ export default function ExpenseDetailScreen() {
                     label={expense.groupId ? "Group expense" : "Personal"}
                   />
                 </Row>
-                <Text size="xl" weight="bold">
+                <Text size="xxl" weight="bold">
                   {formatCurrency(expense.amount)}
                 </Text>
                 <Text size="sm" color={colors.muted}>

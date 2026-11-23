@@ -128,7 +128,7 @@ export default function GroupsScreen() {
         <Stack gap="lg">
           <Row justify="space-between" align="center">
             <Stack gap="none">
-              <Text size="xl" weight="bold">
+              <Text size="xxl" weight="bold">
                 Your groups
               </Text>
               <Text size="sm" color={colors.muted}>

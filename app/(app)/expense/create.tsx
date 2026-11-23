@@ -189,7 +189,7 @@ export default function CreateExpenseScreen() {
       <Stack gap="lg">
         <Row justify="space-between" align="center">
           <Stack gap="none" flex={1}>
-            <Text size="xl" weight="bold">
+            <Text size="xxl" weight="bold">
               New {groupId ? "group" : "personal"} expense
             </Text>
             <Text size="sm" color={colors.muted}>

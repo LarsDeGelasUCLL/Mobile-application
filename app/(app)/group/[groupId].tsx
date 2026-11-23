@@ -269,7 +269,7 @@ export default function GroupDetailScreen() {
         <Stack gap="lg">
           <Row justify="space-between" align="center">
             <Stack gap="sm" flex={1}>
-              <Text size="xl" weight="bold">
+              <Text size="xxl" weight="bold">
                 {group?.name ?? "Group"}
               </Text>
               <Text size="sm" color={colors.muted}>

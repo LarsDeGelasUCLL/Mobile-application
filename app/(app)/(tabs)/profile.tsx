@@ -139,7 +139,7 @@ export default function ProfileScreen() {
             <Text size="sm" weight="bold" color={colors.primary}>
               YOUR ACCOUNT
             </Text>
-            <Text size="xl" weight="bold">
+            <Text size="xxl" weight="bold">
               Profile
             </Text>
             <Text size="sm" color={colors.muted}>

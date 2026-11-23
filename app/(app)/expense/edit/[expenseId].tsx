@@ -190,7 +190,7 @@ export default function EditExpenseScreen() {
     >
       <Stack gap="lg">
         <Row justify="space-between" align="center">
-          <Text size="xl" weight="bold">
+          <Text size="xxl" weight="bold">
             Edit expense
           </Text>
           <View style={styles.backButton}>

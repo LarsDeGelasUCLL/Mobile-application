@@ -58,7 +58,7 @@ export default function ExpensesScreen() {
         <Stack gap="lg">
           <Row justify="space-between" align="center">
             <Stack gap="none" flex={1}>
-              <Text size="xl" weight="bold">
+              <Text size="xxl" weight="bold">
                 Personal expenses
               </Text>
               <Text size="sm" color={colors.muted}>

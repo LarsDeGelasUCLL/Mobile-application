@@ -278,7 +278,7 @@ export default function LoginScreen() {
               <Text size="sm" weight="bold" color={colors.primary}>
                 Your trusted group activity planner
               </Text>
-              <Text size="xl" weight="bold" align="center">
+              <Text size="xxl" weight="bold" align="center">
                 {title}
               </Text>
             </Stack>

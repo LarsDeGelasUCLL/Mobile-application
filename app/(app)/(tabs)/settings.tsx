@@ -139,7 +139,7 @@ export default function SettingsScreen() {
             <Text size="sm" weight="bold" color={colors.primary}>
               MAKE IT YOURS
             </Text>
-            <Text size="xl" weight="bold">
+            <Text size="xxl" weight="bold">
               Settings
             </Text>
             <Text size="sm" color={colors.muted}>
