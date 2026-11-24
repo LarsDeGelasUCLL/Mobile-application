@@ -378,7 +378,10 @@ test("phase 7: text links, one primary per auth view, themed home/expense pages"
       ),
     );
   }
-  assert.match(login, /New to Lumin\?/);
+  assert.match(login, /New to Laruna\?/);
+  // Native auth redirects must use the scheme app.json registers.
+  const { expo } = JSON.parse(await read("app.json"));
+  assert.ok(login.includes(`${expo.scheme}://login?mode=`));
   assert.match(login, /testID="signup-button"/);
 
   // Groups empty state: "Join with code" becomes the text link (Phase 5 ruling).
@@ -636,14 +639,14 @@ test("auth deep-link exchange distinguishes unrelated, completed, and failed lin
   const codes = [];
 
   assert.equal(
-    await exchangeAuthLinkCode("lumin://groups", async () => ({
+    await exchangeAuthLinkCode("laruna://groups", async () => ({
       error: null,
     })),
     "unrelated",
   );
   assert.equal(
     await exchangeAuthLinkCode(
-      "lumin://login?code=valid-code",
+      "laruna://login?code=valid-code",
       async (code) => {
         codes.push(code);
         return { error: null };
@@ -652,14 +655,14 @@ test("auth deep-link exchange distinguishes unrelated, completed, and failed lin
     "completed",
   );
   assert.equal(
-    await exchangeAuthLinkCode("lumin://login?code=expired-code", async () => {
+    await exchangeAuthLinkCode("laruna://login?code=expired-code", async () => {
       throw new Error("expired");
     }),
     "failed",
   );
   assert.equal(
     await exchangeAuthLinkCode(
-      "lumin://login?error=access_denied",
+      "laruna://login?error=access_denied",
       async () => ({ error: null }),
     ),
     "failed",

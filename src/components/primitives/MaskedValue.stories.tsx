@@ -12,7 +12,7 @@ export const InviteCode: Story = {
   args: {
     label: "Invite code",
     value: "K7P-2QX",
-    shareMessage: "Join my group on Lumin with code K7P-2QX",
+    shareMessage: "Join my group on Laruna with code K7P-2QX",
     testID: "invite-code",
   },
 };

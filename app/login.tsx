@@ -98,7 +98,7 @@ export default function LoginScreen() {
     if (Platform.OS === "web" && typeof window !== "undefined") {
       return `${window.location.origin}/login?mode=${nextMode}`;
     }
-    return `lumin://login?mode=${nextMode}`;
+    return `laruna://login?mode=${nextMode}`;
   };
 
   const handleLogin = async () => {
@@ -470,7 +470,7 @@ export default function LoginScreen() {
         {mode === "login" ? (
           <Row justify="center" align="center" gap="none">
             <Text size="sm" color={colors.textMuted}>
-              New to Lumin?
+              New to Laruna?
             </Text>
             <StyledButton
               label="Create account"

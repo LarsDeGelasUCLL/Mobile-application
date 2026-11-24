@@ -268,7 +268,7 @@ export default function SettingsScreen() {
       </View>
       <ConfirmDialog
         visible={confirmLogout}
-        title="Log out of Lumin?"
+        title="Log out of Laruna?"
         message="You can log back in with your email and password."
         confirmLabel="Log out"
         onConfirm={() => void handleLogout()}

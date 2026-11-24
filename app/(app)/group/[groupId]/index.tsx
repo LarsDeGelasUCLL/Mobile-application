@@ -259,7 +259,7 @@ export default function GroupDetailScreen() {
           <MaskedValue
             label="Code"
             value={group.inviteCode}
-            shareMessage={`Join "${group.name}" on Lumin with invite code ${group.inviteCode}`}
+            shareMessage={`Join "${group.name}" on Laruna with invite code ${group.inviteCode}`}
             testID="group-invite-code"
           />
         </Sheet>

@@ -8,7 +8,7 @@ interface BrandHeaderProps {
   testID?: string;
 }
 
-/** Brand mark + "Lumin" wordmark. The view's own title goes below it. */
+/** Brand mark + "Laruna" wordmark. The view's own title goes below it. */
 export function BrandHeader({
   iconName = "people",
   testID = "brand-header",
@@ -21,7 +21,7 @@ export function BrandHeader({
         <Icon name={iconName} size={28} color={colors.onPrimary} />
       </View>
       <Text size="md" weight="bold" color={colors.primaryText}>
-        Lumin
+        Laruna
       </Text>
     </View>
   );
