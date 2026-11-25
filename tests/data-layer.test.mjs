@@ -275,19 +275,29 @@ test("groups tab lists groups first; create and join live on their own pages beh
     groups,
     /InputField|createNewGroup|joinByCode|theme\/colors/,
   );
-  assert.match(groups, /<Sheet/);
+  const readGroups = (file) =>
+    fs.readFile(`src/features/groups/components/${file}`, "utf8");
+  const groupList = await readGroups("GroupList.tsx");
+  const invitationList = await readGroups("InvitationList.tsx");
+  const sentRequestList = await readGroups("SentRequestList.tsx");
+  assert.match(groups, /<AddGroupSheet/);
+  assert.match(await readGroups("AddGroupSheet.tsx"), /<Sheet/);
   assert.match(groups, /headerRight/);
   for (const page of ["create", "join"]) {
     assert.match(groups, new RegExp(`openPage\\("/group/${page}"\\)`));
     assert.match(appLayout, new RegExp(`name="group/${page}"`));
   }
   // List first, then invitations + sent requests collapsed below it.
-  const listPos = groups.indexOf("groups.map(");
-  const invitesPos = groups.indexOf('title="Invitations"');
-  const sentPos = groups.indexOf('title="Sent join requests"');
+  const listPos = groups.indexOf("<GroupList");
+  const invitesPos = groups.indexOf("<InvitationList");
+  const sentPos = groups.indexOf("<SentRequestList");
   assert.ok(listPos >= 0 && listPos < invitesPos && invitesPos < sentPos);
-  assert.match(groups, /<CollapsibleSection/);
-  assert.match(groups, /<EmptyState/);
+  assert.match(groupList, /groups\.map\(/);
+  assert.match(invitationList, /title="Invitations"/);
+  assert.match(sentRequestList, /title="Sent join requests"/);
+  assert.match(invitationList, /<CollapsibleSection/);
+  assert.match(sentRequestList, /<CollapsibleSection/);
+  assert.match(groupList, /<EmptyState/);
 
   // Form pages: header with back, sticky primary, logic + Cypress testIDs kept.
   const pages = {
@@ -328,10 +338,12 @@ test("group detail shows balances then recent expenses; members and admin tools 
     );
     assert.match(source, /<ScreenHeader/);
     assert.match(source, /goBackOr\(/);
-    assert.match(
-      source,
-      page === "settings" ? /useGroupSettings\(/ : /useGroupDetail\(/,
-    );
+    const pageHook = {
+      index: /useGroupDetailPage\(/,
+      settings: /useGroupSettings\(/,
+      expenses: /useGroupDetail\(/,
+    };
+    assert.match(source, pageHook[page]);
     assert.doesNotMatch(source, /theme\/colors/);
   }
   const detail = await fs.readFile(
@@ -350,22 +362,38 @@ test("group detail shows balances then recent expenses; members and admin tools 
     fs.readFile(`src/features/groups/${file}`, "utf8");
   const settingsHook = await readGroups("useGroupSettings.ts");
   assert.match(settingsHook, /useGroupDetail\(/);
+  const detailHook = await readGroups("useGroupDetailPage.ts");
+  assert.match(detailHook, /useGroupDetail\(/);
+  const balancesSection = await readGroups(
+    "components/GroupBalancesSection.tsx",
+  );
+  const recentSection = await readGroups(
+    "components/RecentExpensesSection.tsx",
+  );
+  const inviteCodeSheet = await readGroups("components/InviteCodeSheet.tsx");
 
   // Design §6.3: balances → 5 recent expenses → sticky Add expense; 🔑 + ⚙.
   assert.doesNotMatch(
     detail,
     /InputField|inviteMemberByEmail|leaveOrRemoveMember|deleteGroup|changeMemberRole/,
   );
-  assert.ok(detail.indexOf("<BalanceRow") < detail.indexOf("RECENT EXPENSES"));
-  assert.match(detail, /slice\(0, RECENT_EXPENSES\)/);
-  assert.match(detail, /RECENT_EXPENSES = 5/);
-  assert.match(detail, /pathname: "\/group\/\[groupId\]\/expenses"/);
-  assert.match(detail, /pathname: "\/group\/\[groupId\]\/settings"/);
+  const balancesPos = detail.indexOf("<GroupBalancesSection");
+  assert.ok(
+    balancesPos >= 0 && balancesPos < detail.indexOf("<RecentExpensesSection"),
+  );
+  assert.match(balancesSection, /<BalanceRow/);
+  assert.match(recentSection, /RECENT EXPENSES/);
+  assert.match(recentSection, /slice\(0, RECENT_EXPENSES\)/);
+  assert.match(recentSection, /RECENT_EXPENSES = 5/);
+  assert.match(detailHook, /pathname: "\/group\/\[groupId\]\/expenses"/);
+  assert.match(detailHook, /pathname: "\/group\/\[groupId\]\/settings"/);
   assert.match(detail, /footer=/);
   assert.match(detail, /create-group-expense-button/);
   // Invite code only in a sheet, masked.
   assert.doesNotMatch(detail, />\s*\{group\.inviteCode\}/);
-  assert.match(detail, /<Sheet[\s\S]*<MaskedValue[\s\S]*<\/Sheet>/);
+  assert.doesNotMatch(inviteCodeSheet, />\s*\{group\.inviteCode\}/);
+  assert.match(detail, /<InviteCodeSheet/);
+  assert.match(inviteCodeSheet, /<Sheet[\s\S]*<MaskedValue[\s\S]*<\/Sheet>/);
 
   // Design §6.4: Group info → Join requests (>0) → Members → Invite → danger zone.
   const order = [
@@ -461,8 +489,8 @@ test("phase 7: text links, one primary per auth view, themed home/expense pages"
   assert.match(login, /testID="signup-button"/);
 
   // Groups empty state: "Join with code" becomes the text link (Phase 5 ruling).
-  const groups = await read("app/(app)/(tabs)/groups.tsx");
-  assert.match(groups, /label="Join with code"[\s\S]{0,120}variant="link"/);
+  const groupList = await read("src/features/groups/components/GroupList.tsx");
+  assert.match(groupList, /label="Join with code"[\s\S]{0,120}variant="link"/);
 
   // Home: balance summary first, invitations as one row, errors per section.
   const home = await read("app/(app)/(tabs)/index.tsx");
@@ -575,12 +603,16 @@ test("home summarizes live groups and expenses with working detail routes", asyn
   );
   assert.match(expenseDetail, /router\.replace\("\/expenses"\)/);
 
-  const groupDetail = await fs.readFile(
-    "app/(app)/group/[groupId]/index.tsx",
+  const balancesSection = await fs.readFile(
+    "src/features/groups/components/GroupBalancesSection.tsx",
     "utf8",
   );
-  assert.match(groupDetail, /expensesError &&\s*visibleBalances\.length === 0/);
-  assert.match(groupDetail, /expensesError &&\s*groupExpenses\.length === 0/);
+  const recentSection = await fs.readFile(
+    "src/features/groups/components/RecentExpensesSection.tsx",
+    "utf8",
+  );
+  assert.match(balancesSection, /hasError &&\s*balances\.length === 0/);
+  assert.match(recentSection, /hasError &&\s*expenses\.length === 0/);
 });
 
 test("screens use the shared accessible feedback banner for status messages", async () => {
@@ -629,10 +661,18 @@ test("join request UI: requester feedback, sent requests, admin badge and approv
   const joinPage = await fs.readFile("app/(app)/group/join.tsx", "utf8");
   assert.match(joinPage, /status === "ACTIVE"/);
   assert.match(joinPage, /Request sent\. A group admin must approve it\./);
+  const readGroups = (file) =>
+    fs.readFile(`src/features/groups/${file}`, "utf8");
   assert.match(groupsScreen, /sentJoinRequests/);
-  assert.match(groupsScreen, /cancelJoinRequest/);
-  assert.match(groupsScreen, /`sent-request-cancel-\$\{/);
-  assert.match(groupsScreen, /joinRequestCounts\[groupId\]/);
+  assert.match(await readGroups("useGroupsTab.ts"), /cancelJoinRequest/);
+  assert.match(
+    await readGroups("components/SentRequestList.tsx"),
+    /`sent-request-cancel-\$\{/,
+  );
+  assert.match(
+    await readGroups("groupSummary.ts"),
+    /joinRequestCounts\[groupId\]/,
+  );
 
   const groupDetailHook = await fs.readFile(
     "src/features/groups/useGroupDetail.ts",
