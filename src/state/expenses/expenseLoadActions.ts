@@ -65,7 +65,8 @@ export const createExpenseLoadActions: ExpenseActionCreator<
     }
   },
 
-  // Participant failures reach the caller only; the store error stays unset.
+  // A failed history load sets the store error (fetchIndividualExpenses);
+  // a failed participants lookup only rejects, leaving the store error unset.
   fetchExpenseParticipants: async (userId) => {
     await get().fetchIndividualExpenses(userId);
     return getUserExpenseParticipants(userId, get().individualExpenses);

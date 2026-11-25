@@ -543,7 +543,7 @@ test("home summarizes live groups and expenses with working detail routes", asyn
   );
 
   const expenseDetail = await fs.readFile(
-    "app/(app)/expense/[expenseId].tsx",
+    "src/features/expenses/useExpenseDetail.ts",
     "utf8",
   );
   assert.match(expenseDetail, /router\.replace\("\/expenses"\)/);
