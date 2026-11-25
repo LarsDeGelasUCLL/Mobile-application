@@ -1,5 +1,4 @@
-import type { ExpenseDto } from "../../types";
-import type { PublicUserProfileDto } from "../../types";
+import type { ExpenseDto, PublicUserProfileDto } from "../../types";
 import { enrichExpenses } from "./expenseEnrichment";
 import { getGroupMembers, getUserActiveGroups } from "../groups";
 import { assertCurrentUser } from "../authGuard";

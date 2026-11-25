@@ -9,6 +9,7 @@ import { useExpenseStore } from "../../state/useExpenseStore";
  * for the group detail, settings and expenses pages. */
 export function useGroupDetail(groupId: string | undefined) {
   const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
   const {
     groups,
     allActiveGroupMembers,
@@ -64,12 +65,12 @@ export function useGroupDetail(groupId: string | undefined) {
   );
 
   const reload = useCallback(async () => {
-    if (!user?.id || !groupId) return;
+    if (!userId || !groupId) return;
     clearError();
     clearExpenseError();
     try {
       const isActive = await loadGroupDetail(
-        user.id,
+        userId,
         groupId,
         fetchGroupsAndInvites,
         fetchMembersForGroup,
@@ -101,7 +102,7 @@ export function useGroupDetail(groupId: string | undefined) {
     fetchMembersForGroup,
     groupId,
     setSelectedGroupId,
-    user?.id,
+    userId,
   ]);
 
   useEffect(() => {

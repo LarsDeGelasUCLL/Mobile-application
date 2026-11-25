@@ -60,7 +60,11 @@ declare global {
         id: string,
         options?: Partial<Loggable & Timeoutable>,
       ): Chainable<JQuery<HTMLElement>>;
-      /** Clears a visible text field, types `text` and asserts the value. */
+      /**
+       * Clears a visible text field, types `text` and asserts the value.
+       * Chain it on a single `getBySel` subject: it re-queries by that testID,
+       * so a narrowed subject (`.first()`, `.filter()`) is widened again.
+       */
       fill(
         text: string,
         options?: Partial<TypeOptions>,

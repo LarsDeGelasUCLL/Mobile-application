@@ -17,7 +17,7 @@ import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
 export default function ExpensesScreen() {
-  const user = useAuthStore((state) => state.user);
+  const userId = useAuthStore((state) => state.user?.id);
   const { expenses, isLoading, error, fetchIndividualExpenses, clearError } =
     useExpenseStore(
       useShallow((state) => ({
@@ -30,14 +30,14 @@ export default function ExpensesScreen() {
     );
 
   const loadExpenses = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     clearError();
     try {
-      await fetchIndividualExpenses(user.id);
+      await fetchIndividualExpenses(userId);
     } catch {
       // The expense store exposes the load failure for the retry banner.
     }
-  }, [clearError, fetchIndividualExpenses, user?.id]);
+  }, [clearError, fetchIndividualExpenses, userId]);
 
   useEffect(() => {
     void loadExpenses();

@@ -58,7 +58,7 @@ export function SplitBetween({
             ))}
           </Stack>
         )}
-        <Row gap="md">
+        <Row gap="md" wrap>
           <Radio
             label="Split equally"
             value="equal"

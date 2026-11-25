@@ -26,9 +26,17 @@ module.exports = defineConfig([
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/ban-ts-comment': 'error',
       'react-hooks/exhaustive-deps': 'error',
-      // React Compiler findings in screens that are still to be refactored.
+    },
+  },
+  {
+    // These hooks start an async load from an effect; the rule cannot tell
+    // that most of the state updates happen after an await.
+    files: [
+      'src/features/app/useServiceWorker.ts',
+      'src/features/settings/useSettingsSaver.ts',
+    ],
+    rules: {
       'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/preserve-manual-memoization': 'warn',
     },
   },
 ]);

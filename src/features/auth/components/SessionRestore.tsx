@@ -42,7 +42,9 @@ export function SessionRestore(props: SessionRestoreProps) {
           {isLoading ? (
             <>
               <Spinner />
-              <Text>Restoring your session...</Text>
+              <Text align="center" tone="muted">
+                Restoring your session...
+              </Text>
             </>
           ) : (
             <FeedbackBanner
