@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { router } from "expo-router";
 import { useAuthStore } from "../../../src/state/useAuthStore";
@@ -47,11 +47,12 @@ export default function SettingsScreen() {
   const { settings, isLoading, error, fetchSettings, updateSettings } =
     useSettingsStore();
 
-  const loadSettings = async () => {
-    if (!user) return;
+  const userId = user?.id;
+  const loadSettings = useCallback(async () => {
+    if (!userId) return;
     setSettingsActionError("");
     try {
-      await fetchSettings(user.id);
+      await fetchSettings(userId);
     } catch (loadError) {
       setSettingsActionError(
         loadError instanceof Error
@@ -59,11 +60,11 @@ export default function SettingsScreen() {
           : "Could not load settings.",
       );
     }
-  };
+  }, [userId, fetchSettings]);
 
   useEffect(() => {
-    if (user) void loadSettings();
-  }, [user?.id]);
+    void loadSettings();
+  }, [loadSettings]);
 
   const saveSettings = async (payload: UpdateUserSettingsDto) => {
     if (!user || isSavingSettings) return;

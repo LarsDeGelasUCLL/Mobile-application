@@ -12,7 +12,8 @@
     "cypress:run": "cypress run",
     "test": "node --test",
     "test:data-layer": "node --test tests/data-layer.test.mjs",
-    "test:mappers": "node --test tests/mappers.test.mjs"
+    "test:mappers": "node --test tests/mappers.test.mjs",
+    "lint": "expo lint"
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
@@ -47,6 +48,8 @@
     "@storybook/react-vite": "^10.5.10",
     "@types/react": "~19.3.0",
     "cypress": "^13.17.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
     "storybook": "^10.5.10",
     "typescript": "~6.0.3",
     "vite": "^5.4.11"

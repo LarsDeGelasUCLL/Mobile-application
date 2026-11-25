@@ -1,4 +1,10 @@
-import { useEffect, useImperativeHandle, useState, type Ref } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useImperativeHandle,
+  useState,
+  type Ref,
+} from "react";
 import { View } from "react-native";
 import {
   Card,
@@ -75,7 +81,9 @@ export function ExpenseForm({
   ]);
   const [validationError, setValidationError] = useState<string>();
 
-  useEffect(() => {
+  // An effect event reads the latest props without making them dependencies,
+  // so the form resets only when the user or the edited expense changes.
+  const resetForm = useEffectEvent(() => {
     setTitle(initialExpense?.title ?? "");
     setAmount(initialExpense ? initialExpense.amount.toFixed(2) : "");
     setReceiptUrl(initialExpense?.receiptUrl ?? "");
@@ -90,6 +98,10 @@ export function ExpenseForm({
         : [{ userId: currentUserId, amount: "0.00" }],
     );
     setValidationError(undefined);
+  });
+
+  useEffect(() => {
+    resetForm();
   }, [currentUserId, initialExpense?.id]);
 
   const setAmountValue = (value: string) => {

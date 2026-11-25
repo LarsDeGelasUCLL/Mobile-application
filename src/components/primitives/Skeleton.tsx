@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AccessibilityInfo, Animated, Platform } from "react-native";
 import { makeStyles } from "../../theme/ThemeProvider";
 
@@ -14,7 +14,7 @@ export function Skeleton({
   borderRadius = 4,
 }: SkeletonProps) {
   const styles = useStyles();
-  const opacity = useRef(new Animated.Value(1)).current;
+  const [opacity] = useState(() => new Animated.Value(1));
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {

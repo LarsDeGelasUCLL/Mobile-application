@@ -63,9 +63,11 @@ export const createGroupInviteActions: GroupActionCreator<
       ]);
       set({ groups, pendingInvites, sentJoinRequests, isLoading: false });
       // The RPC returns the group either way; an email invite makes the join instant.
-      const status = groups.some((item) => item.group.id === group.id)
-        ? ("ACTIVE" as const)
-        : ("REQUESTED" as const);
+      const status: "ACTIVE" | "REQUESTED" = groups.some(
+        (item) => item.group.id === group.id,
+      )
+        ? "ACTIVE"
+        : "REQUESTED";
       return { group, status };
     } catch (error) {
       // The join or request exists on the server; only the reload failed.
@@ -104,7 +106,7 @@ export const createGroupInviteActions: GroupActionCreator<
               ),
               {
                 membershipId,
-                groupRole: "MEMBER" as const,
+                groupRole: "MEMBER",
                 joinedAt: new Date().toISOString(),
                 group: invite.group,
               },

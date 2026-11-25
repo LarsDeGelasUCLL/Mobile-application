@@ -10,15 +10,16 @@ export default function TabsLayout() {
   const inviteCount = useGroupStore((state) => state.pendingInvites.length);
   const tabBarBottom = Math.max(useSafeAreaInsets().bottom, 8);
 
-  const tabIcon =
-    (active: IconName, inactive: IconName) =>
-    ({ focused }: { focused: boolean }) => (
-      <Icon
-        name={focused ? active : inactive}
-        size={24}
-        color={focused ? colors.primaryText : colors.textMuted}
-      />
-    );
+  const tabIcon = (active: IconName, inactive: IconName) =>
+    function TabIcon({ focused }: { focused: boolean }) {
+      return (
+        <Icon
+          name={focused ? active : inactive}
+          size={24}
+          color={focused ? colors.primaryText : colors.textMuted}
+        />
+      );
+    };
 
   return (
     <Tabs

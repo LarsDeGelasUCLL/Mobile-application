@@ -12,6 +12,7 @@ interface TextProps {
 }
 
 // Design allows only 400/600/700; "medium" renders as 600.
+// as const: a readonly map of literal weights; it narrows, it asserts no type.
 const familyByWeight = {
   normal: fontFamily.regular,
   medium: fontFamily.semibold,

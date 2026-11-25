@@ -71,12 +71,14 @@ export default function GroupSettingsScreen() {
     null,
   );
 
+  const groupName = group?.name;
+  const groupDescription = group?.description;
   useEffect(() => {
-    if (group) {
-      setName(group.name);
-      setDescription(group.description ?? "");
+    if (groupName !== undefined) {
+      setName(groupName);
+      setDescription(groupDescription ?? "");
     }
-  }, [group?.id, group?.name, group?.description]);
+  }, [group?.id, groupName, groupDescription]);
 
   // Runs a store action; the store holds the error message for the banner.
   const run = async (action: () => Promise<unknown>, success: string) => {

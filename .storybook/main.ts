@@ -1,5 +1,9 @@
 import type { StorybookConfig } from "@storybook/react-vite";
-import { mergeConfig } from "vite";
+import {
+  mergeConfig,
+  type DepOptimizationOptions,
+  type Plugin,
+} from "vite";
 import { transformAsync } from "@babel/core";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -43,9 +47,14 @@ const BUNDLER_GLOBALS = {
   "process.env.EXPO_OS": JSON.stringify("web"),
 };
 
-const reactNativeVitePlugin = {
+// esbuild's plugin type, from the esbuild version Vite ships with.
+type EsbuildPlugin = NonNullable<
+  NonNullable<DepOptimizationOptions["esbuildOptions"]>["plugins"]
+>[number];
+
+const reactNativeVitePlugin: Plugin = {
   name: "react-native-node-modules",
-  enforce: "pre" as const,
+  enforce: "pre",
   async transform(code: string, id: string) {
     if (!REACT_NATIVE_PACKAGE_REGEX.test(id)) return null;
     const transformed = await babelTransformReactNative(code, id);
@@ -53,10 +62,10 @@ const reactNativeVitePlugin = {
   },
 };
 
-const reactNativeEsbuildPlugin = {
+const reactNativeEsbuildPlugin: EsbuildPlugin = {
   name: "react-native-flow-strip",
-  setup(build: any) {
-    build.onLoad({ filter: REACT_NATIVE_PACKAGE_REGEX }, async (args: any) => {
+  setup(build) {
+    build.onLoad({ filter: REACT_NATIVE_PACKAGE_REGEX }, async (args) => {
       // expo-modules-core ships type-only imports here; esbuild rejects them, Rollup only warns.
       if (/ts-declarations[\\/]global\.js$/.test(args.path)) {
         return { contents: "", loader: "js" };

@@ -21,5 +21,11 @@
   ],
   "exclude": [
     "cypress"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "customConditions": null,
+      "ignoreDeprecations": "6.0"
+    }
+  }
 }
