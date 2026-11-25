@@ -2,13 +2,7 @@ import { Redirect, Stack } from "expo-router";
 import { useEffect } from "react";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { useSettingsStore } from "../../src/state/useSettingsStore";
-import {
-  FeedbackBanner,
-  Screen,
-  Stack as ContentStack,
-  Spinner,
-  Text,
-} from "../../src/components/primitives";
+import { SessionRestore } from "../../src/features/auth/components/SessionRestore";
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -25,28 +19,16 @@ export default function AppLayout() {
 
   if (!isInitialized) {
     return (
-      <Screen padding="lg">
-        <ContentStack gap="md">
-          {isLoading ? (
-            <>
-              <Spinner />
-              <Text>Restoring your session...</Text>
-            </>
-          ) : (
-            <FeedbackBanner
-              tone="error"
-              message={
-                isAuthenticated
-                  ? "Could not load your profile."
-                  : "Could not restore your session."
-              }
-              onRetry={() => void initialize()}
-              retryLabel="Try again"
-              testID="session-recovery-error"
-            />
-          )}
-        </ContentStack>
-      </Screen>
+      <SessionRestore
+        variant="banner"
+        isLoading={isLoading}
+        onRetry={() => void initialize()}
+        failedMessage={
+          isAuthenticated
+            ? "Could not load your profile."
+            : "Could not restore your session."
+        }
+      />
     );
   }
 

@@ -257,13 +257,18 @@ test("profile is display-only; settings holds account sub-pages, dropdowns and t
   const subPages = {
     profile: ["updateProfile", "save-profile-button"],
     email: ["changeEmail", "change-email-button"],
-    password: ["setPassword", "change-password-button"],
+    password: ["change-password-button"],
   };
   for (const [page, needles] of Object.entries(subPages)) {
     const source = await fs.readFile(`app/(app)/settings/${page}.tsx`, "utf8");
     for (const needle of needles)
       assert.ok(source.includes(needle), `${page}: ${needle}`);
   }
+  // The password page's store call lives in its hook.
+  assert.match(
+    await fs.readFile("src/features/auth/useChangePassword.ts", "utf8"),
+    /setPassword\(/,
+  );
 });
 
 test("groups tab lists groups first; create and join live on their own pages behind +", async () => {
@@ -467,16 +472,31 @@ test("phase 7: text links, one primary per auth view, themed home/expense pages"
 
   // Login: Log in is the only filled button; the rest are text links.
   const login = await read("app/login.tsx");
-  assert.doesNotMatch(login, /Your trusted group activity planner/);
+  // The login page plus the views it composes.
+  const loginViews = [
+    login,
+    ...(await Promise.all(
+      [
+        "SessionRestore",
+        "LoginForm",
+        "SignupForm",
+        "ResetForm",
+        "SetPasswordForm",
+        "ConfirmationPanel",
+        "BackToLoginLink",
+      ].map((name) => read(`src/features/auth/components/${name}.tsx`)),
+    )),
+  ].join("\n");
+  assert.doesNotMatch(loginViews, /Your trusted group activity planner/);
   // Only the bootstrap "Try again" stays secondary.
-  assert.equal(login.match(/variant="secondary"/g)?.length ?? 0, 1);
+  assert.equal(loginViews.match(/variant="secondary"/g)?.length ?? 0, 1);
   for (const label of [
     "Forgot password?",
     "Create account",
     "Back to log in",
   ]) {
     assert.match(
-      login,
+      loginViews,
       new RegExp(
         `label="${label.replace("?", "\\?")}"[\\s\\S]{0,120}variant="link"`,
       ),
@@ -485,7 +505,11 @@ test("phase 7: text links, one primary per auth view, themed home/expense pages"
   assert.match(login, /New to Laruna\?/);
   // Native auth redirects must use the scheme app.json registers.
   const { expo } = JSON.parse(await read("app.json"));
-  assert.ok(login.includes(`${expo.scheme}://login?mode=`));
+  assert.ok(
+    (await read("src/features/auth/components/ResetForm.tsx")).includes(
+      `${expo.scheme}://login?mode=`,
+    ),
+  );
   assert.match(login, /testID="signup-button"/);
 
   // Groups empty state: "Join with code" becomes the text link (Phase 5 ruling).
@@ -625,8 +649,13 @@ test("screens use the shared accessible feedback banner for status messages", as
     "utf8",
   );
   const statusScreens = [
-    "app/login.tsx",
-    "app/(app)/_layout.tsx",
+    // Login and the signed-in layout show theirs through these views.
+    "src/features/auth/components/SessionRestore.tsx",
+    "src/features/auth/components/LoginForm.tsx",
+    "src/features/auth/components/SignupForm.tsx",
+    "src/features/auth/components/ResetForm.tsx",
+    "src/features/auth/components/SetPasswordForm.tsx",
+    "src/features/auth/components/ConfirmationPanel.tsx",
     "app/(app)/(tabs)/index.tsx",
     "app/(app)/(tabs)/groups.tsx",
     "app/(app)/(tabs)/expenses.tsx",

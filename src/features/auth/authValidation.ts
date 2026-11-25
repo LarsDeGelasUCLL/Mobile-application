@@ -32,3 +32,22 @@ export function validatePasswordConfirmation(
 ): string | undefined {
   return confirmPassword === password ? undefined : "Passwords must match.";
 }
+
+export interface NewPasswordErrors {
+  passwordError?: string;
+  confirmPasswordError?: string;
+}
+
+/** Both checks of a new password + confirm pair. */
+export function validateNewPassword(
+  password: string,
+  confirmPassword: string,
+): NewPasswordErrors {
+  return {
+    passwordError: validatePassword(password),
+    confirmPasswordError: validatePasswordConfirmation(
+      password,
+      confirmPassword,
+    ),
+  };
+}
