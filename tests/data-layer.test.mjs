@@ -328,7 +328,10 @@ test("group detail shows balances then recent expenses; members and admin tools 
     );
     assert.match(source, /<ScreenHeader/);
     assert.match(source, /goBackOr\(/);
-    assert.match(source, /useGroupDetail\(/);
+    assert.match(
+      source,
+      page === "settings" ? /useGroupSettings\(/ : /useGroupDetail\(/,
+    );
     assert.doesNotMatch(source, /theme\/colors/);
   }
   const detail = await fs.readFile(
@@ -343,6 +346,10 @@ test("group detail shows balances then recent expenses; members and admin tools 
     "app/(app)/group/[groupId]/expenses.tsx",
     "utf8",
   );
+  const readGroups = (file) =>
+    fs.readFile(`src/features/groups/${file}`, "utf8");
+  const settingsHook = await readGroups("useGroupSettings.ts");
+  assert.match(settingsHook, /useGroupDetail\(/);
 
   // Design §6.3: balances → 5 recent expenses → sticky Add expense; 🔑 + ⚙.
   assert.doesNotMatch(
@@ -362,13 +369,31 @@ test("group detail shows balances then recent expenses; members and admin tools 
 
   // Design §6.4: Group info → Join requests (>0) → Members → Invite → danger zone.
   const order = [
-    'title="Group info"',
-    "JOIN REQUESTS",
-    "MEMBERS",
-    'title="Invite by email"',
-    "leave-group-button",
-    "delete-group-button",
+    "<GroupInfoForm",
+    "<JoinRequestList",
+    "<MemberList",
+    "<InviteByEmailForm",
+    "<GroupDangerZone",
   ].map((needle) => settings.indexOf(needle));
+  for (const [file, needles] of Object.entries({
+    "components/GroupInfoForm.tsx": ['title="Group info"'],
+    "components/JoinRequestList.tsx": ["JOIN REQUESTS"],
+    "components/MemberList.tsx": ["MEMBERS"],
+    "components/InviteByEmailForm.tsx": ['title="Invite by email"'],
+    "components/GroupDangerZone.tsx": [
+      "leave-group-button",
+      "delete-group-button",
+    ],
+  })) {
+    const source = await readGroups(file);
+    for (const needle of needles)
+      assert.ok(source.includes(needle), `${file}: ${needle}`);
+  }
+  const dangerZone = await readGroups("components/GroupDangerZone.tsx");
+  assert.ok(
+    dangerZone.indexOf("leave-group-button") <
+      dangerZone.indexOf("delete-group-button"),
+  );
   assert.ok(
     order.every((pos) => pos >= 0),
     String(order),
@@ -386,12 +411,14 @@ test("group detail shows balances then recent expenses; members and admin tools 
     "changeMemberRole(",
     "leaveOrRemoveMember(",
     "deleteGroup(",
-    "group-name-input",
-    "update-group-button",
-    "group-invite-email-input",
-    "group-invite-button",
   ])
-    assert.ok(settings.includes(needle), `settings: ${needle}`);
+    assert.ok(settingsHook.includes(needle), `settings hook: ${needle}`);
+  const infoForm = await readGroups("components/GroupInfoForm.tsx");
+  const inviteForm = await readGroups("components/InviteByEmailForm.tsx");
+  for (const needle of ["group-name-input", "update-group-button"])
+    assert.ok(infoForm.includes(needle), `GroupInfoForm: ${needle}`);
+  for (const needle of ["group-invite-email-input", "group-invite-button"])
+    assert.ok(inviteForm.includes(needle), `InviteByEmailForm: ${needle}`);
 
   assert.match(expenses, /<CardFlatList/);
   assert.match(expenses, /footer=/);
@@ -613,15 +640,19 @@ test("join request UI: requester feedback, sent requests, admin badge and approv
   );
   assert.match(groupDetailHook, /fetchJoinRequestsForGroup\(groupId\)/);
   assert.match(groupDetailHook, /request\.groupId === groupId/);
-  const groupDetail = await fs.readFile(
-    "app/(app)/group/[groupId]/settings.tsx",
+  const joinRequestList = await fs.readFile(
+    "src/features/groups/components/JoinRequestList.tsx",
     "utf8",
   );
-  assert.match(groupDetail, /JOIN REQUESTS/);
-  assert.match(groupDetail, /`join-request-approve-\$\{/);
-  assert.match(groupDetail, /`join-request-reject-\$\{/);
-  assert.match(groupDetail, /approveJoinRequest\(/);
-  assert.match(groupDetail, /rejectJoinRequest\(/);
+  const settingsHook = await fs.readFile(
+    "src/features/groups/useGroupSettings.ts",
+    "utf8",
+  );
+  assert.match(joinRequestList, /JOIN REQUESTS/);
+  assert.match(joinRequestList, /`join-request-approve-\$\{/);
+  assert.match(joinRequestList, /`join-request-reject-\$\{/);
+  assert.match(settingsHook, /approveJoinRequest\(/);
+  assert.match(settingsHook, /rejectJoinRequest\(/);
 
   const badge = await fs.readFile(
     "src/components/primitives/Badge.tsx",

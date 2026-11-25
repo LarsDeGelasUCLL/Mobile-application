@@ -1,166 +1,34 @@
-import { useEffect, useState } from "react";
-import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { goBackOr } from "../../../../src/features/navigation/goBackOr";
 import {
-  Avatar,
-  Card,
-  CardList,
-  CollapsibleSection,
   ConfirmDialog,
-  Divider,
-  EmptyState,
   FeedbackBanner,
-  InputField,
-  ListRow,
-  Row,
   Screen,
   ScreenHeader,
-  SectionHeader,
-  Sheet,
   SkeletonCard,
   Stack,
-  StyledButton,
-  Text,
 } from "../../../../src/components/primitives";
-import {
-  validateGroupName,
-  validateInviteEmail,
-} from "../../../../src/features/groups/groupValidation";
-import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
-import { useActionFeedback } from "../../../../src/features/shared/useActionFeedback";
-import { useGroupStore } from "../../../../src/state/useGroupStore";
-import type { MembershipDto, GroupRole } from "../../../../src/types";
-import { makeStyles } from "../../../../src/theme/ThemeProvider";
+import { GroupDangerZone } from "../../../../src/features/groups/components/GroupDangerZone";
+import { GroupInfoForm } from "../../../../src/features/groups/components/GroupInfoForm";
+import { GroupUnavailableState } from "../../../../src/features/groups/components/GroupUnavailableState";
+import { InviteByEmailForm } from "../../../../src/features/groups/components/InviteByEmailForm";
+import { JoinRequestList } from "../../../../src/features/groups/components/JoinRequestList";
+import { MemberActionsSheet } from "../../../../src/features/groups/components/MemberActionsSheet";
+import { MemberList } from "../../../../src/features/groups/components/MemberList";
+import { memberName } from "../../../../src/features/groups/memberName";
+import { useGroupSettings } from "../../../../src/features/groups/useGroupSettings";
 
 export default function GroupSettingsScreen() {
-  const styles = useStyles();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  const {
-    user,
-    group,
-    isAdmin,
-    members,
-    currentMembership,
-    joinRequests,
-    isLoading,
-    storeError,
-    reload,
-  } = useGroupDetail(groupId);
-  const updateGroup = useGroupStore((state) => state.updateGroup);
-  const deleteGroup = useGroupStore((state) => state.deleteGroup);
-  const inviteMemberByEmail = useGroupStore(
-    (state) => state.inviteMemberByEmail,
-  );
-  const changeMemberRole = useGroupStore((state) => state.changeMemberRole);
-  const leaveOrRemoveMember = useGroupStore(
-    (state) => state.leaveOrRemoveMember,
-  );
-  const approveJoinRequest = useGroupStore((state) => state.approveJoinRequest);
-  const rejectJoinRequest = useGroupStore((state) => state.rejectJoinRequest);
-  const setSelectedGroupId = useGroupStore((state) => state.setSelectedGroupId);
-  const clearError = useGroupStore((state) => state.clearError);
-
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [email, setEmail] = useState("");
-  const [nameError, setNameError] = useState<string>();
-  const [emailError, setEmailError] = useState<string>();
-  const { feedback, run } = useActionFeedback(clearError);
-  const [selectedMember, setSelectedMember] = useState<MembershipDto | null>(
-    null,
-  );
-  const [confirm, setConfirm] = useState<"leave" | "delete" | "remove" | null>(
-    null,
-  );
-
-  const groupName = group?.name;
-  const groupDescription = group?.description;
-  useEffect(() => {
-    if (groupName !== undefined) {
-      setName(groupName);
-      setDescription(groupDescription ?? "");
-    }
-  }, [group?.id, groupName, groupDescription]);
-
-  const handleUpdateGroup = () => {
-    const validationError = validateGroupName(name);
-    setNameError(validationError);
-    if (validationError || !group) return;
-    void run(
-      () =>
-        updateGroup(group.id, {
-          name: name.trim(),
-          description: description.trim() || null,
-        }),
-      "Group details updated.",
-    );
-  };
-
-  const handleInvite = async () => {
-    const validationError = validateInviteEmail(email);
-    setEmailError(validationError);
-    if (validationError || !group || !user?.id) return;
-    const sent = await run(
-      () => inviteMemberByEmail(group.id, user.id, email.trim()),
-      "Invitation sent.",
-    );
-    if (sent) setEmail("");
-  };
-
-  const handleJoinRequest = (membershipId: string, approve: boolean) =>
-    void run(
-      () =>
-        approve
-          ? approveJoinRequest(membershipId)
-          : rejectJoinRequest(membershipId),
-      approve ? "Join request approved." : "Join request rejected.",
-    );
-
-  const handleRoleChange = (membershipId: string, role: GroupRole) => {
-    setSelectedMember(null);
-    void run(
-      () => changeMemberRole(membershipId, role),
-      `Member role changed to ${role}.`,
-    );
-  };
-
-  const handleRemoveMember = async () => {
-    if (!user?.id || !group || !selectedMember) return;
-    await run(
-      () => leaveOrRemoveMember(user.id, selectedMember.id, group.id),
-      "Member removed.",
-    );
-    setConfirm(null);
-    // Close the sheet either way, so an error banner is not hidden behind it.
-    setSelectedMember(null);
-  };
-
-  const handleLeaveOrDelete = async (kind: "leave" | "delete") => {
-    const membershipId = currentMembership?.id;
-    if (!user?.id || !group || (kind === "leave" && !membershipId)) return;
-    const done = await run(
-      () =>
-        kind === "delete" || !membershipId
-          ? deleteGroup(group.id, user.id)
-          : leaveOrRemoveMember(user.id, membershipId, group.id),
-      "",
-    );
-    setConfirm(null);
-    if (!done) return;
-    setSelectedGroupId(null);
-    // Pops the now-dead group detail too, back to the Groups tab.
-    router.dismissTo("/groups");
-  };
-
-  const memberName = (member: MembershipDto) =>
-    member.userProfile?.displayName ?? "Group member";
+  const page = useGroupSettings(groupId);
+  const { group, isAdmin, isLoading, joinRequests, selectedMember } = page;
+  const closeDialog = () => page.setConfirm(null);
 
   return (
     <Screen
       padding="lg"
       refreshing={isLoading}
-      onRefresh={() => void reload()}
+      onRefresh={() => void page.reload()}
       testID="group-settings-screen"
     >
       <Stack gap="lg">
@@ -172,22 +40,20 @@ export default function GroupSettingsScreen() {
           }
           testID="group-settings-header"
         />
-
-        {storeError ? (
+        {page.storeError ? (
           <FeedbackBanner
             tone="error"
-            message={storeError}
-            onRetry={() => void reload()}
+            message={page.storeError}
+            onRetry={() => void page.reload()}
             isRetrying={isLoading}
             retryTestID="group-settings-retry-button"
             testID="group-settings-error"
           />
         ) : null}
-
-        {feedback ? (
+        {page.feedback ? (
           <FeedbackBanner
             tone="success"
-            message={feedback}
+            message={page.feedback}
             testID="group-feedback"
           />
         ) : null}
@@ -195,268 +61,86 @@ export default function GroupSettingsScreen() {
         {!group && isLoading ? (
           <SkeletonCard lines={2} />
         ) : !group ? (
-          <EmptyState
-            icon="people-outline"
-            title="Group unavailable"
-            description="This group could not be found in your active groups."
-            action={
-              <StyledButton
-                label="Back to groups"
-                onPress={() => router.dismissTo("/groups")}
-                variant="secondary"
-              />
-            }
-          />
+          <GroupUnavailableState onBack={() => router.dismissTo("/groups")} />
         ) : (
           <>
             {isAdmin ? (
-              <CollapsibleSection
-                title="Group info"
+              <GroupInfoForm
+                key={group.id}
+                group={group}
+                isLoading={isLoading}
+                onSave={page.saveGroupInfo}
                 testID="group-info-section"
-              >
-                <InputField
-                  label="Group name"
-                  value={name}
-                  onChangeText={(value) => {
-                    setName(value);
-                    setNameError(undefined);
-                  }}
-                  error={nameError}
-                  testID="group-name-input"
-                />
-                <InputField
-                  label="Description"
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Add a short description"
-                  testID="group-description-input"
-                />
-                <StyledButton
-                  label="Save changes"
-                  onPress={handleUpdateGroup}
-                  variant="secondary"
-                  isLoading={isLoading}
-                  testID="update-group-button"
-                />
-              </CollapsibleSection>
+              />
             ) : null}
-
             {isAdmin && joinRequests.length > 0 ? (
-              <Stack gap="sm">
-                <SectionHeader
-                  title="JOIN REQUESTS"
-                  count={joinRequests.length}
-                />
-                <Card>
-                  <Stack gap="md">
-                    {joinRequests.map((request, index) => (
-                      <Stack gap="sm" key={request.id}>
-                        {index > 0 && <Divider />}
-                        <Row gap="sm" align="center">
-                          <Avatar
-                            name={memberName(request)}
-                            uri={
-                              request.userProfile?.profilePictureUrl ??
-                              undefined
-                            }
-                            size="sm"
-                          />
-                          <Stack gap="none" flex={1}>
-                            <Text weight="medium">{memberName(request)}</Text>
-                            <Text size="sm" tone="muted">
-                              Requested{" "}
-                              {new Date(request.joinedAt).toLocaleDateString()}
-                            </Text>
-                          </Stack>
-                        </Row>
-                        <Row gap="sm">
-                          <View style={styles.buttonColumn}>
-                            <StyledButton
-                              label="Approve"
-                              onPress={() =>
-                                handleJoinRequest(request.id, true)
-                              }
-                              variant="secondary"
-                              isLoading={isLoading}
-                              testID={`join-request-approve-${request.id}`}
-                            />
-                          </View>
-                          <View style={styles.buttonColumn}>
-                            <StyledButton
-                              label="Reject"
-                              onPress={() =>
-                                handleJoinRequest(request.id, false)
-                              }
-                              variant="secondary"
-                              isLoading={isLoading}
-                              testID={`join-request-reject-${request.id}`}
-                            />
-                          </View>
-                        </Row>
-                      </Stack>
-                    ))}
-                  </Stack>
-                </Card>
-              </Stack>
+              <JoinRequestList
+                requests={joinRequests}
+                isLoading={isLoading}
+                onRespond={page.respondToJoinRequest}
+              />
             ) : null}
-
-            <Stack gap="sm">
-              <SectionHeader title="MEMBERS" count={members.length} />
-              {isLoading && members.length === 0 ? (
-                <SkeletonCard lines={2} />
-              ) : (
-                <CardList>
-                  {members.map((member) => {
-                    const isCurrentUser = member.userId === user?.id;
-                    return (
-                      <ListRow
-                        key={member.id}
-                        leading={
-                          <Avatar
-                            name={memberName(member)}
-                            uri={
-                              member.userProfile?.profilePictureUrl ?? undefined
-                            }
-                            size="sm"
-                          />
-                        }
-                        label={`${memberName(member)}${isCurrentUser ? " (you)" : ""}`}
-                        description={
-                          member.groupRole === "ADMIN" ? "Admin" : "Member"
-                        }
-                        onPress={
-                          isAdmin && !isCurrentUser
-                            ? () => setSelectedMember(member)
-                            : undefined
-                        }
-                        testID={`group-member-${member.id}`}
-                      />
-                    );
-                  })}
-                </CardList>
-              )}
-            </Stack>
-
+            <MemberList
+              members={page.members}
+              currentUserId={page.user?.id}
+              isLoading={isLoading}
+              onSelect={isAdmin ? page.setSelectedMember : undefined}
+            />
             {isAdmin ? (
-              <CollapsibleSection
-                title="Invite by email"
+              <InviteByEmailForm
+                isLoading={isLoading}
+                onInvite={page.inviteByEmail}
                 testID="group-invite-section"
-              >
-                <InputField
-                  label="Email address"
-                  value={email}
-                  onChangeText={(value) => {
-                    setEmail(value);
-                    setEmailError(undefined);
-                  }}
-                  placeholder="friend@example.com"
-                  keyboardType="email-address"
-                  error={emailError}
-                  testID="group-invite-email-input"
-                />
-                <StyledButton
-                  label="Send invitation"
-                  onPress={() => void handleInvite()}
-                  variant="secondary"
-                  isLoading={isLoading}
-                  testID="group-invite-button"
-                />
-              </CollapsibleSection>
+              />
             ) : null}
-
-            <CardList>
-              {currentMembership ? (
-                <ListRow
-                  icon="exit-outline"
-                  label="Leave group"
-                  destructive
-                  onPress={() => setConfirm("leave")}
-                  testID="leave-group-button"
-                />
-              ) : null}
-              {isAdmin ? (
-                <ListRow
-                  icon="trash-outline"
-                  label="Delete group"
-                  destructive
-                  onPress={() => setConfirm("delete")}
-                  testID="delete-group-button"
-                />
-              ) : null}
-            </CardList>
+            <GroupDangerZone
+              canLeave={!!page.currentMembership}
+              canDelete={isAdmin}
+              onLeave={() => page.setConfirm("leave")}
+              onDelete={() => page.setConfirm("delete")}
+            />
           </>
         )}
       </Stack>
 
-      <Sheet
-        visible={selectedMember !== null && confirm === null}
-        onClose={() => setSelectedMember(null)}
-        title={selectedMember ? memberName(selectedMember) : undefined}
+      <MemberActionsSheet
+        member={selectedMember}
+        visible={selectedMember !== null && page.confirm === null}
+        onClose={() => page.setSelectedMember(null)}
+        onChangeRole={page.changeRole}
+        onRemove={() => page.setConfirm("remove")}
         testID="group-member-sheet"
-      >
-        {selectedMember ? (
-          <Card flush>
-            <ListRow
-              icon="shield-outline"
-              label={
-                selectedMember.groupRole === "ADMIN"
-                  ? "Make member"
-                  : "Make admin"
-              }
-              onPress={() =>
-                handleRoleChange(
-                  selectedMember.id,
-                  selectedMember.groupRole === "ADMIN" ? "MEMBER" : "ADMIN",
-                )
-              }
-              testID="group-member-role-button"
-            />
-            <Divider />
-            <ListRow
-              icon="person-remove-outline"
-              label="Remove from group"
-              destructive
-              onPress={() => setConfirm("remove")}
-              testID="group-member-remove-button"
-            />
-          </Card>
-        ) : null}
-      </Sheet>
-
+      />
       <ConfirmDialog
-        visible={confirm === "remove"}
+        visible={page.confirm === "remove"}
         title={`Remove ${selectedMember ? memberName(selectedMember) : "member"}?`}
         message={`They lose access to '${group?.name ?? "this group"}'.`}
         confirmLabel="Remove"
-        onConfirm={() => void handleRemoveMember()}
-        onCancel={() => setConfirm(null)}
+        onConfirm={() => void page.confirmRemove()}
+        onCancel={closeDialog}
         isLoading={isLoading}
         testID="remove-member-dialog"
       />
       <ConfirmDialog
-        visible={confirm === "leave"}
+        visible={page.confirm === "leave"}
         title={`Leave '${group?.name ?? "group"}'?`}
         message="You need a new invite or an approved request to come back."
         confirmLabel="Leave group"
-        onConfirm={() => void handleLeaveOrDelete("leave")}
-        onCancel={() => setConfirm(null)}
+        onConfirm={() => void page.confirmLeave()}
+        onCancel={closeDialog}
         isLoading={isLoading}
         testID="leave-group-dialog"
       />
       <ConfirmDialog
-        visible={confirm === "delete"}
+        visible={page.confirm === "delete"}
         title={`Delete '${group?.name ?? "group"}'?`}
         message="This deletes the group, its members and its expenses for everyone."
         confirmLabel="Delete group"
-        onConfirm={() => void handleLeaveOrDelete("delete")}
-        onCancel={() => setConfirm(null)}
+        onConfirm={() => void page.confirmDelete()}
+        onCancel={closeDialog}
         isLoading={isLoading}
         testID="delete-group-dialog"
       />
     </Screen>
   );
 }
-
-const useStyles = makeStyles(() => ({
-  buttonColumn: { flex: 1 },
-}));
