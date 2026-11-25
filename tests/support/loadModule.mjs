@@ -39,6 +39,7 @@ function runCommonJs(filePath, dependencies, globals) {
  * adds or overrides sandbox globals. The sandbox shares this realm's `Error`
  * (so `instanceof Error` holds both ways) and `URL` (not built into a vm).
  * Other objects it builds have the sandbox's prototypes: compare with `plain`.
+ * Async only to share `importModule`'s API: callers `await` either loader.
  */
 export async function loadModule(filePath, dependencies = {}, globals = {}) {
   return runCommonJs(filePath, dependencies, globals);

@@ -1,7 +1,10 @@
+import { firstRender } from '../support/timeouts';
+
 describe('Home', () => {
   beforeEach(() => {
     cy.login();
     cy.visit('/');
+    cy.getBySel('home-screen', firstRender).should('be.visible');
   });
 
   it('shows the personal balance summary', () => {

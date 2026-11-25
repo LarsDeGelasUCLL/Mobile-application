@@ -1,8 +1,10 @@
+import { firstRender } from '../support/timeouts';
+
 describe('Navigation', () => {
   beforeEach(() => {
     cy.login();
     cy.visit('/');
-    cy.getBySel('home-screen').should('be.visible');
+    cy.getBySel('home-screen', firstRender).should('be.visible');
   });
 
   it('opens each tab screen from the tab bar', () => {

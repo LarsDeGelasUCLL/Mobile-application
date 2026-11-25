@@ -1,3 +1,5 @@
+import { firstRender } from '../support/timeouts';
+
 // Same format as the app's formatCurrency (browser locale, EUR).
 const euro = (amount: number) =>
   new Intl.NumberFormat(undefined, {
@@ -5,9 +7,22 @@ const euro = (amount: number) =>
     currency: 'EUR',
   }).format(amount);
 
+// One alias per visit, so `cy.wait` never matches an earlier page's request.
+let listLoads = 0;
+
 // Opens the Expenses tab and waits until its list (or empty state) has loaded.
+// The store starts with no expenses and `isLoading: false`, so the empty state
+// shows before the fetch: wait for this visit's list request first.
 function visitExpenseList() {
+  const alias = `expenseList${++listLoads}`;
+  cy.intercept({
+    method: 'GET',
+    pathname: '/rest/v1/expenses',
+    query: { group_id: 'is.null' },
+  }).as(alias);
   cy.visit('/expenses');
+  cy.getBySel('expenses-screen', firstRender);
+  cy.wait(`@${alias}`);
   return cy.getBySel('expenses-screen').should(($screen) => {
     const loaded =
       $screen.find('[data-testid^="expense-row-"]').length > 0 ||
@@ -64,7 +79,7 @@ function deleteLeftoverExpenses() {
     )
     .each((expenseId) => {
       cy.visit(`/expense/${expenseId}`);
-      cy.getBySel('delete-expense-row').click();
+      cy.getBySel('delete-expense-row', firstRender).click();
       cy.getBySel('confirm-delete-expense-confirm')
         .should('not.have.attr', 'aria-disabled', 'true')
         .click();
@@ -91,7 +106,7 @@ describe('Personal expenses', () => {
 
   it('starts the create form with only the current user in the split', () => {
     cy.visit('/expense/create');
-    cy.getBySel('save-expense-button').should('be.visible');
+    cy.getBySel('save-expense-button', firstRender).should('be.visible');
     cy.getBySel('expense-amount-input').fill('10');
     cy.get('[data-testid^="expense-split-"]')
       .should('have.length', 1)
@@ -129,7 +144,9 @@ describe('Personal expenses', () => {
 
   it('shows a validation error when the form is empty', () => {
     cy.visit('/expense/create');
-    cy.getBySel('save-expense-button').should('be.visible').click();
+    cy.getBySel('save-expense-button', firstRender)
+      .should('be.visible')
+      .click();
     cy.getBySel('expense-form-error').should(
       'contain',
       'Expense title is required.',

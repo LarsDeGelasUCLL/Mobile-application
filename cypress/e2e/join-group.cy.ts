@@ -1,8 +1,10 @@
+import { firstRender } from '../support/timeouts';
+
 describe('Join group', () => {
   beforeEach(() => {
     cy.login();
     cy.visit('/groups');
-    cy.getBySel('groups-add-button').click();
+    cy.getBySel('groups-add-button', firstRender).click();
     cy.getBySel('groups-menu-join').click();
     cy.getBySel('join-group-header').should('be.visible');
   });

@@ -1,10 +1,12 @@
+import { firstRender } from '../support/timeouts';
+
 describe('Auth modes', () => {
   beforeEach(() => {
     cy.visit('/login');
   });
 
   it('opens signup and reset modes with field validation', () => {
-    cy.getBySel('signup-button').click();
+    cy.getBySel('signup-button', firstRender).click();
     cy.getBySel('display-name-input').should('exist');
     cy.getBySel('signup-submit-button').click();
     cy.contains('Display name is required.').should('be.visible');
@@ -19,7 +21,7 @@ describe('Auth modes', () => {
 
   it('offers a retry instead of a submit action for an expired reset link', () => {
     cy.visit('/login?mode=set-password');
-    cy.getBySel('expired-reset-button').should('be.visible');
+    cy.getBySel('expired-reset-button', firstRender).should('be.visible');
     cy.getBySel('set-password-button').should('not.exist');
     cy.getBySel('expired-reset-button').click();
     cy.getBySel('password-reset-button').should('be.visible');

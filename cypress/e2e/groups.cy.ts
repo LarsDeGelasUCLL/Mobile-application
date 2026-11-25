@@ -1,6 +1,21 @@
+import { firstRender } from '../support/timeouts';
+
+// One alias per visit, so `cy.wait` never matches an earlier page's request.
+let listLoads = 0;
+
 // Opens the Groups tab and waits until its list (or empty state) has loaded.
+// The store starts with no groups and `isLoading: false`, so the empty state
+// shows before the fetch: wait for this visit's list request first.
 function visitGroupsList() {
+  const alias = `groupsList${++listLoads}`;
+  cy.intercept({
+    method: 'GET',
+    pathname: '/rest/v1/memberships',
+    query: { status: 'eq.ACTIVE' },
+  }).as(alias);
   cy.visit('/groups');
+  cy.getBySel('groups-screen', firstRender);
+  cy.wait(`@${alias}`);
   return cy.getBySel('groups-screen').should(($screen) => {
     const loaded =
       $screen.find('[data-testid^="group-row-"]').length > 0 ||
@@ -55,7 +70,7 @@ function deleteLeftoverGroups() {
     )
     .each((groupId) => {
       cy.visit(`/group/${groupId}/settings`);
-      cy.getBySel('delete-group-button').click();
+      cy.getBySel('delete-group-button', firstRender).click();
       cy.getBySel('delete-group-dialog-confirm')
         .should('not.have.attr', 'aria-disabled', 'true')
         .click();
@@ -134,7 +149,7 @@ describe('Groups', () => {
 
   it('shows a validation error for an empty group name', () => {
     cy.visit('/group/create');
-    cy.getBySel('create-group-button').click();
+    cy.getBySel('create-group-button', firstRender).click();
     cy.contains('Group name is required.').should('be.visible');
     cy.location('pathname').should('eq', '/group/create');
   });

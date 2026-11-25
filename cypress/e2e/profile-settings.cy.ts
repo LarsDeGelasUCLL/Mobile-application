@@ -1,3 +1,5 @@
+import { firstRender } from '../support/timeouts';
+
 interface Theme {
   label: string;
   value: string;
@@ -47,13 +49,13 @@ describe('Profile and settings', () => {
 
   it('shows the display name on the profile tab', () => {
     cy.visit('/settings/profile');
-    cy.getBySel('profile-name-input')
+    cy.getBySel('profile-name-input', firstRender)
       .invoke('val')
       .should('be.a', 'string')
       .and('not.be.empty')
       .then((name) => {
         cy.visit('/profile');
-        cy.getBySel('profile-screen')
+        cy.getBySel('profile-screen', firstRender)
           .should('be.visible')
           .and('contain', String(name));
       });
@@ -68,7 +70,7 @@ describe('Profile and settings', () => {
     if (!theme) return;
     cy.intercept('PATCH', '**/rest/v1/user_settings*').as('saveSettings');
     cy.visit('/settings');
-    cy.getBySel('settings-theme-select')
+    cy.getBySel('settings-theme-select', firstRender)
       .invoke('attr', 'aria-label')
       .then((ariaLabel) => {
         if (ariaLabel !== `Theme, ${theme.label}`) chooseTheme(theme);
@@ -79,7 +81,7 @@ describe('Profile and settings', () => {
     cy.intercept('PATCH', '**/rest/v1/user_settings*').as('saveSettings');
     cy.visit('/settings');
 
-    cy.getBySel('settings-theme-select')
+    cy.getBySel('settings-theme-select', firstRender)
       .invoke('attr', 'aria-label')
       .then((ariaLabel) => {
         const original = themes.find((t) => ariaLabel === `Theme, ${t.label}`);
@@ -94,7 +96,9 @@ describe('Profile and settings', () => {
   it('rejects an invalid phone number and IBAN without saving', () => {
     stubAccountWrites();
     cy.visit('/settings/profile');
-    cy.getBySel('profile-name-input').invoke('val').should('not.be.empty');
+    cy.getBySel('profile-name-input', firstRender)
+      .invoke('val')
+      .should('not.be.empty');
 
     cy.getBySel('profile-phone-input').fill('abc');
     cy.getBySel('profile-iban-input').fill('NL00BANK0123456789');
@@ -109,7 +113,7 @@ describe('Profile and settings', () => {
   it('rejects an invalid new email', () => {
     stubAccountWrites();
     cy.visit('/settings/email');
-    cy.getBySel('profile-new-email-input').fill('not-an-email');
+    cy.getBySel('profile-new-email-input', firstRender).fill('not-an-email');
     cy.getBySel('change-email-button').click();
 
     cy.contains('Enter a valid email address.').should('be.visible');
@@ -120,9 +124,12 @@ describe('Profile and settings', () => {
   it('rejects mismatched passwords', () => {
     stubAccountWrites();
     cy.visit('/settings/password');
-    cy.getBySel('settings-new-password-input').fill('cy-password-1', {
-      log: false,
-    });
+    cy.getBySel('settings-new-password-input', firstRender).fill(
+      'cy-password-1',
+      {
+        log: false,
+      },
+    );
     cy.getBySel('settings-confirm-password-input').fill('cy-password-2', {
       log: false,
     });

@@ -65,8 +65,9 @@ test("no console.log in app/ or src/", async () => {
 test("the root layout starts auth before it handles auth deep links", async () => {
   // Native only: a cold-start link must not be exchanged before the session listener exists.
   const root = await read("app/_layout.tsx");
-  const initializeAt = root.indexOf("initialize()");
-  const deepLinksAt = root.indexOf("useAuthDeepLinks()");
+  // Anchored on statement lines, so a comment that names a call never counts.
+  const initializeAt = root.search(/^\s*(?:void )?initialize\(\);/m);
+  const deepLinksAt = root.search(/^\s*useAuthDeepLinks\(\);/m);
   assert.ok(initializeAt >= 0, "initialize() is called");
   assert.ok(deepLinksAt >= 0, "useAuthDeepLinks() is called");
   assert.ok(initializeAt < deepLinksAt, "initialize() runs first");
@@ -89,8 +90,7 @@ test("the saved theme applies app-wide, sets the web theme-color and keeps the a
   );
 });
 
-test("phase 9 a11y: skeleton honours reduced motion, icons are decorative, carousel tiles give pressed feedback", async () => {
-  const read = (file) => fs.readFile(file, "utf8");
+test("the skeleton honours reduced motion, icons are decorative and carousel tiles give pressed feedback", async () => {
   const skeleton = await read("src/components/primitives/Skeleton.tsx");
   assert.match(skeleton, /isReduceMotionEnabled\(\)/);
   assert.match(skeleton, /reduceMotionChanged/);
@@ -108,8 +108,7 @@ test("phase 9 a11y: skeleton honours reduced motion, icons are decorative, carou
   assert.match(highlights, /accessibilityLabel="Find groups"/);
 });
 
-test("phase 9 layout: text controls grow with font scale; tab bar keeps the home-indicator inset", async () => {
-  const read = (file) => fs.readFile(file, "utf8");
+test("text controls grow with font scale and the tab bar keeps the home-indicator inset", async () => {
   // A fixed height clips the label at large Dynamic Type / font scale.
   for (const file of [
     "src/components/primitives/StyledButton.tsx",
