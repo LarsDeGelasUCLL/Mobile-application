@@ -1,34 +1,8 @@
 import assert from "node:assert/strict";
-import fs from "node:fs/promises";
 import test from "node:test";
-import vm from "node:vm";
-import ts from "typescript";
+import { loadModule } from "./support/loadModule.mjs";
 
-// Loads a dependency-free TS source as CommonJS.
-async function loadTypeScriptModule(filePath) {
-  const source = await fs.readFile(filePath, "utf8");
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-  }).outputText;
-  const module = { exports: {} };
-  vm.runInNewContext(
-    output,
-    {
-      exports: module.exports,
-      module,
-      require: (specifier) => {
-        throw new Error(`Unexpected dependency: ${specifier}`);
-      },
-    },
-    { filename: filePath },
-  );
-  return module.exports;
-}
-
-const { profileFormValues } = await loadTypeScriptModule(
+const { profileFormValues } = await loadModule(
   "src/features/profile/profileValidation.ts",
 );
 
@@ -80,5 +54,46 @@ test("profileFormValues shows missing optional fields as empty text", () => {
       }),
     },
     { ...EMPTY, displayName: "Ada" },
+  );
+});
+
+test("profile validation accepts valid details and rejects invalid values", async () => {
+  const { validateProfile } = await loadModule(
+    "src/features/profile/profileValidation.ts",
+  );
+
+  const valid = validateProfile({
+    displayName: " Ada Lovelace ",
+    phoneNumber: "+32 123 456 789",
+    iban: "GB82 WEST 1234 5698 7654 32",
+    profilePictureUrl: "https://example.com/avatar.png",
+    customBio: "Hello!",
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(valid.values)), {
+    displayName: "Ada Lovelace",
+    phoneNumber: "+32 123 456 789",
+    iban: "GB82WEST12345698765432",
+    profilePictureUrl: "https://example.com/avatar.png",
+    customBio: "Hello!",
+  });
+  assert.deepEqual(
+    JSON.parse(
+      JSON.stringify(
+        validateProfile({
+          displayName: " ",
+          phoneNumber: "123",
+          iban: "not-an-iban",
+          profilePictureUrl: "javascript:alert(1)",
+          customBio: "x".repeat(501),
+        }).errors,
+      ),
+    ),
+    {
+      displayName: "Display name is required.",
+      phoneNumber: "Enter a valid phone number.",
+      iban: "Enter a valid IBAN.",
+      profilePictureUrl: "Enter a valid HTTPS URL.",
+      customBio: "Bio must be 500 characters or fewer.",
+    },
   );
 });

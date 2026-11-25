@@ -1,18 +1,9 @@
 import assert from "node:assert/strict";
-import { Buffer } from "node:buffer";
 import test from "node:test";
-import fs from "node:fs/promises";
-import ts from "typescript";
+import { importModule } from "./support/loadModule.mjs";
 
-const source = await fs.readFile("src/utils/money.ts", "utf8");
-const output = ts.transpileModule(source, {
-  compilerOptions: {
-    module: ts.ModuleKind.ES2022,
-    target: ts.ScriptTarget.ES2022,
-  },
-}).outputText;
-const { describeBalance, summarizeBalances } = await import(
-  `data:text/javascript;base64,${Buffer.from(output).toString("base64")}`
+const { describeBalance, summarizeBalances } = await importModule(
+  "src/utils/money.ts",
 );
 
 test("positive balance: plus sign, 'gets back', success tone", () => {

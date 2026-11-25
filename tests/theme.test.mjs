@@ -1,21 +1,7 @@
 import assert from "node:assert/strict";
-import { Buffer } from "node:buffer";
-import test from "node:test";
 import fs from "node:fs/promises";
-import ts from "typescript";
-
-async function loadTypeScriptModule(filePath) {
-  const source = await fs.readFile(filePath, "utf8");
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.ES2022,
-      target: ts.ScriptTarget.ES2022,
-    },
-  }).outputText;
-  return import(
-    `data:text/javascript;base64,${Buffer.from(output).toString("base64")}`
-  );
-}
+import test from "node:test";
+import { importModule } from "./support/loadModule.mjs";
 
 // WCAG 2.x relative luminance + contrast ratio for #RRGGBB.
 function luminance(hex) {
@@ -56,7 +42,7 @@ const uiPairs = [
   ...pages.map((bg) => ["borderStrong", bg]),
 ];
 
-const { lightPalette, darkPalette } = await loadTypeScriptModule(
+const { lightPalette, darkPalette } = await importModule(
   "src/theme/palettes.ts",
 );
 
@@ -87,7 +73,7 @@ for (const [name, palette] of [
 }
 
 test("resolveScheme follows the saved theme, SYSTEM follows the device", async () => {
-  const { resolveScheme } = await loadTypeScriptModule("src/theme/scheme.ts");
+  const { resolveScheme } = await importModule("src/theme/scheme.ts");
   assert.equal(resolveScheme("LIGHT", "dark"), "light");
   assert.equal(resolveScheme("DARK", "light"), "dark");
   assert.equal(resolveScheme("SYSTEM", "dark"), "dark");

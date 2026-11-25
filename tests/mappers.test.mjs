@@ -1,24 +1,9 @@
 import assert from "node:assert/strict";
-import { Buffer } from "node:buffer";
 import test from "node:test";
-import fs from "node:fs/promises";
-import ts from "typescript";
-
-async function loadTypeScriptModule(filePath) {
-  const source = await fs.readFile(filePath, "utf8");
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.ES2022,
-      target: ts.ScriptTarget.ES2022,
-    },
-  }).outputText;
-  return import(
-    `data:text/javascript;base64,${Buffer.from(output).toString("base64")}`
-  );
-}
+import { importModule } from "./support/loadModule.mjs";
 
 test("membership mapper accepts join requests", async () => {
-  const groups = await loadTypeScriptModule(
+  const groups = await importModule(
     "src/services/groups/groupMappers.ts",
   );
 
@@ -36,10 +21,10 @@ test("membership mapper accepts join requests", async () => {
 });
 
 test("mappers reject unexpected membership and settings database values", async () => {
-  const groups = await loadTypeScriptModule(
+  const groups = await importModule(
     "src/services/groups/groupMappers.ts",
   );
-  const profiles = await loadTypeScriptModule(
+  const profiles = await importModule(
     "src/services/profiles/profileMappers.ts",
   );
 
@@ -69,4 +54,23 @@ test("mappers reject unexpected membership and settings database values", async 
       }),
     /Unexpected UI theme: NEON/,
   );
+});
+
+test("expense mapper preserves the recorded creator separately from the payer", async () => {
+  const { mapRowToExpenseDto } = await importModule(
+    "src/services/expenses/expenseMappers.ts",
+  );
+  const expense = mapRowToExpenseDto({
+    id: "expense-1",
+    group_id: "group-1",
+    paid_by_user_id: "payer-1",
+    created_by_user_id: "creator-1",
+    title: "Lunch",
+    amount: 12,
+    receipt_url: null,
+    record_created: "2026-11-21T12:00:00Z",
+  });
+
+  assert.equal(expense.paidByUserId, "payer-1");
+  assert.equal(expense.createdByUserId, "creator-1");
 });

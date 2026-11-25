@@ -11,6 +11,12 @@ describe('Login screen', () => {
     cy.getBySel('login-button').should('exist');
   });
 
+  it('sends a signed-out visit to a signed-in page to the login page', () => {
+    cy.visit('/groups');
+    cy.location('pathname').should('eq', '/login');
+    cy.getBySel('login-button').should('exist');
+  });
+
   it('logs in with valid credentials and navigates to home', () => {
     const { email, password } = testCredentials();
     cy.getBySel('email-input').type(email);

@@ -4,6 +4,7 @@ import { useAuthStore } from "../../state/useAuthStore";
 import { useSettingsStore } from "../../state/useSettingsStore";
 import type { UpdateUserSettingsDto } from "../../types";
 import { getErrorMessage } from "../../utils/errors";
+import { canRetrySettingsLoad } from "./settingsLoadRetry";
 
 /** The settings page's saved preferences: load on open, save each change,
  * and the retry for a failed load or save. */
@@ -68,11 +69,13 @@ export function useSettingsSaver() {
     settingsMessage,
     pendingSettings,
     isSavingSettings,
-    showLoadRetry: Boolean(
-      !pendingSettings &&
-      !isLoading &&
-      (!settings || settingsActionError || error),
-    ),
+    showLoadRetry: canRetrySettingsLoad({
+      pendingSettings,
+      isLoading,
+      settings,
+      settingsActionError,
+      error,
+    }),
     loadSettings,
     saveSettings,
   };
