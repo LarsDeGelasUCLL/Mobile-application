@@ -237,11 +237,16 @@ test("profile is display-only; settings holds account sub-pages, dropdowns and t
   assert.doesNotMatch(profile, /theme\/colors/);
 
   // Design §6.6: dropdowns, account rows → sub-pages, confirmed logout.
-  assert.match(settings, /<Select/);
+  // The settings page shows these through its sections.
+  const readSettings = (file) =>
+    fs.readFile(`src/features/settings/components/${file}.tsx`, "utf8");
+  const accountLinks = await readSettings("AccountLinks");
+  const logoutRow = await readSettings("LogoutRow");
+  assert.match(await readSettings("PreferenceSettings"), /<Select/);
   assert.doesNotMatch(settings, /<Radio|InputField|theme\/colors/);
   for (const page of ["profile", "email", "password"]) {
     assert.match(
-      settings,
+      accountLinks,
       new RegExp(`router\\.push\\("/settings/${page}"\\)`),
     );
     assert.match(appLayout, new RegExp(`name="settings/${page}"`));
@@ -250,12 +255,13 @@ test("profile is display-only; settings holds account sub-pages, dropdowns and t
     assert.match(source, /footer=/);
     assert.doesNotMatch(source, /theme\/colors/);
   }
-  assert.match(settings, /<ConfirmDialog/);
-  assert.match(settings, /settings-logout-button/);
+  assert.match(settings, /<LogoutRow/);
+  assert.match(logoutRow, /<ConfirmDialog/);
+  assert.match(logoutRow, /settings-logout-button/);
 
   // Moved actions keep their store call and Cypress testID.
   const subPages = {
-    profile: ["updateProfile", "save-profile-button"],
+    profile: ["save-profile-button"],
     email: ["changeEmail", "change-email-button"],
     password: ["change-password-button"],
   };
@@ -264,7 +270,11 @@ test("profile is display-only; settings holds account sub-pages, dropdowns and t
     for (const needle of needles)
       assert.ok(source.includes(needle), `${page}: ${needle}`);
   }
-  // The password page's store call lives in its hook.
+  // The profile and password pages' store calls live in their hooks.
+  assert.match(
+    await fs.readFile("src/features/profile/useEditProfile.ts", "utf8"),
+    /updateProfile\(/,
+  );
   assert.match(
     await fs.readFile("src/features/auth/useChangePassword.ts", "utf8"),
     /setPassword\(/,
@@ -518,13 +528,17 @@ test("phase 7: text links, one primary per auth view, themed home/expense pages"
 
   // Home: balance summary first, invitations as one row, errors per section.
   const home = await read("app/(app)/(tabs)/index.tsx");
-  assert.match(home, /summarizeBalances\(/);
+  assert.match(
+    await read("src/features/home/useHomePage.ts"),
+    /summarizeBalances\(/,
+  );
   assert.ok(
-    home.indexOf("home-balance-summary") < home.indexOf("<GroupHighlights"),
+    home.indexOf("home-balance-summary") < home.indexOf("<HomeGroupsSection"),
   );
   assert.match(home, /<ListRow[\s\S]{0,400}home-invitations-row/);
-  assert.ok(
-    home.indexOf("home-groups-error") > home.indexOf("home-balance-summary"),
+  assert.match(
+    await read("src/features/home/components/HomeGroupsSection.tsx"),
+    /home-groups-error/,
   );
 
   // Expenses tab + expense pages: sticky primary in Screen footer, ScreenHeader.
@@ -580,7 +594,17 @@ test("expense create, detail, and edit routes are sibling stack screens", async 
 });
 
 test("home summarizes live groups and expenses with working detail routes", async () => {
-  const home = await fs.readFile("app/(app)/(tabs)/index.tsx", "utf8");
+  // The Home page plus its hook and sections.
+  const home = (
+    await Promise.all(
+      [
+        "app/(app)/(tabs)/index.tsx",
+        "src/features/home/useHomePage.ts",
+        "src/features/home/components/HomeGroupsSection.tsx",
+        "src/features/home/components/HomeRecentExpenses.tsx",
+      ].map((file) => fs.readFile(file, "utf8")),
+    )
+  ).join("\n");
   const tabsLayout = await fs.readFile("app/(app)/(tabs)/_layout.tsx", "utf8");
   const tabFiles = await fs.readdir("app/(app)/(tabs)");
 
@@ -602,7 +626,7 @@ test("home summarizes live groups and expenses with working detail routes", asyn
     home,
     /FeedPostCard|FeedFilterMenu|Alert\.alert|UCLL Community|Weekend crew/,
   );
-  assert.match(home, /groupError && groups\.length === 0/);
+  assert.match(home, /hasError && groups\.length === 0/);
   assert.match(home, /expenseError && expenses\.length === 0/);
   assert.match(home, /<EmptyState/);
   assert.ok(tabFiles.includes("expenses.tsx"));
@@ -656,7 +680,9 @@ test("screens use the shared accessible feedback banner for status messages", as
     "src/features/auth/components/ResetForm.tsx",
     "src/features/auth/components/SetPasswordForm.tsx",
     "src/features/auth/components/ConfirmationPanel.tsx",
-    "app/(app)/(tabs)/index.tsx",
+    // Home shows its section errors through these.
+    "src/features/home/components/HomeGroupsSection.tsx",
+    "src/features/home/components/HomeRecentExpenses.tsx",
     "app/(app)/(tabs)/groups.tsx",
     "app/(app)/(tabs)/expenses.tsx",
     "app/(app)/settings/index.tsx",
@@ -1805,7 +1831,10 @@ test("settings store loads settings and persists returned updates", async () => 
 });
 
 test("settings exposes load retry when refresh fails with cached preferences", async () => {
-  const screen = await fs.readFile("app/(app)/settings/index.tsx", "utf8");
+  const screen = await fs.readFile(
+    "src/features/settings/useSettingsSaver.ts",
+    "utf8",
+  );
 
   assert.match(
     screen,

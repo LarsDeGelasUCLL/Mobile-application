@@ -5,7 +5,6 @@ import { useTheme } from "../../../theme/ThemeProvider";
 interface GroupAvatarProps {
   name: string;
   imageUri?: string;
-  fallbackColor?: string;
   size?: number;
   testID?: string;
 }
@@ -13,7 +12,6 @@ interface GroupAvatarProps {
 export function GroupAvatar({
   name,
   imageUri,
-  fallbackColor,
   size = 56,
   testID,
 }: GroupAvatarProps) {
@@ -45,10 +43,7 @@ export function GroupAvatar({
   return (
     <View
       accessibilityLabel={`${name} group profile picture`}
-      style={[
-        ...avatarStyle,
-        { backgroundColor: fallbackColor ?? colors.primary },
-      ]}
+      style={[...avatarStyle, { backgroundColor: colors.primary }]}
       testID={testID}
     >
       <Text size={size < 48 ? "sm" : "md"} weight="bold" tone="onPrimary">

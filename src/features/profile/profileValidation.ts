@@ -1,4 +1,4 @@
-import type { UpdateUserProfileDto } from "../../types";
+import type { UpdateUserProfileDto, User } from "../../types";
 
 export interface ProfileFormValues {
   displayName: string;
@@ -6,6 +6,19 @@ export interface ProfileFormValues {
   iban: string;
   profilePictureUrl: string;
   customBio: string;
+}
+
+/** The edit-profile fields for `user`; empty text without a user or value. */
+export function profileFormValues(
+  user: Pick<User, keyof ProfileFormValues> | null,
+): ProfileFormValues {
+  return {
+    displayName: user?.displayName ?? "",
+    phoneNumber: user?.phoneNumber ?? "",
+    iban: user?.iban ?? "",
+    profilePictureUrl: user?.profilePictureUrl ?? "",
+    customBio: user?.customBio ?? "",
+  };
 }
 
 export type ProfileFieldErrors = Partial<

@@ -32,18 +32,8 @@ export function GroupHighlights({
           onPress={() => onGroupPress(group)}
           style={({ pressed }) => [styles.groupItem, pressed && styles.pressed]}
         >
-          <GroupAvatar
-            name={group.name}
-            imageUri={group.imageUri}
-            fallbackColor={group.fallbackColor}
-            size={58}
-          />
-          <Text
-            size="sm"
-            align="center"
-            tone="muted"
-            numberOfLines={1}
-          >
+          <GroupAvatar name={group.name} imageUri={group.imageUri} size={58} />
+          <Text size="sm" align="center" tone="muted" numberOfLines={1}>
             {group.name}
           </Text>
         </Pressable>
