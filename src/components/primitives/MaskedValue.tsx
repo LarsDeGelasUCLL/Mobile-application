@@ -116,7 +116,7 @@ function Action({
 const useStyles = makeStyles((t) => ({
   base: { gap: t.spacing.sm },
   valueBox: {
-    minHeight: 52,
+    minHeight: t.controlSize.row,
     justifyContent: "center",
     paddingHorizontal: t.spacing.lg,
     borderRadius: t.radius.md,
@@ -129,7 +129,7 @@ const useStyles = makeStyles((t) => ({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    minHeight: 44,
+    minHeight: t.controlSize.touch,
     borderRadius: t.radius.md,
     borderWidth: 1,
     borderColor: t.colors.primaryBorder,

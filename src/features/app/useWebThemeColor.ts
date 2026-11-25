@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { Platform } from "react-native";
-import { darkPalette, lightPalette } from "../../theme/palettes";
+import { paletteFor } from "../../theme/palettes";
+import type { Scheme } from "../../theme/scheme";
 
 /** Web only: browser `theme-color`, `color-scheme` and page background follow `scheme`. */
-export function useWebThemeColor(scheme: "light" | "dark") {
+export function useWebThemeColor(scheme: Scheme) {
   useEffect(() => {
     if (Platform.OS !== "web" || typeof document === "undefined") return;
-    const colors = scheme === "dark" ? darkPalette : lightPalette;
+    const colors = paletteFor(scheme);
     let meta = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]',
     );

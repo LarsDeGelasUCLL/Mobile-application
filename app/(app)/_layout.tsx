@@ -1,15 +1,21 @@
 import { Redirect, Stack } from "expo-router";
 import { useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { useSettingsStore } from "../../src/state/useSettingsStore";
 import { SessionRestore } from "../../src/features/auth/components/SessionRestore";
 
 export default function AppLayout() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isInitialized = useAuthStore((state) => state.isInitialized);
-  const isLoading = useAuthStore((state) => state.isLoading);
-  const initialize = useAuthStore((state) => state.initialize);
-  const userId = useAuthStore((state) => state.user?.id);
+  const { isAuthenticated, isInitialized, isLoading, initialize, userId } =
+    useAuthStore(
+      useShallow((state) => ({
+        isAuthenticated: state.isAuthenticated,
+        isInitialized: state.isInitialized,
+        isLoading: state.isLoading,
+        initialize: state.initialize,
+        userId: state.user?.id,
+      })),
+    );
   const fetchSettings = useSettingsStore((state) => state.fetchSettings);
 
   // Loads the saved theme app-wide; on failure the app follows the device (Settings shows the error).

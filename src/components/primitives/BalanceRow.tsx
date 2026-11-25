@@ -52,7 +52,7 @@ const useStyles = makeStyles((t) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: t.spacing.md,
-    minHeight: 52,
+    minHeight: t.controlSize.row,
     paddingVertical: t.spacing.sm,
   },
   name: { flex: 1 },

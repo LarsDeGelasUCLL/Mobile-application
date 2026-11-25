@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { router } from "expo-router";
+import { useShallow } from "zustand/react/shallow";
 import { canManageExpense } from "./expensePermissions";
 import {
   participantsErrorFallback,
@@ -19,21 +20,38 @@ import { useGroupStore } from "../../state/useGroupStore";
 export function useEditExpense(expenseId: string | undefined) {
   const user = useAuthStore((state) => state.user);
   const userId = user?.id;
-  const selectedExpense = useExpenseStore((state) => state.selectedExpense);
-  const expenseLoading = useExpenseStore((state) => state.isLoading);
-  const expenseError = useExpenseStore((state) => state.error);
-  const fetchExpenseDetail = useExpenseStore(
-    (state) => state.fetchExpenseDetail,
+  const {
+    selectedExpense,
+    expenseLoading,
+    expenseError,
+    fetchExpenseDetail,
+    updateExpense,
+    clearExpenseError,
+  } = useExpenseStore(
+    useShallow((state) => ({
+      selectedExpense: state.selectedExpense,
+      expenseLoading: state.isLoading,
+      expenseError: state.error,
+      fetchExpenseDetail: state.fetchExpenseDetail,
+      updateExpense: state.updateExpense,
+      clearExpenseError: state.clearError,
+    })),
   );
-  const updateExpense = useExpenseStore((state) => state.updateExpense);
-  const clearExpenseError = useExpenseStore((state) => state.clearError);
-  const groups = useGroupStore((state) => state.groups);
-  const groupLoading = useGroupStore((state) => state.isLoading);
-  const groupError = useGroupStore((state) => state.error);
-  const fetchGroupsAndInvites = useGroupStore(
-    (state) => state.fetchGroupsAndInvites,
+  const {
+    groups,
+    groupLoading,
+    groupError,
+    fetchGroupsAndInvites,
+    clearGroupError,
+  } = useGroupStore(
+    useShallow((state) => ({
+      groups: state.groups,
+      groupLoading: state.isLoading,
+      groupError: state.error,
+      fetchGroupsAndInvites: state.fetchGroupsAndInvites,
+      clearGroupError: state.clearError,
+    })),
   );
-  const clearGroupError = useGroupStore((state) => state.clearError);
   const expense = selectedExpense?.id === expenseId ? selectedExpense : null;
   const { participants, fetchParticipants } = useParticipantOptions(
     expense?.groupId ?? null,

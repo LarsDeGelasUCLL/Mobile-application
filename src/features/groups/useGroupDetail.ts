@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { loadGroupDetail } from "./groupDetailLoader";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useGroupStore } from "../../state/useGroupStore";
@@ -8,35 +9,50 @@ import { useExpenseStore } from "../../state/useExpenseStore";
  * for the group detail, settings and expenses pages. */
 export function useGroupDetail(groupId: string | undefined) {
   const user = useAuthStore((state) => state.user);
-  const groups = useGroupStore((state) => state.groups);
-  const allActiveGroupMembers = useGroupStore(
-    (state) => state.activeGroupMembers,
+  const {
+    groups,
+    allActiveGroupMembers,
+    allJoinRequests,
+    isLoading,
+    storeError,
+    fetchGroupsAndInvites,
+    fetchMembersForGroup,
+    fetchJoinRequestsForGroup,
+    setSelectedGroupId,
+    clearError,
+  } = useGroupStore(
+    useShallow((state) => ({
+      groups: state.groups,
+      allActiveGroupMembers: state.activeGroupMembers,
+      allJoinRequests: state.joinRequests,
+      isLoading: state.isLoading,
+      storeError: state.error,
+      fetchGroupsAndInvites: state.fetchGroupsAndInvites,
+      fetchMembersForGroup: state.fetchMembersForGroup,
+      fetchJoinRequestsForGroup: state.fetchJoinRequestsForGroup,
+      setSelectedGroupId: state.setSelectedGroupId,
+      clearError: state.clearError,
+    })),
   );
-  const allJoinRequests = useGroupStore((state) => state.joinRequests);
-  const isLoading = useGroupStore((state) => state.isLoading);
-  const storeError = useGroupStore((state) => state.error);
-  const fetchGroupsAndInvites = useGroupStore(
-    (state) => state.fetchGroupsAndInvites,
+  const {
+    expensesInStore,
+    groupBalances,
+    groupBalancesGroupId,
+    expensesLoading,
+    expensesError,
+    fetchGroupExpensesAndBalances,
+    clearExpenseError,
+  } = useExpenseStore(
+    useShallow((state) => ({
+      expensesInStore: state.groupExpenses,
+      groupBalances: state.groupBalances,
+      groupBalancesGroupId: state.groupBalancesGroupId,
+      expensesLoading: state.isLoading,
+      expensesError: state.error,
+      fetchGroupExpensesAndBalances: state.fetchGroupExpensesAndBalances,
+      clearExpenseError: state.clearError,
+    })),
   );
-  const fetchMembersForGroup = useGroupStore(
-    (state) => state.fetchMembersForGroup,
-  );
-  const fetchJoinRequestsForGroup = useGroupStore(
-    (state) => state.fetchJoinRequestsForGroup,
-  );
-  const setSelectedGroupId = useGroupStore((state) => state.setSelectedGroupId);
-  const clearError = useGroupStore((state) => state.clearError);
-  const expensesInStore = useExpenseStore((state) => state.groupExpenses);
-  const groupBalances = useExpenseStore((state) => state.groupBalances);
-  const groupBalancesGroupId = useExpenseStore(
-    (state) => state.groupBalancesGroupId,
-  );
-  const expensesLoading = useExpenseStore((state) => state.isLoading);
-  const expensesError = useExpenseStore((state) => state.error);
-  const fetchGroupExpensesAndBalances = useExpenseStore(
-    (state) => state.fetchGroupExpensesAndBalances,
-  );
-  const clearExpenseError = useExpenseStore((state) => state.clearError);
 
   const groupMembership = groups.find((item) => item.group.id === groupId);
   const members = allActiveGroupMembers.filter(

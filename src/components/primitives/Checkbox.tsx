@@ -38,7 +38,7 @@ const useStyles = makeStyles((t) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    minHeight: 44,
+    minHeight: t.controlSize.touch,
   },
   box: {
     width: 22,

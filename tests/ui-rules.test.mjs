@@ -117,8 +117,12 @@ test("phase 9 layout: text controls grow with font scale; tab bar keeps the home
     "src/components/primitives/Select.tsx",
   ]) {
     const source = await read(file);
-    assert.doesNotMatch(source, /^\s+height: (44|48),/m, file);
-    assert.match(source, /minHeight: (44|48),/, file);
+    assert.doesNotMatch(
+      source,
+      /^\s+height: (44|48|t\.controlSize\.\w+),/m,
+      file,
+    );
+    assert.match(source, /minHeight: t\.controlSize\.(touch|control),/, file);
   }
 
   const tabs = await read("app/(app)/(tabs)/_layout.tsx");

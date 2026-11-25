@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { router } from "expo-router";
+import { useShallow } from "zustand/react/shallow";
 import { useActionFeedback } from "../shared/useActionFeedback";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useGroupStore } from "../../state/useGroupStore";
@@ -8,18 +9,31 @@ import { useGroupStore } from "../../state/useGroupStore";
  * sheet, and the invitation / join request actions with their feedback. */
 export function useGroupsTab() {
   const userId = useAuthStore((state) => state.user?.id);
-  const groups = useGroupStore((state) => state.groups);
-  const pendingInvites = useGroupStore((state) => state.pendingInvites);
-  const sentJoinRequests = useGroupStore((state) => state.sentJoinRequests);
-  const joinRequestCounts = useGroupStore((state) => state.joinRequestCounts);
-  const isLoading = useGroupStore((state) => state.isLoading);
-  const storeError = useGroupStore((state) => state.error);
-  const fetchGroupsAndInvites = useGroupStore(
-    (state) => state.fetchGroupsAndInvites,
+  const {
+    groups,
+    pendingInvites,
+    sentJoinRequests,
+    joinRequestCounts,
+    isLoading,
+    storeError,
+    fetchGroupsAndInvites,
+    cancelJoinRequest,
+    respondToInvite,
+    clearError,
+  } = useGroupStore(
+    useShallow((state) => ({
+      groups: state.groups,
+      pendingInvites: state.pendingInvites,
+      sentJoinRequests: state.sentJoinRequests,
+      joinRequestCounts: state.joinRequestCounts,
+      isLoading: state.isLoading,
+      storeError: state.error,
+      fetchGroupsAndInvites: state.fetchGroupsAndInvites,
+      cancelJoinRequest: state.cancelJoinRequest,
+      respondToInvite: state.respondToInvite,
+      clearError: state.clearError,
+    })),
   );
-  const cancelJoinRequest = useGroupStore((state) => state.cancelJoinRequest);
-  const respondToInvite = useGroupStore((state) => state.respondToInvite);
-  const clearError = useGroupStore((state) => state.clearError);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const { feedback, run } = useActionFeedback(clearError);

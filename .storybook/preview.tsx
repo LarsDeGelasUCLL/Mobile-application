@@ -3,7 +3,7 @@ import type { Preview } from "@storybook/react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "../src/theme/ThemeProvider";
-import { darkPalette, lightPalette } from "../src/theme/palettes";
+import { paletteFor } from "../src/theme/palettes";
 import { fontFamily } from "../src/theme/tokens";
 import regular from "@expo-google-fonts/plus-jakarta-sans/400Regular/PlusJakartaSans_400Regular.ttf";
 import semibold from "@expo-google-fonts/plus-jakarta-sans/600SemiBold/PlusJakartaSans_600SemiBold.ttf";
@@ -41,7 +41,7 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       const scheme = context.globals.theme === "dark" ? "dark" : "light";
-      const palette = scheme === "dark" ? darkPalette : lightPalette;
+      const palette = paletteFor(scheme);
       document.body.style.backgroundColor = palette.background;
       return (
         <SafeAreaProvider>

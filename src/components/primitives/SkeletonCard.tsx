@@ -1,3 +1,4 @@
+import { controlSize } from "../../theme/tokens";
 import { Card } from "./Card";
 import { Skeleton } from "./Skeleton";
 import { Stack } from "./Stack";
@@ -8,7 +9,7 @@ interface SkeletonLine {
 }
 
 interface SkeletonCardProps {
-  /** Number of full-width 44pt lines, or the size of each line. */
+  /** Number of full-width touch-height lines, or the size of each line. */
   lines: number | readonly SkeletonLine[];
   testID?: string;
 }
@@ -17,7 +18,7 @@ interface SkeletonCardProps {
 export function SkeletonCard({ lines, testID }: SkeletonCardProps) {
   const shape: readonly SkeletonLine[] =
     typeof lines === "number"
-      ? Array.from({ length: lines }, () => ({ height: 44 }))
+      ? Array.from({ length: lines }, () => ({ height: controlSize.touch }))
       : lines;
   return (
     <Card testID={testID}>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { router } from "expo-router";
+import { useShallow } from "zustand/react/shallow";
 import { canManageExpense, canSettleSplit } from "./expensePermissions";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useExpenseStore } from "../../state/useExpenseStore";
@@ -11,25 +12,42 @@ import type { ExpenseSplitDto } from "../../types";
 export function useExpenseDetail(expenseId: string | undefined) {
   const user = useAuthStore((state) => state.user);
   const userId = user?.id;
-  const expenseLoading = useExpenseStore((state) => state.isLoading);
-  const expenseError = useExpenseStore((state) => state.error);
-  const selectedExpense = useExpenseStore((state) => state.selectedExpense);
-  const fetchExpenseDetail = useExpenseStore(
-    (state) => state.fetchExpenseDetail,
+  const {
+    expenseLoading,
+    expenseError,
+    selectedExpense,
+    fetchExpenseDetail,
+    fetchGroupExpensesAndBalances,
+    toggleSettleSplit,
+    removeExpense,
+    clearExpenseError,
+  } = useExpenseStore(
+    useShallow((state) => ({
+      expenseLoading: state.isLoading,
+      expenseError: state.error,
+      selectedExpense: state.selectedExpense,
+      fetchExpenseDetail: state.fetchExpenseDetail,
+      fetchGroupExpensesAndBalances: state.fetchGroupExpensesAndBalances,
+      toggleSettleSplit: state.toggleSettleSplit,
+      removeExpense: state.removeExpense,
+      clearExpenseError: state.clearError,
+    })),
   );
-  const fetchGroupExpensesAndBalances = useExpenseStore(
-    (state) => state.fetchGroupExpensesAndBalances,
+  const {
+    groups,
+    groupLoading,
+    groupError,
+    fetchGroupsAndInvites,
+    clearGroupError,
+  } = useGroupStore(
+    useShallow((state) => ({
+      groups: state.groups,
+      groupLoading: state.isLoading,
+      groupError: state.error,
+      fetchGroupsAndInvites: state.fetchGroupsAndInvites,
+      clearGroupError: state.clearError,
+    })),
   );
-  const toggleSettleSplit = useExpenseStore((state) => state.toggleSettleSplit);
-  const removeExpense = useExpenseStore((state) => state.removeExpense);
-  const clearExpenseError = useExpenseStore((state) => state.clearError);
-  const groups = useGroupStore((state) => state.groups);
-  const groupLoading = useGroupStore((state) => state.isLoading);
-  const groupError = useGroupStore((state) => state.error);
-  const fetchGroupsAndInvites = useGroupStore(
-    (state) => state.fetchGroupsAndInvites,
-  );
-  const clearGroupError = useGroupStore((state) => state.clearError);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deletedGroupId, setDeletedGroupId] = useState<string | null>(null);
 

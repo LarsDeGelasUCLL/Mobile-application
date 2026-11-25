@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { router } from "expo-router";
+import { useShallow } from "zustand/react/shallow";
 import { useGroupDetail } from "./useGroupDetail";
 import { useActionFeedback } from "../shared/useActionFeedback";
 import { useGroupStore } from "../../state/useGroupStore";
@@ -13,19 +14,29 @@ type ConfirmKind = "leave" | "delete" | "remove";
 export function useGroupSettings(groupId: string | undefined) {
   const detail = useGroupDetail(groupId);
   const { user, group, currentMembership } = detail;
-  const updateGroup = useGroupStore((state) => state.updateGroup);
-  const deleteGroup = useGroupStore((state) => state.deleteGroup);
-  const inviteMemberByEmail = useGroupStore(
-    (state) => state.inviteMemberByEmail,
+  const {
+    updateGroup,
+    deleteGroup,
+    inviteMemberByEmail,
+    changeMemberRole,
+    leaveOrRemoveMember,
+    approveJoinRequest,
+    rejectJoinRequest,
+    setSelectedGroupId,
+    clearError,
+  } = useGroupStore(
+    useShallow((state) => ({
+      updateGroup: state.updateGroup,
+      deleteGroup: state.deleteGroup,
+      inviteMemberByEmail: state.inviteMemberByEmail,
+      changeMemberRole: state.changeMemberRole,
+      leaveOrRemoveMember: state.leaveOrRemoveMember,
+      approveJoinRequest: state.approveJoinRequest,
+      rejectJoinRequest: state.rejectJoinRequest,
+      setSelectedGroupId: state.setSelectedGroupId,
+      clearError: state.clearError,
+    })),
   );
-  const changeMemberRole = useGroupStore((state) => state.changeMemberRole);
-  const leaveOrRemoveMember = useGroupStore(
-    (state) => state.leaveOrRemoveMember,
-  );
-  const approveJoinRequest = useGroupStore((state) => state.approveJoinRequest);
-  const rejectJoinRequest = useGroupStore((state) => state.rejectJoinRequest);
-  const setSelectedGroupId = useGroupStore((state) => state.setSelectedGroupId);
-  const clearError = useGroupStore((state) => state.clearError);
 
   const { feedback, run } = useActionFeedback(clearError);
   const [selectedMember, setSelectedMember] = useState<MembershipDto | null>(

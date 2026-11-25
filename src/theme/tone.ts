@@ -14,16 +14,17 @@ export type Tone =
   | "success"
   | "warning";
 
+const paletteKeyByTone: Record<Tone, keyof Palette> = {
+  default: "text",
+  muted: "textMuted",
+  primary: "primaryText",
+  onPrimary: "onPrimary",
+  inverse: "background",
+  error: "error",
+  success: "success",
+  warning: "warning",
+};
+
 export function toneColor(colors: Palette, tone: Tone): string {
-  const byTone: Record<Tone, string> = {
-    default: colors.text,
-    muted: colors.textMuted,
-    primary: colors.primaryText,
-    onPrimary: colors.onPrimary,
-    inverse: colors.background,
-    error: colors.error,
-    success: colors.success,
-    warning: colors.warning,
-  };
-  return byTone[tone];
+  return colors[paletteKeyByTone[tone]];
 }

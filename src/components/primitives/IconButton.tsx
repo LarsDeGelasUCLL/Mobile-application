@@ -36,8 +36,8 @@ export function IconButton({
 
 const useStyles = makeStyles((t) => ({
   base: {
-    width: 44,
-    height: 44,
+    width: t.controlSize.touch,
+    height: t.controlSize.touch,
     borderRadius: t.radius.full,
     alignItems: "center",
     justifyContent: "center",

@@ -35,5 +35,11 @@ export const fontFamily = {
 // as const: literal icon-size keys and values.
 export const iconSize = { sm: 16, md: 20, lg: 24 } as const;
 
+// Control heights in pt, applied as minHeight so text can grow with font scale.
+// touch = minimum tap target (icon button, checkbox, radio, link button);
+// control = input, select and standard button height; row = list-row height.
+// as const: literal control-size keys and values.
+export const controlSize = { touch: 44, control: 48, row: 52 } as const;
+
 // as const: literal animation durations in ms.
 export const motion = { press: 150, sheet: 250 } as const;

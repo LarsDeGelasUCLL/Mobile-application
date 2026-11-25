@@ -124,3 +124,7 @@ export const storyBalances = [
   balance("ann", "Ann", -15),
   balance("bob", "Bob", -15),
 ];
+
+// A 16x16 purple-to-amber gradient PNG: a group picture that loads offline.
+export const storyGroupImageUri =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAnklEQVR42mPI9T5c4LevJHBXRci2mvBNDVHrWmJXtics7U5e2J82d3LWzOm5U2YXTJhX3LOorGNZZQsDSapX1dQzkKR6XX01A0mqNzWVM5CkemtrMQNJqnd25jOQpHpvTxYDSaoP9qcxkKT66KQkBpJUn5wax0CS6jMzohhIUn1hdigDSaqvzAtkIEn1jYW+DCSpvrPEk4Ek1Q9WuAIArZiiy5DUcbYAAAAASUVORK5CYII=";

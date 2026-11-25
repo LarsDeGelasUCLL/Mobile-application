@@ -60,7 +60,7 @@ const useStyles = makeStyles((t) => ({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 52,
+    minHeight: t.controlSize.row,
     paddingHorizontal: t.spacing.lg,
   },
   title: { flex: 1 },

@@ -1,3 +1,5 @@
+import type { Scheme } from "./scheme";
+
 // Semantic colour tokens. Screens and primitives use these names, never hex.
 // Contrast for every text/fill pair is enforced by tests/theme.test.mjs.
 // `border` = decorative edge; `borderStrong` = input/checkbox edge (3:1, WCAG 1.4.11).
@@ -50,3 +52,7 @@ export const darkPalette: Palette = {
   scrim: "rgba(0,0,0,0.6)",
   shadow: "#000000",
 };
+
+export function paletteFor(scheme: Scheme): Palette {
+  return scheme === "dark" ? darkPalette : lightPalette;
+}

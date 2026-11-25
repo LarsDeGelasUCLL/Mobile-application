@@ -1,7 +1,9 @@
 import { createContext, useContext, useMemo } from "react";
 import { StyleSheet } from "react-native";
 import { darkPalette, lightPalette, type Palette } from "./palettes";
+import type { Scheme } from "./scheme";
 import {
+  controlSize,
   fontFamily,
   iconSize,
   motion,
@@ -17,8 +19,9 @@ export interface Theme {
   type: typeof typeScale;
   fontFamily: typeof fontFamily;
   iconSize: typeof iconSize;
+  controlSize: typeof controlSize;
   motion: typeof motion;
-  scheme: "light" | "dark";
+  scheme: Scheme;
 }
 
 const lightTheme: Theme = {
@@ -28,6 +31,7 @@ const lightTheme: Theme = {
   type: typeScale,
   fontFamily,
   iconSize,
+  controlSize,
   motion,
   scheme: "light",
 };

@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { router } from "expo-router";
+import { useShallow } from "zustand/react/shallow";
 import {
   CardList,
   EmptyState,
@@ -16,13 +17,16 @@ import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
 export default function ExpensesScreen() {
   const user = useAuthStore((state) => state.user);
-  const expenses = useExpenseStore((state) => state.individualExpenses);
-  const isLoading = useExpenseStore((state) => state.isLoading);
-  const error = useExpenseStore((state) => state.error);
-  const fetchIndividualExpenses = useExpenseStore(
-    (state) => state.fetchIndividualExpenses,
-  );
-  const clearError = useExpenseStore((state) => state.clearError);
+  const { expenses, isLoading, error, fetchIndividualExpenses, clearError } =
+    useExpenseStore(
+      useShallow((state) => ({
+        expenses: state.individualExpenses,
+        isLoading: state.isLoading,
+        error: state.error,
+        fetchIndividualExpenses: state.fetchIndividualExpenses,
+        clearError: state.clearError,
+      })),
+    );
 
   const loadExpenses = useCallback(async () => {
     if (!user?.id) return;

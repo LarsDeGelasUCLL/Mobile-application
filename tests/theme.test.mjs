@@ -72,6 +72,25 @@ for (const [name, palette] of [
   });
 }
 
+test("toneColor maps every tone to its palette colour in both schemes", async () => {
+  const { toneColor } = await importModule("src/theme/tone.ts");
+  const keyByTone = {
+    default: "text",
+    muted: "textMuted",
+    primary: "primaryText",
+    onPrimary: "onPrimary",
+    inverse: "background",
+    error: "error",
+    success: "success",
+    warning: "warning",
+  };
+  for (const palette of [lightPalette, darkPalette]) {
+    for (const [tone, key] of Object.entries(keyByTone)) {
+      assert.equal(toneColor(palette, tone), palette[key], tone);
+    }
+  }
+});
+
 test("resolveScheme follows the saved theme, SYSTEM follows the device", async () => {
   const { resolveScheme } = await importModule("src/theme/scheme.ts");
   assert.equal(resolveScheme("LIGHT", "dark"), "light");
