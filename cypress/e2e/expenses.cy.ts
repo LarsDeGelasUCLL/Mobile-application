@@ -45,7 +45,9 @@ function deleteOpenExpense(title: string) {
 
   cy.getBySel('expenses-screen').should('be.visible');
   cy.location('pathname').should('eq', '/expenses');
+  // The store drops the row locally; reload to check the server delete.
   cy.get<string>('@expenseId').then((expenseId) => {
+    visitExpenseList();
     cy.getBySel(`expense-row-${expenseId}`).should('not.exist');
   });
 }
@@ -68,6 +70,13 @@ function deleteLeftoverExpenses() {
         .click();
       cy.getBySel('expenses-screen').should('be.visible');
     });
+  // Reload to check the deletes reached the server.
+  visitExpenseList().should(($screen) => {
+    const left = $screen
+      .find('[data-testid^="expense-row-"]')
+      .filter((_, row) => (row.textContent ?? '').includes('cy-expense-'));
+    expect(left.length, 'cy-expense- rows after cleanup').to.equal(0);
+  });
 }
 
 describe('Personal expenses', () => {

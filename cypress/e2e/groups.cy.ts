@@ -36,7 +36,9 @@ function deleteGroupFromSettings(name: string) {
 
   cy.getBySel('groups-screen').should('be.visible');
   cy.location('pathname').should('eq', '/groups');
+  // The store drops the row locally; reload to check the server delete.
   cy.get<string>('@groupId').then((groupId) => {
+    visitGroupsList();
     cy.getBySel(`group-row-${groupId}`).should('not.exist');
   });
 }
@@ -59,6 +61,13 @@ function deleteLeftoverGroups() {
         .click();
       cy.getBySel('groups-screen').should('be.visible');
     });
+  // Reload to check the deletes reached the server.
+  visitGroupsList().should(($screen) => {
+    const left = $screen
+      .find('[data-testid^="group-row-"]')
+      .filter((_, row) => (row.textContent ?? '').includes('cy-group-'));
+    expect(left.length, 'cy-group- rows after cleanup').to.equal(0);
+  });
 }
 
 describe('Groups', () => {
