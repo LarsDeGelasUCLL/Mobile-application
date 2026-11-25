@@ -31,8 +31,7 @@ export function ListRow({
   testID,
 }: ListRowProps) {
   const styles = useStyles();
-  const { colors, iconSize } = useTheme();
-  const labelColor = destructive ? colors.error : colors.text;
+  const { iconSize } = useTheme();
 
   const content = (
     <>
@@ -41,15 +40,19 @@ export function ListRow({
           <Icon
             name={icon}
             size={iconSize.md}
-            color={destructive ? colors.error : colors.primaryText}
+            tone={destructive ? "error" : "primary"}
           />
         ))}
       <View style={styles.copy}>
-        <Text weight="medium" color={labelColor} numberOfLines={1}>
+        <Text
+          weight="medium"
+          tone={destructive ? "error" : "default"}
+          numberOfLines={1}
+        >
           {label}
         </Text>
         {description !== undefined && (
-          <Text size="sm" color={colors.textMuted}>
+          <Text size="sm" tone="muted">
             {description}
           </Text>
         )}
@@ -59,7 +62,7 @@ export function ListRow({
           {value !== undefined && (
             <Text
               size="sm"
-              color={colors.textMuted}
+              tone="muted"
               numberOfLines={1}
               align="right"
             >
@@ -70,7 +73,7 @@ export function ListRow({
             <Icon
               name="chevron-forward"
               size={iconSize.md}
-              color={colors.textMuted}
+              tone="muted"
             />
           )}
         </>

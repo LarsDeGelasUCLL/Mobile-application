@@ -7,9 +7,9 @@ import {
   Screen,
   Stack as ContentStack,
   Spinner,
+  StyledButton,
   Text,
 } from "../../src/components/primitives";
-import { StyledButton } from "../../src/components/common/StyledButton";
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);

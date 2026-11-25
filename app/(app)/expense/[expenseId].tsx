@@ -14,17 +14,15 @@ import {
   ScreenHeader,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 import { formatCurrency } from "../../../src/utils/money";
 
 export default function ExpenseDetailScreen() {
-  const { colors } = useTheme();
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
   const user = useAuthStore((state) => state.user);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
@@ -168,7 +166,6 @@ export default function ExpenseDetailScreen() {
                     params: { expenseId: expense.id },
                   })
                 }
-                color={colors.text}
                 testID="edit-expense-button"
               />
             ) : undefined
@@ -178,7 +175,7 @@ export default function ExpenseDetailScreen() {
 
         {error ? (
           <FeedbackBanner tone="error" testID="expense-detail-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {error}
             </Text>
             <StyledButton
@@ -231,21 +228,21 @@ export default function ExpenseDetailScreen() {
                   <Text size="xxl" weight="bold">
                     {formatCurrency(expense.amount)}
                   </Text>
-                  <Text size="sm" color={colors.textMuted}>
+                  <Text size="sm" tone="muted">
                     Paid by{" "}
                     {expense.paidByProfile?.displayName ?? "A participant"}
                   </Text>
-                  <Text size="sm" color={colors.textMuted}>
+                  <Text size="sm" tone="muted">
                     Created by{" "}
                     {expense.createdByProfile?.displayName ??
                       expense.paidByProfile?.displayName ??
                       "A participant"}
                   </Text>
-                  <Text size="sm" color={colors.textMuted}>
+                  <Text size="sm" tone="muted">
                     {new Date(expense.recordCreated).toLocaleString()}
                   </Text>
                   {expense.receiptUrl ? (
-                    <Text size="sm" color={colors.textMuted}>
+                    <Text size="sm" tone="muted">
                       Receipt: {expense.receiptUrl}
                     </Text>
                   ) : null}
@@ -272,7 +269,7 @@ export default function ExpenseDetailScreen() {
                           {split.userProfile?.displayName ?? "Participant"}
                           {isPayer ? " (payer)" : ""}
                         </Text>
-                        <Text size="sm" color={colors.textMuted}>
+                        <Text size="sm" tone="muted">
                           {split.isSettled ? "Settled" : "Not settled"}
                         </Text>
                       </Stack>

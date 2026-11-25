@@ -5,17 +5,20 @@ interface ContainerProps {
   children: React.ReactNode;
   flex?: number;
   padding?: "none" | "sm" | "md" | "lg";
+  testID?: string;
 }
 
 export function Container({
   children,
   flex,
   padding = "none",
+  testID,
 }: ContainerProps) {
   const styles = useStyles();
   return (
     <View
       style={[styles.base, flex !== undefined && { flex }, styles[padding]]}
+      testID={testID}
     >
       {children}
     </View>

@@ -9,16 +9,14 @@ import {
   Screen,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import { ExpenseRow } from "../../../src/features/expenses/components/ExpenseRow";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
 export default function ExpensesScreen() {
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const expenses = useExpenseStore((state) => state.individualExpenses);
   const isLoading = useExpenseStore((state) => state.isLoading);
@@ -61,14 +59,14 @@ export default function ExpensesScreen() {
             <Text size="lg" weight="bold">
               Personal expenses
             </Text>
-            <Text size="sm" color={colors.textMuted}>
+            <Text size="sm" tone="muted">
               Costs outside a group, shared with anyone you know.
             </Text>
           </Stack>
 
           {error ? (
             <FeedbackBanner tone="error" testID="personal-expenses-error">
-              <Text size="sm" color={colors.error}>
+              <Text size="sm" tone="error">
                 {error}
               </Text>
               <StyledButton

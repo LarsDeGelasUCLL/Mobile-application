@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { StyledButton } from "../common/StyledButton";
+import { StyledButton } from "./StyledButton";
 import { ListRow } from "./ListRow";
 import { Sheet } from "./Sheet";
 

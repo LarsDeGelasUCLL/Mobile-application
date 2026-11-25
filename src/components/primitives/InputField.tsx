@@ -70,7 +70,7 @@ export function InputField({
         }
       />
       {error !== undefined && (
-        <Text size="sm" color={colors.error}>
+        <Text size="sm" tone="error">
           {error}
         </Text>
       )}

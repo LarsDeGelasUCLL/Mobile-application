@@ -18,3 +18,11 @@ export const Settings: Story = {
     onPress: () => {},
   },
 };
+export const PrimaryTone: Story = {
+  args: {
+    icon: "key-outline",
+    accessibilityLabel: "Show invite code",
+    onPress: () => {},
+    tone: "primary",
+  },
+};

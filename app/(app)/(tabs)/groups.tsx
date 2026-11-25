@@ -14,16 +14,15 @@ import {
   Sheet,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
-import { makeStyles, useTheme } from "../../../src/theme/ThemeProvider";
+import { makeStyles } from "../../../src/theme/ThemeProvider";
 
 export default function GroupsScreen() {
   const styles = useStyles();
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const groups = useGroupStore((state) => state.groups);
   const pendingInvites = useGroupStore((state) => state.pendingInvites);
@@ -99,7 +98,6 @@ export default function GroupsScreen() {
               icon="add"
               accessibilityLabel="Create or join a group"
               onPress={() => setMenuOpen(true)}
-              color={colors.text}
               testID="groups-add-button"
             />
           ),
@@ -109,7 +107,7 @@ export default function GroupsScreen() {
         <Stack gap="lg">
           {storeError ? (
             <FeedbackBanner tone="error" testID="groups-error">
-              <Text size="sm" color={colors.error}>
+              <Text size="sm" tone="error">
                 {storeError}
               </Text>
               <StyledButton
@@ -124,14 +122,14 @@ export default function GroupsScreen() {
 
           {feedback ? (
             <FeedbackBanner tone="success" testID="groups-feedback">
-              <Text size="sm" color={colors.success}>
+              <Text size="sm" tone="success">
                 {feedback}
               </Text>
             </FeedbackBanner>
           ) : null}
 
           <Stack gap="sm">
-            <Text size="sm" weight="bold" color={colors.textMuted}>
+            <Text size="sm" weight="bold" tone="muted">
               YOUR GROUPS
             </Text>
             {storeError && groups.length === 0 ? null : isLoading &&
@@ -199,7 +197,7 @@ export default function GroupsScreen() {
                 <Stack gap="sm" key={invite.membershipId}>
                   {index > 0 && <Divider />}
                   <Text weight="bold">{invite.group.name}</Text>
-                  <Text size="sm" color={colors.textMuted}>
+                  <Text size="sm" tone="muted">
                     {invite.invitedByProfile
                       ? `Invited by ${invite.invitedByProfile.displayName}`
                       : "You have been invited to this group."}
@@ -243,7 +241,7 @@ export default function GroupsScreen() {
                 <Stack gap="sm" key={request.membershipId}>
                   {index > 0 && <Divider />}
                   <Text weight="bold">{request.group.name}</Text>
-                  <Text size="sm" color={colors.textMuted}>
+                  <Text size="sm" tone="muted">
                     Requested{" "}
                     {new Date(request.requestedAt).toLocaleDateString()}
                   </Text>

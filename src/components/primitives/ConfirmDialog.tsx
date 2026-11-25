@@ -1,7 +1,7 @@
 import { Modal, Pressable, View } from "react-native";
-import { StyledButton } from "../common/StyledButton";
+import { StyledButton } from "./StyledButton";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -31,7 +31,6 @@ export function ConfirmDialog({
   testID,
 }: ConfirmDialogProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   // Block dismiss while the action runs, so the user sees its result.
   const cancel = () => {
     if (!isLoading) onCancel();
@@ -62,7 +61,7 @@ export function ConfirmDialog({
             {title}
           </Text>
           {message !== undefined && (
-            <Text color={colors.textMuted}>{message}</Text>
+            <Text tone="muted">{message}</Text>
           )}
           <View style={styles.actions}>
             <StyledButton

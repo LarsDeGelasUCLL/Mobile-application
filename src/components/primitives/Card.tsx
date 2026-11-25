@@ -6,9 +6,15 @@ interface CardProps {
   onPress?: () => void;
   /** No padding, clipped corners: for a group of `ListRow`s. */
   flush?: boolean;
+  testID?: string;
 }
 
-export function Card({ children, onPress, flush = false }: CardProps) {
+export function Card({
+  children,
+  onPress,
+  flush = false,
+  testID,
+}: CardProps) {
   const styles = useStyles();
   const base = [styles.base, flush && styles.flush];
   if (onPress !== undefined) {
@@ -17,13 +23,18 @@ export function Card({ children, onPress, flush = false }: CardProps) {
         onPress={onPress}
         accessibilityRole="button"
         style={({ pressed }) => [...base, pressed && styles.pressed]}
+        testID={testID}
       >
         {children}
       </Pressable>
     );
   }
 
-  return <View style={base}>{children}</View>;
+  return (
+    <View style={base} testID={testID}>
+      {children}
+    </View>
+  );
 }
 
 const useStyles = makeStyles((t) => ({

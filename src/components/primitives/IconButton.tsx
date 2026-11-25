@@ -1,13 +1,14 @@
 import { Pressable } from "react-native";
 import { Icon, type IconName } from "./Icon";
 import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import type { Tone } from "../../theme/tone";
 
 interface IconButtonProps {
   icon: IconName;
   /** Required: icon-only buttons have no visible text. */
   accessibilityLabel: string;
   onPress: () => void;
-  color?: string;
+  tone?: Tone;
   testID?: string;
 }
 
@@ -15,11 +16,11 @@ export function IconButton({
   icon,
   accessibilityLabel,
   onPress,
-  color,
+  tone = "default",
   testID,
 }: IconButtonProps) {
   const styles = useStyles();
-  const { colors, iconSize } = useTheme();
+  const { iconSize } = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -28,11 +29,7 @@ export function IconButton({
       style={({ pressed }) => [styles.base, pressed && styles.pressed]}
       testID={testID}
     >
-      <Icon
-        name={icon}
-        size={iconSize.lg}
-        color={color ?? colors.primaryText}
-      />
+      <Icon name={icon} size={iconSize.lg} tone={tone} />
     </Pressable>
   );
 }

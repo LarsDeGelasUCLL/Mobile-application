@@ -7,14 +7,12 @@ import {
   Screen,
   ScreenHeader,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 import { validateEmail } from "../../../src/features/auth/authValidation";
 
 export default function ChangeEmailScreen() {
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const changeEmail = useAuthStore((state) => state.changeEmail);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -75,20 +73,20 @@ export default function ChangeEmailScreen() {
           error={emailError}
           testID="profile-new-email-input"
         />
-        <Text size="sm" color={colors.textMuted}>
+        <Text size="sm" tone="muted">
           We send a confirmation link to both addresses. The change finishes
           once you confirm.
         </Text>
         {emailRequestError !== "" ? (
           <FeedbackBanner tone="error" testID="change-email-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {emailRequestError}
             </Text>
           </FeedbackBanner>
         ) : null}
         {emailMessage !== "" ? (
           <FeedbackBanner tone="success" testID="change-email-success">
-            <Text size="sm" color={colors.success}>
+            <Text size="sm" tone="success">
               {emailMessage}
             </Text>
           </FeedbackBanner>

@@ -1,5 +1,6 @@
 import { Text as RNText } from "react-native";
 import { useTheme } from "../../theme/ThemeProvider";
+import { toneColor, type Tone } from "../../theme/tone";
 import { fontFamily, typeScale } from "../../theme/tokens";
 
 interface TextProps {
@@ -7,8 +8,9 @@ interface TextProps {
   size?: keyof typeof typeScale;
   weight?: "normal" | "medium" | "bold";
   align?: "left" | "center" | "right";
-  color?: string;
+  tone?: Tone;
   numberOfLines?: number;
+  testID?: string;
 }
 
 // Design allows only 400/600/700; "medium" renders as 600.
@@ -24,19 +26,21 @@ export function Text({
   size = "md",
   weight = "normal",
   align = "left",
-  color,
+  tone = "default",
   numberOfLines,
+  testID,
 }: TextProps) {
   const { colors } = useTheme();
   return (
     <RNText
       numberOfLines={numberOfLines}
+      testID={testID}
       style={[
         typeScale[size],
         {
           fontFamily: familyByWeight[weight],
           textAlign: align,
-          color: color ?? colors.text,
+          color: toneColor(colors, tone),
         },
       ]}
     >

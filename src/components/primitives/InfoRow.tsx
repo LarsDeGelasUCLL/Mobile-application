@@ -1,6 +1,6 @@
 import { View } from "react-native";
-import { Text } from "../primitives";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { Text } from "./Text";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface InfoRowProps {
   label: string;
@@ -18,19 +18,18 @@ export function InfoRow({
   testID,
 }: InfoRowProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
     <View style={styles.row} testID={testID}>
       <View style={styles.copy}>
         <Text
           size="sm"
           weight={description !== undefined ? "medium" : "normal"}
-          color={description !== undefined ? colors.text : colors.textMuted}
+          tone={description !== undefined ? "default" : "muted"}
         >
           {label}
         </Text>
         {description !== undefined && (
-          <Text size="sm" color={colors.textMuted}>
+          <Text size="sm" tone="muted">
             {description}
           </Text>
         )}
@@ -39,7 +38,7 @@ export function InfoRow({
         <Text
           size="sm"
           weight="medium"
-          color={highlightValue ? colors.primaryText : colors.text}
+          tone={highlightValue ? "primary" : "default"}
           align="right"
         >
           {value}

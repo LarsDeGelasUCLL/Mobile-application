@@ -11,9 +11,9 @@ import {
   Screen,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import { ExpenseRow } from "../../../src/features/expenses/components/ExpenseRow";
 import { GroupHighlights } from "../../../src/features/home/components/GroupHighlights";
 import { HomeHeader } from "../../../src/features/home/components/HomeHeader";
@@ -76,8 +76,6 @@ export default function HomeScreen() {
   const { youAreOwed, youOwe } = summarizeBalances(expenses, user?.id ?? "");
   const owed = describeBalance(youAreOwed);
   const owe = describeBalance(-youOwe);
-  const toneColor = (tone: "success" | "error" | "muted") =>
-    tone === "muted" ? colors.textMuted : colors[tone];
 
   const sectionHeader = (title: string, onSeeAll?: () => void) => (
     <Row justify="space-between" align="center">
@@ -103,7 +101,7 @@ export default function HomeScreen() {
           {expenseError && expenses.length === 0 ? null : (
             <Card>
               <View style={styles.summary} testID="home-balance-summary">
-                <Text size="sm" color={colors.textMuted}>
+                <Text size="sm" tone="muted">
                   Personal expenses
                 </Text>
                 {expenseLoading && expenses.length === 0 ? (
@@ -120,13 +118,13 @@ export default function HomeScreen() {
                         accessible
                         accessibilityLabel={`${label} ${balance.amount}`}
                       >
-                        <Text size="sm" color={colors.textMuted}>
+                        <Text size="sm" tone="muted">
                           {label}
                         </Text>
                         <Text
                           size="xl"
                           weight="bold"
-                          color={toneColor(balance.tone)}
+                          tone={balance.tone}
                         >
                           {balance.amount}
                         </Text>
@@ -154,7 +152,7 @@ export default function HomeScreen() {
             {sectionHeader("Groups", () => router.push("/groups"))}
             {groupError ? (
               <FeedbackBanner tone="error" testID="home-groups-error">
-                <Text size="sm" color={colors.error}>
+                <Text size="sm" tone="error">
                   {groupError}
                 </Text>
                 <StyledButton
@@ -208,7 +206,7 @@ export default function HomeScreen() {
             )}
             {expenseError ? (
               <FeedbackBanner tone="error" testID="home-expenses-error">
-                <Text size="sm" color={colors.error}>
+                <Text size="sm" tone="error">
                   {expenseError}
                 </Text>
                 <StyledButton

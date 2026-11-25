@@ -6,12 +6,14 @@ interface SkeletonProps {
   width?: number | `${number}%`;
   height?: number;
   borderRadius?: number;
+  testID?: string;
 }
 
 export function Skeleton({
   width = "100%",
   height = 16,
   borderRadius = 4,
+  testID,
 }: SkeletonProps) {
   const styles = useStyles();
   const [opacity] = useState(() => new Animated.Value(1));
@@ -52,6 +54,7 @@ export function Skeleton({
   return (
     <Animated.View
       style={[styles.base, { width, height, borderRadius, opacity }]}
+      testID={testID}
     />
   );
 }

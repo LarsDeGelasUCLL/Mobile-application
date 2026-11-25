@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { Avatar } from "./Avatar";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 import { describeBalance } from "../../utils/money";
 
 interface BalanceRowProps {
@@ -20,10 +20,7 @@ export function BalanceRow({
   testID,
 }: BalanceRowProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   const balance = describeBalance(amount);
-  const toneColor =
-    balance.tone === "muted" ? colors.textMuted : colors[balance.tone];
 
   return (
     <View
@@ -39,10 +36,10 @@ export function BalanceRow({
         </Text>
       </View>
       <View style={styles.amount}>
-        <Text weight="bold" color={toneColor} align="right">
+        <Text weight="bold" tone={balance.tone} align="right">
           {balance.amount}
         </Text>
-        <Text size="xs" color={toneColor} align="right">
+        <Text size="xs" tone={balance.tone} align="right">
           {balance.label}
         </Text>
       </View>

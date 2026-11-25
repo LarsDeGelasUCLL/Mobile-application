@@ -15,11 +15,10 @@ import {
   ScreenHeader,
   Select,
   Stack,
+  StyledButton,
   Text,
   type SelectOption,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 
 const themes: SelectOption<UiTheme>[] = [
   { label: "System", value: "SYSTEM" },
@@ -33,7 +32,6 @@ const languages: SelectOption<string>[] = [
 ];
 
 export default function SettingsScreen() {
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [logoutError, setLogoutError] = useState("");
@@ -106,7 +104,7 @@ export default function SettingsScreen() {
   };
 
   const sectionLabel = (label: string) => (
-    <Text size="sm" weight="bold" color={colors.textMuted}>
+    <Text size="sm" weight="bold" tone="muted">
       {label}
     </Text>
   );
@@ -172,7 +170,7 @@ export default function SettingsScreen() {
                       }
                       testID="settings-language-select"
                     />
-                    <Text size="sm" color={colors.textMuted}>
+                    <Text size="sm" tone="muted">
                       Both are saved to your account. Translations follow in a
                       later update.
                     </Text>
@@ -208,7 +206,7 @@ export default function SettingsScreen() {
               </Stack>
             </>
           ) : (
-            <Text size="sm" color={colors.textMuted}>
+            <Text size="sm" tone="muted">
               {isLoading
                 ? "Loading your saved preferences..."
                 : settingsActionError || error || "Settings are unavailable."}
@@ -217,14 +215,14 @@ export default function SettingsScreen() {
 
           {settingsActionError || error ? (
             <FeedbackBanner tone="error" testID="settings-error">
-              <Text size="sm" color={colors.error}>
+              <Text size="sm" tone="error">
                 {settingsActionError || error}
               </Text>
             </FeedbackBanner>
           ) : null}
           {settingsMessage !== "" ? (
             <FeedbackBanner tone="success" testID="settings-success">
-              <Text size="sm" color={colors.success}>
+              <Text size="sm" tone="success">
                 {settingsMessage}
               </Text>
             </FeedbackBanner>
@@ -251,7 +249,7 @@ export default function SettingsScreen() {
 
           {logoutError !== "" ? (
             <FeedbackBanner tone="error" testID="settings-logout-error">
-              <Text size="sm" color={colors.error}>
+              <Text size="sm" tone="error">
                 {logoutError}
               </Text>
             </FeedbackBanner>

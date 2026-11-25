@@ -5,12 +5,8 @@ Cypress.Commands.add('getBySel', (id: string) => {
   return cy.get(`[data-testid="${id}"]`);
 });
 
-// Replaces a field's text and checks the result. On web a clicked input can
-// lose focus again right away (Screen's ScrollView blurs it on any scroll
-// event, keyboardDismissMode "on-drag"; a blur ~60ms after the click was also
-// seen while pages load), and cy.type() then fails with "targeted a disabled
-// element". So: require the field to be visible, type with `force` (skips that
-// focus check) and assert the value, so a field that ignores input still fails.
+// Replaces a visible field's text and asserts the value, so a field that
+// ignores input fails.
 Cypress.Commands.add(
   'fill',
   { prevSubject: 'element' },
@@ -18,8 +14,8 @@ Cypress.Commands.add(
     cy.wrap(subject, { log: false }).should('be.visible');
     return cy
       .wrap(subject, { log: false })
-      .clear({ force: true })
-      .type(text, { ...options, force: true })
+      .clear()
+      .type(text, options)
       .should('have.value', text);
   },
 );

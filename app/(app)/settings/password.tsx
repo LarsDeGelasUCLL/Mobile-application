@@ -7,14 +7,12 @@ import {
   Screen,
   ScreenHeader,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 import { validatePassword } from "../../../src/features/auth/authValidation";
 
 export default function ChangePasswordScreen() {
-  const { colors } = useTheme();
   const setPassword = useAuthStore((state) => state.setPassword);
   const isLoading = useAuthStore((state) => state.isLoading);
   const [password, setPasswordValue] = useState("");
@@ -88,14 +86,14 @@ export default function ChangePasswordScreen() {
         />
         {passwordRequestError !== "" ? (
           <FeedbackBanner tone="error" testID="change-password-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {passwordRequestError}
             </Text>
           </FeedbackBanner>
         ) : null}
         {passwordMessage !== "" ? (
           <FeedbackBanner tone="success" testID="change-password-success">
-            <Text size="sm" color={colors.success}>
+            <Text size="sm" tone="success">
               {passwordMessage}
             </Text>
           </FeedbackBanner>

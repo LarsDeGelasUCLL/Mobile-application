@@ -1,7 +1,10 @@
 import { Pressable } from "react-native";
-import { Spinner } from "../primitives/Spinner";
-import { Text } from "../primitives/Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { Spinner } from "./Spinner";
+import { Text } from "./Text";
+import { makeStyles } from "../../theme/ThemeProvider";
+import type { Tone } from "../../theme/tone";
+
+type Variant = "primary" | "secondary" | "danger" | "link";
 
 interface StyledButtonProps {
   label: string;
@@ -10,11 +13,18 @@ interface StyledButtonProps {
    * Max one `primary` per screen (design §4). `danger` = destructive confirm.
    * `link` = low-emphasis text link ("Forgot password?"), sized to its text.
    */
-  variant?: "primary" | "secondary" | "danger" | "link";
+  variant?: Variant;
   isLoading?: boolean;
   disabled?: boolean;
   testID?: string;
 }
+
+const toneByVariant: Record<Variant, Tone> = {
+  primary: "onPrimary",
+  secondary: "default",
+  danger: "error",
+  link: "primary",
+};
 
 export function StyledButton({
   label,
@@ -25,13 +35,7 @@ export function StyledButton({
   testID,
 }: StyledButtonProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
-  const textColor = {
-    primary: colors.onPrimary,
-    secondary: colors.text,
-    danger: colors.error,
-    link: colors.primaryText,
-  }[variant];
+  const tone = toneByVariant[variant];
   const inactive = isLoading || disabled;
 
   return (
@@ -50,9 +54,9 @@ export function StyledButton({
       testID={testID}
     >
       {isLoading ? (
-        <Spinner size="small" color={textColor} />
+        <Spinner size="small" tone={tone} />
       ) : (
-        <Text weight="medium" color={textColor}>
+        <Text weight="medium" tone={tone}>
           {label}
         </Text>
       )}

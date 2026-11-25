@@ -8,9 +8,9 @@ import {
   ScreenHeader,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import {
   ExpenseForm,
   type ExpenseFormHandle,
@@ -21,7 +21,6 @@ import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import type { PublicUserProfileDto, User } from "../../../src/types";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 
 function currentUserProfile(user: User | null): PublicUserProfileDto | null {
   if (!user) return null;
@@ -57,7 +56,6 @@ export default function CreateExpenseScreen() {
     groupId?: string;
   }>();
   const groupId = typeof routeGroupId === "string" ? routeGroupId : null;
-  const { colors } = useTheme();
   const formRef = useRef<ExpenseFormHandle>(null);
   const user = useAuthStore((state) => state.user);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
@@ -231,7 +229,7 @@ export default function CreateExpenseScreen() {
 
         {createdExpenseId ? (
           <FeedbackBanner tone="warning" testID="expense-partial-success">
-            <Text size="sm" color={colors.warning}>
+            <Text size="sm" tone="warning">
               {expenseError ?? partialMutationError}
             </Text>
             <StyledButton
@@ -243,7 +241,7 @@ export default function CreateExpenseScreen() {
           </FeedbackBanner>
         ) : loadError ? (
           <FeedbackBanner tone="error" testID="expense-participants-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {loadError}
             </Text>
             <StyledButton

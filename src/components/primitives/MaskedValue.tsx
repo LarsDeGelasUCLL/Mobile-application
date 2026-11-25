@@ -24,7 +24,6 @@ export function MaskedValue({
   testID,
 }: MaskedValueProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +47,7 @@ export function MaskedValue({
 
   return (
     <View style={styles.base} testID={testID}>
-      <Text size="sm" weight="medium" color={colors.textMuted}>
+      <Text size="sm" weight="medium" tone="muted">
         {label}
       </Text>
       <View
@@ -97,7 +96,7 @@ function Action({
   testID?: string;
 }) {
   const styles = useStyles();
-  const { colors, iconSize } = useTheme();
+  const { iconSize } = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -106,8 +105,8 @@ function Action({
       style={({ pressed }) => [styles.action, pressed && styles.pressed]}
       testID={testID}
     >
-      <Icon name={icon} size={iconSize.md} color={colors.primaryText} />
-      <Text size="sm" weight="medium" color={colors.primaryText}>
+      <Icon name={icon} size={iconSize.md} tone="primary" />
+      <Text size="sm" weight="medium" tone="primary">
         {label}
       </Text>
     </Pressable>

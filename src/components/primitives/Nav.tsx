@@ -3,11 +3,16 @@ import { makeStyles } from "../../theme/ThemeProvider";
 
 interface NavProps {
   children: React.ReactNode;
+  testID?: string;
 }
 
-export function Nav({ children }: NavProps) {
+export function Nav({ children, testID }: NavProps) {
   const styles = useStyles();
-  return <View style={styles.base}>{children}</View>;
+  return (
+    <View style={styles.base} testID={testID}>
+      {children}
+    </View>
+  );
 }
 
 const useStyles = makeStyles((t) => ({

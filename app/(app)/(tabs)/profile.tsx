@@ -11,14 +11,12 @@ import {
   Stack,
   Text,
 } from "../../../src/components/primitives";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 
 const editProfile = () => router.push("/settings/profile");
 
 // Display only (design §6.5): every change happens in Settings.
 export default function ProfileScreen() {
   const user = useAuthStore((state) => state.user);
-  const { colors } = useTheme();
 
   return (
     <Screen padding="lg">
@@ -34,7 +32,7 @@ export default function ProfileScreen() {
               {user?.displayName ?? "User"}
             </Text>
             {user?.customBio ? (
-              <Text color={colors.textMuted} align="center">
+              <Text tone="muted" align="center">
                 {user.customBio}
               </Text>
             ) : null}

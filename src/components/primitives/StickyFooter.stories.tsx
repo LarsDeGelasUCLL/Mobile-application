@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { StyledButton } from "../common/StyledButton";
+import { StyledButton } from "./StyledButton";
 import { StickyFooter } from "./StickyFooter";
 
 const meta: Meta<typeof StickyFooter> = {

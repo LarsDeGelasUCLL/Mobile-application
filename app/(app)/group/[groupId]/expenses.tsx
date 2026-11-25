@@ -7,16 +7,15 @@ import {
   Screen,
   ScreenHeader,
   Stack,
+  StyledButton,
   Text,
 } from "../../../../src/components/primitives";
-import { StyledButton } from "../../../../src/components/common/StyledButton";
 import { ExpenseRow } from "../../../../src/features/expenses/components/ExpenseRow";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
-import { makeStyles, useTheme } from "../../../../src/theme/ThemeProvider";
+import { makeStyles } from "../../../../src/theme/ThemeProvider";
 
 export default function GroupExpensesScreen() {
   const styles = useStyles();
-  const { colors } = useTheme();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const {
     group,
@@ -60,7 +59,7 @@ export default function GroupExpensesScreen() {
         />
         {expensesError ? (
           <FeedbackBanner tone="error" testID="group-expenses-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {expensesError}
             </Text>
             <StyledButton

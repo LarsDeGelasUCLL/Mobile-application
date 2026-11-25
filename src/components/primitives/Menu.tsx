@@ -11,16 +11,17 @@ interface MenuProps {
   items: MenuItem[];
   visible: boolean;
   onClose: () => void;
+  testID?: string;
 }
 
-export function Menu({ items, visible, onClose }: MenuProps) {
+export function Menu({ items, visible, onClose, testID }: MenuProps) {
   const styles = useStyles();
   if (!visible) return null;
 
   return (
     <>
       <Pressable onPress={onClose} style={styles.overlay} />
-      <View style={styles.menu}>
+      <View style={styles.menu} testID={testID}>
         {items.map((item) => (
           <Pressable
             key={item.label}

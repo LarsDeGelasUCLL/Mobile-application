@@ -350,14 +350,14 @@ test("group detail shows balances then recent expenses; members and admin tools 
 
 test("phase 7: text links, one primary per auth view, themed home/expense pages", async () => {
   const read = (file) => fs.readFile(file, "utf8");
-  const button = await read("src/components/common/StyledButton.tsx");
+  const button = await read("src/components/primitives/StyledButton.tsx");
   assert.match(button, /"link"/);
   assert.match(
     button,
     /accessibilityRole=\{variant === "link" \? "link" : "button"\}/,
   );
   assert.match(
-    await read("src/components/common/StyledButton.stories.tsx"),
+    await read("src/components/primitives/StyledButton.stories.tsx"),
     /variant: "link"/,
   );
 
@@ -2335,7 +2335,7 @@ test("phase 9 layout: text controls grow with font scale; tab bar keeps the home
   const read = (file) => fs.readFile(file, "utf8");
   // A fixed height clips the label at large Dynamic Type / font scale.
   for (const file of [
-    "src/components/common/StyledButton.tsx",
+    "src/components/primitives/StyledButton.tsx",
     "src/components/primitives/InputField.tsx",
     "src/components/primitives/Select.tsx",
   ]) {

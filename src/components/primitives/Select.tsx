@@ -27,7 +27,7 @@ export function Select<T extends string>({
   testID,
 }: SelectProps<T>) {
   const styles = useStyles();
-  const { colors, iconSize } = useTheme();
+  const { iconSize } = useTheme();
   const [open, setOpen] = useState(false);
   const current = options.find((option) => option.value === value);
 
@@ -47,7 +47,7 @@ export function Select<T extends string>({
         <View style={styles.fieldValue}>
           <Text numberOfLines={1}>{current?.label ?? "Choose…"}</Text>
         </View>
-        <Icon name="chevron-down" size={iconSize.md} color={colors.textMuted} />
+        <Icon name="chevron-down" size={iconSize.md} tone="muted" />
       </Pressable>
 
       <Sheet
@@ -81,7 +81,7 @@ export function Select<T extends string>({
                 <View style={styles.fieldValue}>
                   <Text
                     weight={selected ? "medium" : "normal"}
-                    color={selected ? colors.primaryText : colors.text}
+                    tone={selected ? "primary" : "default"}
                   >
                     {option.label}
                   </Text>
@@ -90,7 +90,7 @@ export function Select<T extends string>({
                   <Icon
                     name="checkmark"
                     size={iconSize.md}
-                    color={colors.primaryText}
+                    tone="primary"
                   />
                 )}
               </Pressable>

@@ -8,9 +8,9 @@ import {
   ScreenHeader,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../../src/components/primitives";
-import { StyledButton } from "../../../../src/components/common/StyledButton";
 import {
   ExpenseForm,
   type ExpenseFormHandle,
@@ -21,7 +21,6 @@ import { useAuthStore } from "../../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../../src/state/useGroupStore";
 import type { PublicUserProfileDto, User } from "../../../../src/types";
-import { useTheme } from "../../../../src/theme/ThemeProvider";
 
 function currentUserProfile(user: User | null): PublicUserProfileDto | null {
   if (!user) return null;
@@ -54,7 +53,6 @@ function getErrorMessage(error: unknown): string {
 
 export default function EditExpenseScreen() {
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
-  const { colors } = useTheme();
   const formRef = useRef<ExpenseFormHandle>(null);
   const user = useAuthStore((state) => state.user);
   const selectedExpense = useExpenseStore((state) => state.selectedExpense);
@@ -221,7 +219,7 @@ export default function EditExpenseScreen() {
         />
         {loadError ? (
           <FeedbackBanner tone="error" testID="expense-edit-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {loadError}
             </Text>
             <StyledButton

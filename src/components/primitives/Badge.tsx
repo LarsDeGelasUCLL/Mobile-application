@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
+import type { Tone } from "../../theme/tone";
 
 interface BadgeProps {
   label: string;
@@ -10,12 +11,10 @@ interface BadgeProps {
 
 export function Badge({ label, variant = "default", testID }: BadgeProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
-  const textColor =
-    variant === "default" ? colors.primaryText : colors[variant];
+  const tone: Tone = variant === "default" ? "primary" : variant;
   return (
     <View style={[styles.base, styles[variant]]} testID={testID}>
-      <Text size="sm" weight="medium" color={textColor}>
+      <Text size="sm" weight="medium" tone={tone}>
         {label}
       </Text>
     </View>

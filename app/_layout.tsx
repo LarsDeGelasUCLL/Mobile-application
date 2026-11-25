@@ -26,8 +26,11 @@ import { useAuthStore } from "../src/state/useAuthStore";
 import { useSettingsStore } from "../src/state/useSettingsStore";
 import { supabase } from "../src/services";
 import { exchangeAuthLinkCode } from "../src/features/auth/authLink";
-import { FeedbackBanner, Text } from "../src/components/primitives";
-import { StyledButton } from "../src/components/common/StyledButton";
+import {
+  FeedbackBanner,
+  StyledButton,
+  Text,
+} from "../src/components/primitives";
 import { darkPalette, lightPalette } from "../src/theme/palettes";
 import { resolveScheme } from "../src/theme/scheme";
 import { ThemeProvider } from "../src/theme/ThemeProvider";
@@ -144,7 +147,7 @@ export default function RootLayout() {
           {serviceWorkerError ? (
             <View style={styles.serviceWorkerNotice}>
               <FeedbackBanner tone="warning" testID="service-worker-error">
-                <Text size="sm" color={colors.warning}>
+                <Text size="sm" tone="warning">
                   Offline support could not start. The app is still available
                   online.
                 </Text>

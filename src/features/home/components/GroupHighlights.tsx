@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, View } from "react-native";
 import { Icon, Text } from "../../../components/primitives";
 import { GroupAvatar } from "../../groups/components/GroupAvatar";
-import { makeStyles, useTheme } from "../../../theme/ThemeProvider";
+import { makeStyles } from "../../../theme/ThemeProvider";
 import type { GroupHighlight } from "../../../types";
 
 interface GroupHighlightsProps {
@@ -17,7 +17,6 @@ export function GroupHighlights({
   onGroupPress,
 }: GroupHighlightsProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
     <ScrollView
       horizontal
@@ -42,7 +41,7 @@ export function GroupHighlights({
           <Text
             size="sm"
             align="center"
-            color={colors.textMuted}
+            tone="muted"
             numberOfLines={1}
           >
             {group.name}
@@ -56,9 +55,9 @@ export function GroupHighlights({
         style={({ pressed }) => [styles.groupItem, pressed && styles.pressed]}
       >
         <View style={styles.addIcon}>
-          <Icon name="add" size={24} color={colors.primaryText} />
+          <Icon name="add" size={24} tone="primary" />
         </View>
-        <Text size="sm" align="center" color={colors.primaryText}>
+        <Text size="sm" align="center" tone="primary">
           Find groups
         </Text>
       </Pressable>

@@ -6,16 +6,14 @@ import {
   Screen,
   ScreenHeader,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import { validateGroupName } from "../../../src/features/groups/groupValidation";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 
 export default function CreateGroupScreen() {
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const createNewGroup = useGroupStore((state) => state.createNewGroup);
   const isLoading = useGroupStore((state) => state.isLoading);
@@ -89,7 +87,7 @@ export default function CreateGroupScreen() {
         />
         {storeError ? (
           <FeedbackBanner tone="error" testID="create-group-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {storeError}
             </Text>
           </FeedbackBanner>

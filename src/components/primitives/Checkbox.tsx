@@ -1,28 +1,32 @@
 import { Pressable, View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface CheckboxProps {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  testID?: string;
 }
 
-export function Checkbox({ label, checked, onChange }: CheckboxProps) {
+export function Checkbox({
+  label,
+  checked,
+  onChange,
+  testID,
+}: CheckboxProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
     <Pressable
       onPress={() => onChange(!checked)}
       style={styles.container}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
+      testID={testID}
     >
       <View style={[styles.box, checked && styles.boxChecked]}>
-        {checked && (
-          <Icon name="checkmark" size={16} color={colors.onPrimary} />
-        )}
+        {checked && <Icon name="checkmark" size={16} tone="onPrimary" />}
       </View>
       <Text size="md">{label}</Text>
     </Pressable>

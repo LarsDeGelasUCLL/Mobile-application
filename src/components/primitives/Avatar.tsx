@@ -1,16 +1,16 @@
 import { View, Image } from "react-native";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface AvatarProps {
   uri?: string;
   name?: string;
   size?: "sm" | "md" | "lg";
+  testID?: string;
 }
 
-export function Avatar({ uri, name, size = "md" }: AvatarProps) {
+export function Avatar({ uri, name, size = "md", testID }: AvatarProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   const initials = name
     ? name
         .split(" ")
@@ -21,15 +21,24 @@ export function Avatar({ uri, name, size = "md" }: AvatarProps) {
     : "?";
 
   if (uri !== undefined) {
-    return <Image source={{ uri }} style={[styles.base, styles[size]]} />;
+    return (
+      <Image
+        source={{ uri }}
+        style={[styles.base, styles[size]]}
+        testID={testID}
+      />
+    );
   }
 
   return (
-    <View style={[styles.base, styles[size], styles.fallback]}>
+    <View
+      style={[styles.base, styles[size], styles.fallback]}
+      testID={testID}
+    >
       <Text
         size={size === "lg" ? "lg" : "sm"}
         weight="bold"
-        color={colors.primaryText}
+        tone="primary"
       >
         {initials}
       </Text>

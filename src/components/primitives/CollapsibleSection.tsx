@@ -21,7 +21,7 @@ export function CollapsibleSection({
   testID,
 }: CollapsibleSectionProps) {
   const styles = useStyles();
-  const { colors, iconSize } = useTheme();
+  const { iconSize } = useTheme();
   const [open, setOpen] = useState(defaultOpen);
   const heading = count !== undefined ? `${title} (${count})` : title;
 
@@ -41,7 +41,7 @@ export function CollapsibleSection({
         <Icon
           name={open ? "chevron-up" : "chevron-down"}
           size={iconSize.md}
-          color={colors.textMuted}
+          tone="muted"
         />
       </Pressable>
       {open && <View style={styles.body}>{children}</View>}

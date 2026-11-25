@@ -4,11 +4,13 @@ import { makeStyles } from "../../theme/ThemeProvider";
 interface DividerProps {
   orientation?: "horizontal" | "vertical";
   spacing?: "none" | "sm" | "md" | "lg";
+  testID?: string;
 }
 
 export function Divider({
   orientation = "horizontal",
   spacing = "none",
+  testID,
 }: DividerProps) {
   const styles = useStyles();
   return (
@@ -18,6 +20,7 @@ export function Divider({
         orientation === "horizontal" ? styles.horizontal : styles.vertical,
         styles[`spacing_${spacing}`],
       ]}
+      testID={testID}
     />
   );
 }

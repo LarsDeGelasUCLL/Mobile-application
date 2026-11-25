@@ -16,7 +16,7 @@ export default function TabsLayout() {
         <Icon
           name={focused ? active : inactive}
           size={24}
-          color={focused ? colors.primaryText : colors.textMuted}
+          tone={focused ? "primary" : "muted"}
         />
       );
     };
@@ -88,7 +88,6 @@ export default function TabsLayout() {
               icon="settings-outline"
               accessibilityLabel="Open settings"
               onPress={() => router.push("/settings")}
-              color={colors.text}
               testID="open-settings-button"
             />
           ),

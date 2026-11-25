@@ -8,6 +8,7 @@ interface StackProps {
   justify?: "flex-start" | "center" | "flex-end" | "space-between";
   padding?: "none" | "sm" | "md" | "lg";
   flex?: number;
+  testID?: string;
 }
 
 export function Stack({
@@ -17,6 +18,7 @@ export function Stack({
   justify = "flex-start",
   padding = "none",
   flex,
+  testID,
 }: StackProps) {
   const styles = useStyles();
   return (
@@ -28,6 +30,7 @@ export function Stack({
         { alignItems: align, justifyContent: justify },
         flex !== undefined && { flex },
       ]}
+      testID={testID}
     >
       {children}
     </View>

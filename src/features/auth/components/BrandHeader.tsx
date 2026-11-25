@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { View } from "react-native";
 import { Icon, Text } from "../../../components/primitives";
-import { makeStyles, useTheme } from "../../../theme/ThemeProvider";
+import { makeStyles } from "../../../theme/ThemeProvider";
 
 interface BrandHeaderProps {
   iconName?: ComponentProps<typeof Icon>["name"];
@@ -14,13 +14,12 @@ export function BrandHeader({
   testID = "brand-header",
 }: BrandHeaderProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
     <View style={styles.brand} testID={testID}>
       <View style={styles.brandMark}>
-        <Icon name={iconName} size={28} color={colors.onPrimary} />
+        <Icon name={iconName} size={28} tone="onPrimary" />
       </View>
-      <Text size="md" weight="bold" color={colors.primaryText}>
+      <Text size="md" weight="bold" tone="primary">
         Laruna
       </Text>
     </View>

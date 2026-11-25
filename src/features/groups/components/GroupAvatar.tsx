@@ -7,6 +7,7 @@ interface GroupAvatarProps {
   imageUri?: string;
   fallbackColor?: string;
   size?: number;
+  testID?: string;
 }
 
 export function GroupAvatar({
@@ -14,6 +15,7 @@ export function GroupAvatar({
   imageUri,
   fallbackColor,
   size = 56,
+  testID,
 }: GroupAvatarProps) {
   const { colors } = useTheme();
   const initials = name
@@ -35,6 +37,7 @@ export function GroupAvatar({
         source={{ uri: imageUri }}
         resizeMode="cover"
         style={avatarStyle}
+        testID={testID}
       />
     );
   }
@@ -46,12 +49,9 @@ export function GroupAvatar({
         ...avatarStyle,
         { backgroundColor: fallbackColor ?? colors.primary },
       ]}
+      testID={testID}
     >
-      <Text
-        size={size < 48 ? "sm" : "md"}
-        weight="bold"
-        color={colors.onPrimary}
-      >
+      <Text size={size < 48 ? "sm" : "md"} weight="bold" tone="onPrimary">
         {initials}
       </Text>
     </View>

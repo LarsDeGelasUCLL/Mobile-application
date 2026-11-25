@@ -2,13 +2,14 @@ import type { ComponentProps } from "react";
 import { View } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface EmptyStateProps {
   title: string;
   description?: string;
   action?: React.ReactNode;
   icon?: ComponentProps<typeof Icon>["name"];
+  testID?: string;
 }
 
 export function EmptyState({
@@ -16,19 +17,17 @@ export function EmptyState({
   description,
   action,
   icon,
+  testID,
 }: EmptyStateProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
-    <View style={styles.base}>
-      {icon !== undefined && (
-        <Icon name={icon} size={32} color={colors.primaryText} />
-      )}
+    <View style={styles.base} testID={testID}>
+      {icon !== undefined && <Icon name={icon} size={32} tone="primary" />}
       <Text size="lg" weight="bold" align="center">
         {title}
       </Text>
       {description !== undefined && (
-        <Text align="center" color={colors.textMuted}>
+        <Text align="center" tone="muted">
           {description}
         </Text>
       )}

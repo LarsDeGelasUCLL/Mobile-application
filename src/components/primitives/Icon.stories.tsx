@@ -7,4 +7,4 @@ type Story = StoryObj<typeof Icon>;
 
 export const Default: Story = { args: { name: 'home' } };
 export const Large: Story = { args: { name: 'settings', size: 32 } };
-export const Colored: Story = { args: { name: 'heart', color: 'red', size: 28 } };
+export const Toned: Story = { args: { name: 'heart', tone: 'error', size: 28 } };

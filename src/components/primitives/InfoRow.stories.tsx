@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { InfoRow } from "./InfoRow";
 
 const meta: Meta<typeof InfoRow> = {
-  title: "Common/InfoRow",
+  title: "Primitives/InfoRow",
   component: InfoRow,
 };
 export default meta;

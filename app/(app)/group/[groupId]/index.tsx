@@ -15,17 +15,15 @@ import {
   Sheet,
   Skeleton,
   Stack,
+  StyledButton,
   Text,
 } from "../../../../src/components/primitives";
-import { StyledButton } from "../../../../src/components/common/StyledButton";
 import { ExpenseRow } from "../../../../src/features/expenses/components/ExpenseRow";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
-import { useTheme } from "../../../../src/theme/ThemeProvider";
 
 const RECENT_EXPENSES = 5;
 
 export default function GroupDetailScreen() {
-  const { colors } = useTheme();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const {
     user,
@@ -74,7 +72,6 @@ export default function GroupDetailScreen() {
                     icon="key-outline"
                     accessibilityLabel="Show invite code"
                     onPress={() => setCodeOpen(true)}
-                    color={colors.text}
                     testID="group-invite-code-button"
                   />
                   <IconButton
@@ -86,7 +83,6 @@ export default function GroupDetailScreen() {
                         params: { groupId },
                       })
                     }
-                    color={colors.text}
                     testID="group-settings-button"
                   />
                 </>
@@ -97,7 +93,7 @@ export default function GroupDetailScreen() {
 
           {storeError ? (
             <FeedbackBanner tone="error" testID="group-detail-error">
-              <Text size="sm" color={colors.error}>
+              <Text size="sm" tone="error">
                 {storeError}
               </Text>
               <StyledButton
@@ -112,7 +108,7 @@ export default function GroupDetailScreen() {
 
           {expensesError ? (
             <FeedbackBanner tone="error" testID="group-expenses-error">
-              <Text size="sm" color={colors.error}>
+              <Text size="sm" tone="error">
                 {expensesError}
               </Text>
               <StyledButton
@@ -148,7 +144,7 @@ export default function GroupDetailScreen() {
           ) : (
             <>
               <Stack gap="sm">
-                <Text size="sm" weight="bold" color={colors.textMuted}>
+                <Text size="sm" weight="bold" tone="muted">
                   BALANCES
                 </Text>
                 {expensesError &&
@@ -162,7 +158,7 @@ export default function GroupDetailScreen() {
                   </Card>
                 ) : !balancesLoaded && !expensesError ? (
                   <Card>
-                    <Text size="sm" color={colors.textMuted}>
+                    <Text size="sm" tone="muted">
                       Balances are loading.
                     </Text>
                   </Card>
@@ -193,7 +189,7 @@ export default function GroupDetailScreen() {
               </Stack>
 
               <Stack gap="sm">
-                <Text size="sm" weight="bold" color={colors.textMuted}>
+                <Text size="sm" weight="bold" tone="muted">
                   RECENT EXPENSES
                 </Text>
                 {expensesError &&
@@ -252,7 +248,7 @@ export default function GroupDetailScreen() {
           title="Invite code"
           testID="group-invite-code-sheet"
         >
-          <Text size="sm" color={colors.textMuted}>
+          <Text size="sm" tone="muted">
             Share this code with people you want to add. An admin approves each
             request.
           </Text>

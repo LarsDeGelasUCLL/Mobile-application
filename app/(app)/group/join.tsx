@@ -6,16 +6,14 @@ import {
   Screen,
   ScreenHeader,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import { validateInviteCode } from "../../../src/features/groups/groupValidation";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 
 export default function JoinGroupScreen() {
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const joinByCode = useGroupStore((state) => state.joinByCode);
   const isLoading = useGroupStore((state) => state.isLoading);
@@ -84,20 +82,20 @@ export default function JoinGroupScreen() {
           error={inviteCodeError}
           testID="join-group-code-input"
         />
-        <Text size="sm" color={colors.textMuted}>
+        <Text size="sm" tone="muted">
           A group admin approves your request. If they already invited you, you
           join right away.
         </Text>
         {storeError ? (
           <FeedbackBanner tone="error" testID="join-group-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {storeError}
             </Text>
           </FeedbackBanner>
         ) : null}
         {feedback ? (
           <FeedbackBanner tone="success" testID="join-group-feedback">
-            <Text size="sm" color={colors.success}>
+            <Text size="sm" tone="success">
               {feedback}
             </Text>
           </FeedbackBanner>

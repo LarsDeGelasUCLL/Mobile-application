@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { SectionHeader } from "./SectionHeader";
 
 const meta: Meta<typeof SectionHeader> = {
-  title: "Common/SectionHeader",
+  title: "Primitives/SectionHeader",
   component: SectionHeader,
 };
 export default meta;

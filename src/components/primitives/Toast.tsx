@@ -1,27 +1,34 @@
 import { View } from "react-native";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
+import type { Tone } from "../../theme/tone";
 
 interface ToastProps {
   message: string;
   variant?: "default" | "success" | "error";
   visible: boolean;
+  testID?: string;
 }
 
-export function Toast({ message, variant = "default", visible }: ToastProps) {
+export function Toast({
+  message,
+  variant = "default",
+  visible,
+  testID,
+}: ToastProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   if (!visible) return null;
 
   // Default toast inverts the page colours; status toasts reuse the tested status/soft pairs.
-  const textColor = variant === "default" ? colors.background : colors[variant];
+  const tone: Tone = variant === "default" ? "inverse" : variant;
   return (
     <View
       style={[styles.base, styles[variant]]}
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
+      testID={testID}
     >
-      <Text size="sm" weight="medium" color={textColor} align="center">
+      <Text size="sm" weight="medium" tone={tone} align="center">
         {message}
       </Text>
     </View>

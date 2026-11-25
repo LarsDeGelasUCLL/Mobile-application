@@ -7,10 +7,9 @@ import {
   Screen,
   ScreenHeader,
   Stack,
+  StyledButton,
   Text,
 } from "../../../src/components/primitives";
-import { StyledButton } from "../../../src/components/common/StyledButton";
-import { useTheme } from "../../../src/theme/ThemeProvider";
 import {
   validateProfile,
   type ProfileFieldErrors,
@@ -27,7 +26,6 @@ const emptyProfile: ProfileFormValues = {
 };
 
 export default function EditProfileScreen() {
-  const { colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -157,21 +155,21 @@ export default function EditProfileScreen() {
         />
         {profileError !== "" ? (
           <FeedbackBanner tone="error" testID="profile-save-error">
-            <Text size="sm" color={colors.error}>
+            <Text size="sm" tone="error">
               {profileError}
             </Text>
           </FeedbackBanner>
         ) : null}
         {savedMessage !== "" ? (
           <FeedbackBanner tone="success" testID="profile-saved-message">
-            <Text size="sm" color={colors.success}>
+            <Text size="sm" tone="success">
               {savedMessage}
             </Text>
           </FeedbackBanner>
         ) : null}
         {partialSuccessWarning !== "" ? (
           <FeedbackBanner tone="warning" testID="profile-save-warning">
-            <Text size="sm" color={colors.warning}>
+            <Text size="sm" tone="warning">
               {partialSuccessWarning}
             </Text>
           </FeedbackBanner>

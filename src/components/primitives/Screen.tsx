@@ -4,6 +4,7 @@ import {
   RefreshControl,
   ScrollView,
   View,
+  type ScrollViewProps,
 } from "react-native";
 import { StickyFooter } from "./StickyFooter";
 import { makeStyles, useTheme } from "../../theme/ThemeProvider";
@@ -16,7 +17,12 @@ interface ScreenProps {
   onRefresh?: () => void;
   /** Sticky bottom bar (primary action). Stays above the keyboard. */
   footer?: React.ReactNode;
+  testID?: string;
 }
+
+// Web: "on-drag" blurs an input right after it gains focus, so no drag dismiss there.
+const keyboardDismissMode: ScrollViewProps["keyboardDismissMode"] =
+  Platform.select({ ios: "interactive", android: "on-drag", default: "none" });
 
 export function Screen({
   children,
@@ -25,6 +31,7 @@ export function Screen({
   refreshing = false,
   onRefresh,
   footer,
+  testID,
 }: ScreenProps) {
   const styles = useStyles();
   const { colors } = useTheme();
@@ -33,7 +40,7 @@ export function Screen({
 
   if (!scrollable) {
     return (
-      <View style={styles.container}>
+      <View style={styles.container} testID={testID}>
         <View style={[styles.fill, styles[padding]]}>{children}</View>
         {footerBar}
       </View>
@@ -44,12 +51,13 @@ export function Screen({
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "android" ? "height" : undefined}
+      testID={testID}
     >
       <ScrollView
         style={styles.fill}
         contentContainerStyle={[styles.content, styles[padding]]}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        keyboardDismissMode={keyboardDismissMode}
         automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         refreshControl={
           onRefresh !== undefined ? (

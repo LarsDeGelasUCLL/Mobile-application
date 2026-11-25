@@ -9,8 +9,6 @@ import {
   validatePassword,
 } from "../src/features/auth/authValidation";
 import { BrandHeader } from "../src/features/auth/components/BrandHeader";
-import { StyledButton } from "../src/components/common/StyledButton";
-import { useTheme } from "../src/theme/ThemeProvider";
 import {
   Card,
   FeedbackBanner,
@@ -19,13 +17,13 @@ import {
   Screen,
   Spinner,
   Stack,
+  StyledButton,
   Text,
 } from "../src/components/primitives";
 
 type AuthMode = "login" | "signup" | "reset" | "set-password" | "confirmation";
 
 export default function LoginScreen() {
-  const { colors } = useTheme();
   const params = useLocalSearchParams<{
     mode?: string;
     authLinkError?: string;
@@ -231,8 +229,8 @@ export default function LoginScreen() {
             <Stack gap="md" align="center" padding="md">
               {isLoading ? (
                 <>
-                  <Spinner size="large" color={colors.primary} />
-                  <Text align="center" color={colors.textMuted}>
+                  <Spinner size="large" />
+                  <Text align="center" tone="muted">
                     Restoring your session...
                   </Text>
                 </>
@@ -241,7 +239,7 @@ export default function LoginScreen() {
                   <Text align="center" weight="bold">
                     Could not restore your session
                   </Text>
-                  <Text size="sm" align="center" color={colors.textMuted}>
+                  <Text size="sm" align="center" tone="muted">
                     Check your connection and try again.
                   </Text>
                   <StyledButton
@@ -282,20 +280,20 @@ export default function LoginScreen() {
 
             {mode === "confirmation" ? (
               <Stack gap="md">
-                <Text align="center" color={colors.textMuted}>
+                <Text align="center" tone="muted">
                   Check {confirmationEmail || "your inbox"} and confirm your
                   email before logging in.
                 </Text>
                 {successMessage !== "" ? (
                   <FeedbackBanner tone="success" testID="confirmation-success">
-                    <Text size="sm" color={colors.success}>
+                    <Text size="sm" tone="success">
                       {successMessage}
                     </Text>
                   </FeedbackBanner>
                 ) : null}
                 {formError !== "" ? (
                   <FeedbackBanner tone="error" testID="confirmation-error">
-                    <Text size="sm" color={colors.error}>
+                    <Text size="sm" tone="error">
                       {formError}
                     </Text>
                   </FeedbackBanner>
@@ -383,7 +381,7 @@ export default function LoginScreen() {
 
                 {formError !== "" ? (
                   <FeedbackBanner tone="error" testID="auth-error">
-                    <Text size="sm" color={colors.error}>
+                    <Text size="sm" tone="error">
                       {formError}
                     </Text>
                   </FeedbackBanner>
@@ -391,7 +389,7 @@ export default function LoginScreen() {
 
                 {successMessage !== "" ? (
                   <FeedbackBanner tone="success" testID="auth-success">
-                    <Text size="sm" color={colors.success}>
+                    <Text size="sm" tone="success">
                       {successMessage}
                     </Text>
                   </FeedbackBanner>
@@ -436,7 +434,7 @@ export default function LoginScreen() {
                   <>
                     {!isAuthenticated ? (
                       <FeedbackBanner tone="error" testID="expired-auth-link">
-                        <Text size="sm" color={colors.error}>
+                        <Text size="sm" tone="error">
                           This reset link is no longer active. Request a new
                           reset email to continue.
                         </Text>
@@ -469,7 +467,7 @@ export default function LoginScreen() {
         </Card>
         {mode === "login" ? (
           <Row justify="center" align="center" gap="none">
-            <Text size="sm" color={colors.textMuted}>
+            <Text size="sm" tone="muted">
               New to Laruna?
             </Text>
             <StyledButton

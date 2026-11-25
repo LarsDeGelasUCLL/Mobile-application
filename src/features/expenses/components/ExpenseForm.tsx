@@ -15,9 +15,9 @@ import {
   Radio,
   Row,
   Stack,
+  StyledButton,
   Text,
 } from "../../../components/primitives";
-import { StyledButton } from "../../../components/common/StyledButton";
 import {
   createEqualExpenseSplits,
   validateExpenseForm,
@@ -25,7 +25,7 @@ import {
   type ValidExpenseForm,
 } from "../../../services/expenses/expenseValidation";
 import type { ExpenseDto, PublicUserProfileDto } from "../../../types";
-import { makeStyles, useTheme } from "../../../theme/ThemeProvider";
+import { makeStyles } from "../../../theme/ThemeProvider";
 
 interface ExpenseFormProps {
   groupId: string | null;
@@ -70,7 +70,6 @@ export function ExpenseForm({
   ref,
 }: ExpenseFormProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [receiptUrl, setReceiptUrl] = useState("");
@@ -134,8 +133,7 @@ export function ExpenseForm({
     setValidationError(undefined);
   };
 
-  const handleSplitMode = (mode: string) => {
-    if (mode !== "equal" && mode !== "custom") return;
+  const handleSplitMode = (mode: SplitMode) => {
     setSplitMode(mode);
     if (mode === "equal") {
       setSplits((current) =>
@@ -172,7 +170,7 @@ export function ExpenseForm({
     <Stack gap="md">
       {error || validationError ? (
         <FeedbackBanner tone="error" testID="expense-form-error">
-          <Text size="sm" color={colors.error}>
+          <Text size="sm" tone="error">
             {validationError ?? error}
           </Text>
           {error ? (
@@ -285,7 +283,7 @@ export function ExpenseForm({
             />
           </Row>
           {splits.length === 0 ? (
-            <Text size="sm" color={colors.textMuted}>
+            <Text size="sm" tone="muted">
               Select at least one participant.
             </Text>
           ) : (

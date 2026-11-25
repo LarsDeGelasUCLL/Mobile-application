@@ -1,19 +1,19 @@
 import { View, Pressable } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface TagProps {
   label: string;
   onRemove?: () => void;
+  testID?: string;
 }
 
-export function Tag({ label, onRemove }: TagProps) {
+export function Tag({ label, onRemove, testID }: TagProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
-    <View style={styles.base}>
-      <Text size="sm" color={colors.primaryText}>
+    <View style={styles.base} testID={testID}>
+      <Text size="sm" tone="primary">
         {label}
       </Text>
       {onRemove !== undefined && (
@@ -23,7 +23,7 @@ export function Tag({ label, onRemove }: TagProps) {
           accessibilityRole="button"
           accessibilityLabel={`Remove ${label}`}
         >
-          <Icon name="close" size={16} color={colors.primaryText} />
+          <Icon name="close" size={16} tone="primary" />
         </Pressable>
       )}
     </View>

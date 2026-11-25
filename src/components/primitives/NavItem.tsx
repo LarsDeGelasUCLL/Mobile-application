@@ -1,28 +1,34 @@
 import { Pressable } from "react-native";
 import { Text } from "./Text";
-import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface NavItemProps {
   label: string;
   onPress: () => void;
   active?: boolean;
   icon?: string;
+  testID?: string;
 }
 
-export function NavItem({ label, onPress, active = false }: NavItemProps) {
+export function NavItem({
+  label,
+  onPress,
+  active = false,
+  testID,
+}: NavItemProps) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       style={[styles.base, active && styles.active]}
+      testID={testID}
     >
       <Text
         size="md"
         weight={active ? "bold" : "normal"}
-        color={active ? colors.primaryText : colors.textMuted}
+        tone={active ? "primary" : "muted"}
       >
         {label}
       </Text>

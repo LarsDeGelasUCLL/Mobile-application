@@ -2,14 +2,21 @@ import { Pressable, View } from "react-native";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
 
-interface RadioProps {
+interface RadioProps<T extends string> {
   label: string;
-  value: string;
+  value: T;
   selected: boolean;
-  onSelect: (value: string) => void;
+  onSelect: (value: T) => void;
+  testID?: string;
 }
 
-export function Radio({ label, value, selected, onSelect }: RadioProps) {
+export function Radio<T extends string>({
+  label,
+  value,
+  selected,
+  onSelect,
+  testID,
+}: RadioProps<T>) {
   const styles = useStyles();
   return (
     <Pressable
@@ -17,6 +24,7 @@ export function Radio({ label, value, selected, onSelect }: RadioProps) {
       style={styles.container}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
+      testID={testID}
     >
       <View style={[styles.circle, selected && styles.circleSelected]}>
         {selected && <View style={styles.dot} />}

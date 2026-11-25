@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { StyledButton } from "./StyledButton";
 
 const meta: Meta<typeof StyledButton> = {
-  title: "Common/StyledButton",
+  title: "Primitives/StyledButton",
   component: StyledButton,
 };
 export default meta;
