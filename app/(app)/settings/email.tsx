@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { router } from "expo-router";
+import { getErrorMessage } from "../../../src/utils/errors";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import {
   FeedbackBanner,
@@ -36,9 +37,10 @@ export default function ChangeEmailScreen() {
       setNewEmail("");
     } catch (emailError) {
       setEmailRequestError(
-        emailError instanceof Error
-          ? emailError.message
-          : "Could not request the email change. Please retry.",
+        getErrorMessage(
+          emailError,
+          "Could not request the email change. Please retry.",
+        ),
       );
     }
   };
@@ -58,10 +60,8 @@ export default function ChangeEmailScreen() {
       <Stack gap="lg">
         <ScreenHeader
           title="Email"
-          subtitle={`Current: ${user?.email ?? "Not available"}`}
-          onBack={() =>
-            router.canGoBack() ? router.back() : router.replace("/settings")
-          }
+          subtitle={`Current: ${user?.emailAddress ?? "Not available"}`}
+          onBack={() => goBackOr("/settings")}
           testID="change-email-header"
         />
         <InputField

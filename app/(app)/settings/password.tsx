@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { router } from "expo-router";
+import { getErrorMessage } from "../../../src/utils/errors";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import {
   FeedbackBanner,
@@ -9,7 +10,10 @@ import {
   Stack,
   StyledButton,
 } from "../../../src/components/primitives";
-import { validatePassword } from "../../../src/features/auth/authValidation";
+import {
+  validatePassword,
+  validatePasswordConfirmation,
+} from "../../../src/features/auth/authValidation";
 
 export default function ChangePasswordScreen() {
   const setPassword = useAuthStore((state) => state.setPassword);
@@ -23,8 +27,10 @@ export default function ChangePasswordScreen() {
 
   const handleSetPassword = async () => {
     const nextPasswordError = validatePassword(password);
-    const nextConfirmPasswordError =
-      confirmPassword === password ? undefined : "Passwords must match.";
+    const nextConfirmPasswordError = validatePasswordConfirmation(
+      password,
+      confirmPassword,
+    );
     setPasswordError(nextPasswordError);
     setConfirmPasswordError(nextConfirmPasswordError);
     setPasswordMessage("");
@@ -38,9 +44,10 @@ export default function ChangePasswordScreen() {
       setPasswordMessage("Your password was updated.");
     } catch (passwordError) {
       setPasswordRequestError(
-        passwordError instanceof Error
-          ? passwordError.message
-          : "Could not update the password. Please retry.",
+        getErrorMessage(
+          passwordError,
+          "Could not update the password. Please retry.",
+        ),
       );
     }
   };
@@ -60,9 +67,7 @@ export default function ChangePasswordScreen() {
       <Stack gap="lg">
         <ScreenHeader
           title="Password"
-          onBack={() =>
-            router.canGoBack() ? router.back() : router.replace("/settings")
-          }
+          onBack={() => goBackOr("/settings")}
           testID="change-password-header"
         />
         <InputField

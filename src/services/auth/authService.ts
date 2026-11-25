@@ -1,4 +1,4 @@
-import { getUserProfile, updateUserProfile } from "../profiles/profileService";
+import { getUserProfile } from "../profiles/profileService";
 import { supabase } from "../supabase";
 import type { Session } from "@supabase/supabase-js";
 import type {
@@ -9,17 +9,7 @@ import type {
   ResendConfirmationRequestDto,
   SetPasswordRequestDto,
   User,
-  UserProfileDto,
 } from "../../types";
-
-function buildAuthenticatedUser(profile: UserProfileDto, token: string): User {
-  return {
-    ...profile,
-    token,
-    email: profile.emailAddress,
-    name: profile.displayName,
-  };
-}
 
 export class EmailConfirmationRequiredError extends Error {
   constructor(readonly email: string) {
@@ -38,8 +28,7 @@ export async function login(payload: LoginRequestDto): Promise<User> {
     throw new Error(error?.message ?? "Login failed");
   }
 
-  const profile = await getUserProfile(data.user.id);
-  return buildAuthenticatedUser(profile, data.session.access_token);
+  return getUserProfile(data.user.id);
 }
 
 export async function register(payload: RegisterRequestDto): Promise<User> {
@@ -63,8 +52,7 @@ export async function register(payload: RegisterRequestDto): Promise<User> {
     throw new EmailConfirmationRequiredError(payload.email.trim());
   }
 
-  const profile = await getUserProfile(data.user.id);
-  return buildAuthenticatedUser(profile, data.session.access_token);
+  return getUserProfile(data.user.id);
 }
 
 export async function getCurrentUser(
@@ -82,17 +70,7 @@ export async function getCurrentUser(
     return null;
   }
 
-  const profile = await getUserProfile(currentSession.user.id);
-  return buildAuthenticatedUser(profile, currentSession.access_token);
-}
-
-export async function updateProfileName(name: string): Promise<void> {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) {
-    throw new Error(userError?.message ?? "Not logged in.");
-  }
-
-  await updateUserProfile(userData.user.id, { displayName: name.trim() });
+  return getUserProfile(currentSession.user.id);
 }
 
 export async function requestPasswordReset(

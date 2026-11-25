@@ -4,7 +4,7 @@ import {
   removeMembership,
 } from "../../services";
 import type { GroupActionCreator, GroupState } from "./groupStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 // Drops a handled request from the admin list and lowers that group's badge count.
 export function withoutJoinRequest(

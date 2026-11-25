@@ -1,15 +1,13 @@
 import type { UpdateUserSettingsDto, UserSettingsDto } from "../../types";
 import type { Database } from "../../types/database.types";
 import { mapRowToUserSettingsDto } from "./profileMappers";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
 export async function getUserSettings(
   userId: string,
 ): Promise<UserSettingsDto> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
 
   const { data, error } = await supabase
     .from("user_settings")
@@ -28,10 +26,7 @@ export async function updateUserSettings(
   userId: string,
   payload: UpdateUserSettingsDto,
 ): Promise<UserSettingsDto> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
 
   const updatePayload: Database["public"]["Tables"]["user_settings"]["Update"] =
     {};

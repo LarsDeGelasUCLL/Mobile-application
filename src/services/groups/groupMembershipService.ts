@@ -1,6 +1,7 @@
 import type { GroupDto, MembershipDto } from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 import { getPublicUserProfile } from "../profiles/profileService";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
 export async function inviteUserByEmail(
@@ -8,10 +9,7 @@ export async function inviteUserByEmail(
   senderUserId: string,
   targetEmail: string,
 ): Promise<MembershipDto> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== senderUserId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(senderUserId);
 
   const { data: created, error } = await supabase.rpc("invite_user_by_email", {
     _group_id: groupId,
@@ -31,10 +29,7 @@ export async function joinGroupByInviteCode(
   inviteCode: string,
 ): Promise<GroupDto> {
   const cleanCode = inviteCode.trim().toUpperCase();
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
   const { data: group, error } = await supabase.rpc(
     "join_group_by_invite_code",
     { _invite_code: cleanCode },

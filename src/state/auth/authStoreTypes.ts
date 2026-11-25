@@ -23,7 +23,6 @@ export interface AuthState {
   changeEmail: (payload: ChangeEmailRequestDto) => Promise<void>;
   resendConfirmation: (payload: ResendConfirmationRequestDto) => Promise<void>;
   logout: () => Promise<void>;
-  updateName: (name: string) => Promise<void>;
   updateProfile: (payload: UpdateUserProfileDto) => Promise<void>;
 }
 

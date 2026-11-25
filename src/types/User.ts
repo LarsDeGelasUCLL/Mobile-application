@@ -75,10 +75,5 @@ export interface UpdateUserSettingsDto {
   notifyGroupUpdates?: boolean;
 }
 
-// combined User object for useAuthStore
-export interface User extends UserProfileDto {
-  token: string;
-  // Backwards-compatible fields for existing boilerplate screens:
-  email: string;
-  name: string;
-}
+// The signed-in user in useAuthStore: their own profile row.
+export type User = UserProfileDto;

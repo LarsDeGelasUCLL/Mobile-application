@@ -19,6 +19,7 @@ import {
   StyledButton,
   Text,
 } from "../../../src/components/primitives";
+import { useActionFeedback } from "../../../src/features/shared/useActionFeedback";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import { makeStyles } from "../../../src/theme/ThemeProvider";
@@ -40,7 +41,7 @@ export default function GroupsScreen() {
   const clearError = useGroupStore((state) => state.clearError);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [feedback, setFeedback] = useState("");
+  const { feedback, run } = useActionFeedback(clearError);
 
   const loadGroups = useCallback(() => {
     if (user?.id) {
@@ -57,30 +58,18 @@ export default function GroupsScreen() {
     router.push(path);
   };
 
-  const handleCancelRequest = async (membershipId: string) => {
-    setFeedback("");
-    clearError();
-    try {
-      await cancelJoinRequest(membershipId);
-      setFeedback("Join request cancelled.");
-    } catch {
-      setFeedback("");
-    }
-  };
+  const handleCancelRequest = (membershipId: string) =>
+    run(() => cancelJoinRequest(membershipId), "Join request cancelled.");
 
   const handleInviteResponse = async (
     membershipId: string,
     accept: boolean,
   ) => {
     if (!user?.id) return;
-    setFeedback("");
-    clearError();
-    try {
-      await respondToInvite(user.id, membershipId, accept);
-      setFeedback(accept ? "Invitation accepted." : "Invitation declined.");
-    } catch {
-      setFeedback("");
-    }
+    await run(
+      () => respondToInvite(user.id, membershipId, accept),
+      accept ? "Invitation accepted." : "Invitation declined.",
+    );
   };
 
   const groupSummary = (groupId: string, isAdmin: boolean) => {

@@ -5,7 +5,7 @@ import {
 } from "../../services";
 import type { ExpenseDto } from "../../types";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createExpenseCreateActions: ExpenseActionCreator<
   "addExpense" | "updateExpense"

@@ -1,6 +1,7 @@
 import type { CreateGroupDto, GroupDto, UpdateGroupDto } from "../../types";
 import type { Database } from "../../types/database.types";
 import { mapRowToGroupDto } from "./groupMappers";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
 export { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
@@ -30,10 +31,7 @@ export async function createGroup(
     throw new Error("Group name is required.");
   }
 
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
   const { data: group, error } = await supabase.rpc(
     "create_group_with_membership",
     {

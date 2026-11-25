@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { goBackOr } from "../../../../src/features/navigation/goBackOr";
 import {
   CardFlatList,
   EmptyState,
@@ -44,12 +45,7 @@ export default function GroupExpensesScreen() {
           title="Expenses"
           subtitle={group?.name}
           onBack={() =>
-            router.canGoBack()
-              ? router.back()
-              : router.replace({
-                  pathname: "/group/[groupId]",
-                  params: { groupId },
-                })
+            goBackOr({ pathname: "/group/[groupId]", params: { groupId } })
           }
           testID="group-expenses-header"
         />

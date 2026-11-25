@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBackOr } from "../../../../src/features/navigation/goBackOr";
 import {
   BalanceRow,
   Card,
@@ -62,9 +63,7 @@ export default function GroupDetailScreen() {
       <Stack gap="lg">
         <ScreenHeader
           title={group?.name ?? "Group"}
-          onBack={() =>
-            router.canGoBack() ? router.back() : router.replace("/groups")
-          }
+          onBack={() => goBackOr("/groups")}
           actions={
             group ? (
               <>

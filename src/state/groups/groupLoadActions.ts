@@ -6,7 +6,7 @@ import {
   getUserPendingInvites,
 } from "../../services";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createGroupLoadActions: GroupActionCreator<
   "fetchGroupsAndInvites" | "fetchMembersForGroup"

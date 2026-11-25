@@ -7,15 +7,13 @@ import type {
 } from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
 export async function getUserActiveGroups(
   userId: string,
 ): Promise<UserGroupDto[]> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
 
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
@@ -103,10 +101,7 @@ async function getGroupMembershipsByStatus(
 export async function getUserPendingInvites(
   userId: string,
 ): Promise<GroupInviteDto[]> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
 
   const { data: pendingRows, error } = await supabase
     .from("memberships")
@@ -164,10 +159,7 @@ export async function getUserPendingInvites(
 export async function getUserJoinRequests(
   userId: string,
 ): Promise<GroupJoinRequestDto[]> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
 
   const { data: requestRows, error } = await supabase
     .from("memberships")

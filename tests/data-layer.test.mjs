@@ -4,8 +4,20 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-async function loadTypeScriptModule(filePath, dependencies = {}) {
+async function loadTypeScriptModule(filePath, dependencies = {}, globals = {}) {
   const source = await fs.readFile(filePath, "utf8");
+  // Services share the auth guard; build it on the test's fake supabase.
+  if (
+    source.includes('from "../authGuard"') &&
+    !("../authGuard" in dependencies)
+  ) {
+    dependencies = {
+      ...dependencies,
+      "../authGuard": await loadTypeScriptModule("src/services/authGuard.ts", {
+        "./supabase": dependencies["../supabase"],
+      }),
+    };
+  }
   const output = ts.transpileModule(source, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
@@ -30,6 +42,7 @@ async function loadTypeScriptModule(filePath, dependencies = {}) {
         callback();
         return 0;
       },
+      ...globals,
     },
     { filename: filePath },
   );
@@ -53,6 +66,42 @@ test("auth field validation returns specific required and format errors", async 
 
   assert.equal(validateDisplayName(""), "Display name is required.");
   assert.equal(validateDisplayName("Ada"), undefined);
+});
+
+test("password confirmation must match the password", async () => {
+  const { validatePasswordConfirmation } = await loadTypeScriptModule(
+    "src/features/auth/authValidation.ts",
+  );
+
+  assert.equal(
+    validatePasswordConfirmation("long-enough", "long-enoug"),
+    "Passwords must match.",
+  );
+  assert.equal(
+    validatePasswordConfirmation("long-enough", ""),
+    "Passwords must match.",
+  );
+  assert.equal(
+    validatePasswordConfirmation("long-enough", "long-enough"),
+    undefined,
+  );
+  assert.equal(validatePasswordConfirmation("", ""), undefined);
+});
+
+test("getErrorMessage uses the Error message, else the fallback", async () => {
+  // Share this realm's Error classes so `instanceof Error` sees the test's errors.
+  const { getErrorMessage } = await loadTypeScriptModule(
+    "src/utils/errors.ts",
+    {},
+    { Error, TypeError },
+  );
+
+  assert.equal(getErrorMessage(new Error("Boom"), "Fallback"), "Boom");
+  assert.equal(getErrorMessage(new TypeError("Typed"), "Fallback"), "Typed");
+  assert.equal(getErrorMessage(new Error(""), "Fallback"), "");
+  assert.equal(getErrorMessage("Boom", "Fallback"), "Fallback");
+  assert.equal(getErrorMessage({ message: "Boom" }, "Fallback"), "Fallback");
+  assert.equal(getErrorMessage(undefined, "Fallback"), "Fallback");
 });
 
 test("profile validation accepts valid details and rejects invalid values", async () => {
@@ -174,7 +223,7 @@ test("settings is a stack page opened from Profile, not a tab", async () => {
   assert.doesNotMatch(tabsLayout, /theme\/colors/);
   assert.match(tabsLayout, /tabBarBadge/);
   assert.match(settings, /<ScreenHeader/);
-  assert.match(settings, /router\.canGoBack\(\)/);
+  assert.match(settings, /goBackOr\(/);
 });
 
 test("profile is display-only; settings holds account sub-pages, dropdowns and the only logout", async () => {
@@ -259,7 +308,7 @@ test("groups tab lists groups first; create and join live on their own pages beh
     const source = await fs.readFile(`app/(app)/group/${page}.tsx`, "utf8");
     assert.match(source, /<ScreenHeader/);
     assert.match(source, /footer=/);
-    assert.match(source, /router\.replace\("\/groups"\)/);
+    assert.match(source, /goBackOr\("\/groups"\)/);
     assert.doesNotMatch(source, /theme\/colors/);
     for (const needle of needles)
       assert.ok(source.includes(needle), `${page}: ${needle}`);
@@ -278,7 +327,7 @@ test("group detail shows balances then recent expenses; members and admin tools 
       "utf8",
     );
     assert.match(source, /<ScreenHeader/);
-    assert.match(source, /router\.canGoBack\(\)/);
+    assert.match(source, /goBackOr\(/);
     assert.match(source, /useGroupDetail\(/);
     assert.doesNotMatch(source, /theme\/colors/);
   }
@@ -594,7 +643,7 @@ test("session recovery and detail back buttons have route-safe fallbacks", async
     "app/(app)/expense/edit/[expenseId].tsx",
   ];
   for (const screen of detailScreens) {
-    assert.match(await fs.readFile(screen, "utf8"), /router\.canGoBack\(\)/);
+    assert.match(await fs.readFile(screen, "utf8"), /goBackOr\(/);
   }
 });
 
@@ -835,7 +884,7 @@ test("loading group expenses calculates balances from the same fetch", async () 
         getExpenseById: async () => null,
         getIndividualExpenses: async () => [],
       },
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },
@@ -1212,7 +1261,7 @@ test("approving a join request calls the approve RPC and maps the membership", a
 const loadJoinRequestActions = () =>
   loadTypeScriptModule("src/state/groups/groupJoinRequestActions.ts", {
     "../../services": {},
-    "../shared/storeUtils": { getErrorMessage: (error) => String(error) },
+    "../../utils/errors": { getErrorMessage: (error) => String(error) },
   });
 
 test("sending an invitation does not add a pending member to active members", async () => {
@@ -1231,7 +1280,7 @@ test("sending an invitation does not add a pending member to active members", as
         respondToGroupInvite: async () => {},
       },
       "./groupJoinRequestActions": await loadJoinRequestActions(),
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },
@@ -1280,7 +1329,7 @@ test("responding to an invitation updates the store before refresh completes", a
         respondToGroupInvite: async () => markResponseComplete(),
       },
       "./groupJoinRequestActions": await loadJoinRequestActions(),
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },
@@ -1353,7 +1402,7 @@ async function createGroupActionsHarness(
   const module = await loadTypeScriptModule(filePath, {
     "../../services": services,
     "./groupJoinRequestActions": await loadJoinRequestActions(),
-    "../shared/storeUtils": {
+    "../../utils/errors": {
       getErrorMessage: (error, fallback) =>
         error instanceof Error ? error.message : fallback,
     },
@@ -1624,7 +1673,7 @@ test("settings store loads settings and persists returned updates", async () => 
           ...update,
         }),
       },
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },
@@ -2062,7 +2111,7 @@ test("expense creation remains locally successful when balance refresh fails", a
           throw new Error("Balance refresh failed");
         },
       },
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },
@@ -2122,7 +2171,7 @@ test("expense store refuses to settle or unsettle the payer's own split", async 
           settleCalls += 1;
         },
       },
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },
@@ -2182,7 +2231,7 @@ test("settling and unsettling a split updates cached expenses and group balances
         },
         settleExpenseSplit: async (...args) => settleCalls.push(args),
       },
-      "../shared/storeUtils": {
+      "../../utils/errors": {
         getErrorMessage: (error) => String(error),
       },
     },

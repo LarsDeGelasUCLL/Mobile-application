@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { router } from "expo-router";
+import { getErrorMessage } from "../../../src/utils/errors";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useSettingsStore } from "../../../src/state/useSettingsStore";
 import type { UiTheme, UpdateUserSettingsDto } from "../../../src/types";
@@ -53,9 +55,7 @@ export default function SettingsScreen() {
       await fetchSettings(userId);
     } catch (loadError) {
       setSettingsActionError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Could not load settings.",
+        getErrorMessage(loadError, "Could not load settings."),
       );
     }
   }, [userId, fetchSettings]);
@@ -76,9 +76,7 @@ export default function SettingsScreen() {
       setSettingsMessage("Settings saved.");
     } catch (updateError) {
       setSettingsActionError(
-        updateError instanceof Error
-          ? updateError.message
-          : "Could not save settings. Please retry.",
+        getErrorMessage(updateError, "Could not save settings. Please retry."),
       );
     } finally {
       setIsSavingSettings(false);
@@ -94,9 +92,7 @@ export default function SettingsScreen() {
     } catch (logoutError) {
       setConfirmLogout(false);
       setLogoutError(
-        logoutError instanceof Error
-          ? logoutError.message
-          : "Could not log out. Please retry.",
+        getErrorMessage(logoutError, "Could not log out. Please retry."),
       );
     } finally {
       setIsLoggingOut(false);
@@ -108,9 +104,7 @@ export default function SettingsScreen() {
       <Stack gap="lg">
         <ScreenHeader
           title="Settings"
-          onBack={() =>
-            router.canGoBack() ? router.back() : router.replace("/profile")
-          }
+          onBack={() => goBackOr("/profile")}
           testID="settings-header"
         />
 
@@ -127,7 +121,7 @@ export default function SettingsScreen() {
             <ListRow
               icon="mail-outline"
               label="Email"
-              description={user?.email}
+              description={user?.emailAddress}
               onPress={() => router.push("/settings/email")}
               testID="settings-email"
             />

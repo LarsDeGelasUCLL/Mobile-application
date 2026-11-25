@@ -2,6 +2,7 @@ import type { ExpenseDto } from "../../types";
 import type { PublicUserProfileDto } from "../../types";
 import { enrichExpenses } from "./expenseEnrichment";
 import { getGroupMembers, getUserActiveGroups } from "../groups";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
 export async function getUserExpenseParticipants(
@@ -50,10 +51,7 @@ export async function getGroupExpenses(groupId: string): Promise<ExpenseDto[]> {
 export async function getIndividualExpenses(
   userId: string,
 ): Promise<ExpenseDto[]> {
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
 
   const { data: splitMatches, error: splitError } = await supabase
     .from("expense_splits")

@@ -8,7 +8,7 @@ import {
 } from "../../services";
 import { withoutJoinRequest } from "./groupJoinRequestActions";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createGroupInviteActions: GroupActionCreator<
   "inviteMemberByEmail" | "joinByCode" | "respondToInvite"

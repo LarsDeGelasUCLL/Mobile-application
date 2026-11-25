@@ -26,3 +26,9 @@ export function validateDisplayName(displayName: string): string | undefined {
   return undefined;
 }
 
+export function validatePasswordConfirmation(
+  password: string,
+  confirmPassword: string,
+): string | undefined {
+  return confirmPassword === password ? undefined : "Passwords must match.";
+}

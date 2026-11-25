@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import {
   FeedbackBanner,
   InputField,
@@ -66,9 +67,7 @@ export default function JoinGroupScreen() {
       <Stack gap="lg">
         <ScreenHeader
           title="Join with code"
-          onBack={() =>
-            router.canGoBack() ? router.back() : router.replace("/groups")
-          }
+          onBack={() => goBackOr("/groups")}
           testID="join-group-header"
         />
         <InputField

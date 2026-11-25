@@ -1,7 +1,7 @@
 import type { ExpenseDto } from "../../types";
 import { calculateGroupBalances, settleExpenseSplit } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 function updateSplitStatus(
   expenses: ExpenseDto[],

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import {
   Badge,
   Card,
@@ -129,20 +130,12 @@ export default function ExpenseDetailScreen() {
 
   const error = expenseError ?? groupError;
   const navigateBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-
     const groupId = expense?.groupId ?? deletedGroupId;
-    if (groupId) {
-      router.replace({
-        pathname: "/group/[groupId]",
-        params: { groupId },
-      });
-    } else {
-      router.replace("/expenses");
-    }
+    goBackOr(
+      groupId
+        ? { pathname: "/group/[groupId]", params: { groupId } }
+        : "/expenses",
+    );
   };
 
   return (

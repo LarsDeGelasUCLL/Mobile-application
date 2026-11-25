@@ -5,7 +5,7 @@ import {
   getGroupExpenses,
   getIndividualExpenses,
 } from "../../services";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createExpenseLoadActions: ExpenseActionCreator<
   | "fetchGroupExpensesAndBalances"

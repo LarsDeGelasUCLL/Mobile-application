@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { getErrorMessage } from "../src/utils/errors";
 import { useAuthStore } from "../src/state/useAuthStore";
 import { EmailConfirmationRequiredError } from "../src/services";
 import {
   validateDisplayName,
   validateEmail,
   validatePassword,
+  validatePasswordConfirmation,
 } from "../src/features/auth/authValidation";
 import { BrandHeader } from "../src/features/auth/components/BrandHeader";
 import {
@@ -112,9 +114,7 @@ export default function LoginScreen() {
       await login({ email, password });
       router.replace("/");
     } catch (error) {
-      setFormError(
-        error instanceof Error ? error.message : "Login failed. Please retry.",
-      );
+      setFormError(getErrorMessage(error, "Login failed. Please retry."));
     }
   };
 
@@ -144,9 +144,7 @@ export default function LoginScreen() {
         return;
       }
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Please retry.",
+        getErrorMessage(error, "Registration failed. Please retry."),
       );
     }
   };
@@ -168,9 +166,10 @@ export default function LoginScreen() {
       );
     } catch (error) {
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "Could not send reset instructions. Please retry.",
+        getErrorMessage(
+          error,
+          "Could not send reset instructions. Please retry.",
+        ),
       );
     }
   };
@@ -183,8 +182,10 @@ export default function LoginScreen() {
       return;
     }
     const nextPasswordError = validatePassword(password);
-    const nextConfirmPasswordError =
-      confirmPassword === password ? undefined : "Passwords must match.";
+    const nextConfirmPasswordError = validatePasswordConfirmation(
+      password,
+      confirmPassword,
+    );
     setPasswordError(nextPasswordError);
     setConfirmPasswordError(nextConfirmPasswordError);
     setFormError("");
@@ -198,9 +199,7 @@ export default function LoginScreen() {
       setConfirmPassword("");
     } catch (error) {
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "Could not update the password. Please retry.",
+        getErrorMessage(error, "Could not update the password. Please retry."),
       );
     }
   };
@@ -213,9 +212,7 @@ export default function LoginScreen() {
       setSuccessMessage("A new confirmation email was sent.");
     } catch (error) {
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "Could not resend confirmation. Please retry.",
+        getErrorMessage(error, "Could not resend confirmation. Please retry."),
       );
     }
   };

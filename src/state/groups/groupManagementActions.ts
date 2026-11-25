@@ -7,7 +7,7 @@ import {
   updateMembershipRole,
 } from "../../services";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createGroupManagementActions: GroupActionCreator<
   | "createNewGroup"

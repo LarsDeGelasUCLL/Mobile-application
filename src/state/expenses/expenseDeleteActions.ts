@@ -1,6 +1,6 @@
 import { calculateGroupBalances, deleteExpense } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createExpenseDeleteActions: ExpenseActionCreator<
   "removeExpense"

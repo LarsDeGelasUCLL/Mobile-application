@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBackOr } from "../../../../src/features/navigation/goBackOr";
 import {
   Avatar,
   Card,
@@ -27,6 +28,7 @@ import {
   validateInviteEmail,
 } from "../../../../src/features/groups/groupValidation";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
+import { useActionFeedback } from "../../../../src/features/shared/useActionFeedback";
 import { useGroupStore } from "../../../../src/state/useGroupStore";
 import type { MembershipDto, GroupRole } from "../../../../src/types";
 import { makeStyles } from "../../../../src/theme/ThemeProvider";
@@ -64,7 +66,7 @@ export default function GroupSettingsScreen() {
   const [email, setEmail] = useState("");
   const [nameError, setNameError] = useState<string>();
   const [emailError, setEmailError] = useState<string>();
-  const [feedback, setFeedback] = useState("");
+  const { feedback, run } = useActionFeedback(clearError);
   const [selectedMember, setSelectedMember] = useState<MembershipDto | null>(
     null,
   );
@@ -80,19 +82,6 @@ export default function GroupSettingsScreen() {
       setDescription(groupDescription ?? "");
     }
   }, [group?.id, groupName, groupDescription]);
-
-  // Runs a store action; the store holds the error message for the banner.
-  const run = async (action: () => Promise<unknown>, success: string) => {
-    setFeedback("");
-    clearError();
-    try {
-      await action();
-      setFeedback(success);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   const handleUpdateGroup = () => {
     const validationError = validateGroupName(name);
@@ -179,12 +168,7 @@ export default function GroupSettingsScreen() {
           title="Group settings"
           subtitle={group?.name}
           onBack={() =>
-            router.canGoBack()
-              ? router.back()
-              : router.replace({
-                  pathname: "/group/[groupId]",
-                  params: { groupId },
-                })
+            goBackOr({ pathname: "/group/[groupId]", params: { groupId } })
           }
           testID="group-settings-header"
         />

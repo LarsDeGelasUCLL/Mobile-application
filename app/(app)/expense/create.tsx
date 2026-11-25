@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import {
   EmptyState,
   FeedbackBanner,
@@ -15,6 +16,7 @@ import {
 } from "../../../src/features/expenses/components/ExpenseForm";
 import type { ValidExpenseForm } from "../../../src/services/expenses/expenseValidation";
 import { getUserExpenseParticipants } from "../../../src/services";
+import { getErrorMessage } from "../../../src/utils/errors";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
@@ -43,11 +45,7 @@ function includeCurrentUser(
   return Array.from(merged.values());
 }
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : "Could not load participants.";
-}
+const participantsErrorFallback = "Could not load participants.";
 
 export default function CreateExpenseScreen() {
   const { groupId: routeGroupId } = useLocalSearchParams<{
@@ -110,7 +108,7 @@ export default function CreateExpenseScreen() {
       try {
         await fetchMembersForGroup(groupId);
       } catch (error) {
-        setParticipantsError(getErrorMessage(error));
+        setParticipantsError(getErrorMessage(error, participantsErrorFallback));
       } finally {
         setParticipantsLoading(false);
         setParticipantsLoaded(true);
@@ -128,7 +126,7 @@ export default function CreateExpenseScreen() {
       );
       setPersonalParticipants(knownParticipants);
     } catch (error) {
-      setParticipantsError(getErrorMessage(error));
+      setParticipantsError(getErrorMessage(error, participantsErrorFallback));
     } finally {
       setParticipantsLoading(false);
       setParticipantsLoaded(true);
@@ -210,18 +208,13 @@ export default function CreateExpenseScreen() {
         <ScreenHeader
           title={`New ${groupId ? "group" : "personal"} expense`}
           subtitle="Add the cost and decide how to split it."
-          onBack={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else if (groupId) {
-              router.replace({
-                pathname: "/group/[groupId]",
-                params: { groupId },
-              });
-            } else {
-              router.replace("/expenses");
-            }
-          }}
+          onBack={() =>
+            goBackOr(
+              groupId
+                ? { pathname: "/group/[groupId]", params: { groupId } }
+                : "/expenses",
+            )
+          }
           testID="create-expense-header"
         />
 

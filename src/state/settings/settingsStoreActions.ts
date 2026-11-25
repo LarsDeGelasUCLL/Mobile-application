@@ -1,6 +1,6 @@
 import { getUserSettings, updateUserSettings } from "../../services";
 import type { SettingsActionCreator } from "./settingsStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { getErrorMessage } from "../../utils/errors";
 
 export const createSettingsActions: SettingsActionCreator = (set) => ({
   fetchSettings: async (userId) => {

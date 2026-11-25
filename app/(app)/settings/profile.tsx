@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { router } from "expo-router";
+import { getErrorMessage } from "../../../src/utils/errors";
+import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import {
   FeedbackBanner,
@@ -73,9 +74,10 @@ export default function EditProfileScreen() {
         );
       } else {
         setProfileError(
-          saveError instanceof Error
-            ? saveError.message
-            : "Could not save your profile. Please retry.",
+          getErrorMessage(
+            saveError,
+            "Could not save your profile. Please retry.",
+          ),
         );
       }
     }
@@ -96,9 +98,7 @@ export default function EditProfileScreen() {
       <Stack gap="lg">
         <ScreenHeader
           title="Edit profile"
-          onBack={() =>
-            router.canGoBack() ? router.back() : router.replace("/settings")
-          }
+          onBack={() => goBackOr("/settings")}
           testID="edit-profile-header"
         />
         <InputField
