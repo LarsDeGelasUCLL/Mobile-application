@@ -11,7 +11,7 @@ type Story = StoryObj<typeof GroupInfoForm>;
 
 // Collapsed by default: tap "Group info" to edit.
 export const Default: Story = {
-  args: { group: storyGroup, isLoading: false, onSave: async () => true },
+  args: { group: storyGroup, isLoading: false, onSave: () => {} },
 };
 export const NoDescription: Story = {
   args: { ...Default.args, group: { ...storyGroup, description: null } },

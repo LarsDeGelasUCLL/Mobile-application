@@ -33,10 +33,10 @@ export function useGroupSettings(groupId: string | undefined) {
   );
   const [confirm, setConfirm] = useState<ConfirmKind | null>(null);
 
-  /** Takes validated form values; resolves whether the save succeeded. */
-  const saveGroupInfo = async (name: string, description: string) => {
-    if (!group) return false;
-    return run(
+  /** Takes validated form values. */
+  const saveGroupInfo = (name: string, description: string) => {
+    if (!group) return;
+    void run(
       () =>
         updateGroup(group.id, {
           name: name.trim(),

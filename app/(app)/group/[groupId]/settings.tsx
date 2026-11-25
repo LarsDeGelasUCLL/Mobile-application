@@ -66,7 +66,6 @@ export default function GroupSettingsScreen() {
           <>
             {isAdmin ? (
               <GroupInfoForm
-                key={group.id}
                 group={group}
                 isLoading={isLoading}
                 onSave={page.saveGroupInfo}

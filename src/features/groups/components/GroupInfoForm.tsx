@@ -8,38 +8,47 @@ import { validateGroupName } from "../groupValidation";
 import type { GroupDto } from "../../../types";
 
 interface GroupInfoFormProps {
-  /** Seeds the fields once; give the form `key={group.id}` to reset it. */
-  group: Pick<GroupDto, "name" | "description">;
+  group: Pick<GroupDto, "id" | "name" | "description">;
   isLoading: boolean;
-  /** Gets the validated fields; resolves whether the save succeeded. */
-  onSave: (name: string, description: string) => Promise<boolean>;
+  /** Gets the validated fields. */
+  onSave: (name: string, description: string) => void;
   testID?: string;
 }
 
 /** "Group info": edit the group name and description (admins). */
-export function GroupInfoForm({
+export function GroupInfoForm({ group, testID, ...props }: GroupInfoFormProps) {
+  // The fields remount, not the section, so it stays open after a save.
+  return (
+    <CollapsibleSection title="Group info" testID={testID}>
+      <GroupInfoFields
+        key={`${group.id}:${group.name}:${group.description ?? ""}`}
+        group={group}
+        {...props}
+      />
+    </CollapsibleSection>
+  );
+}
+
+/** Seeds its state from `group`; the key above re-seeds it whenever the
+ * stored group changes (a save, a refresh). */
+function GroupInfoFields({
   group,
   isLoading,
   onSave,
-  testID,
-}: GroupInfoFormProps) {
+}: Omit<GroupInfoFormProps, "testID">) {
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description ?? "");
   const [nameError, setNameError] = useState<string>();
 
-  const save = async () => {
+  const save = () => {
     const validationError = validateGroupName(name);
     setNameError(validationError);
     if (validationError) return;
-    // Show the trimmed values the store saved.
-    if (await onSave(name, description)) {
-      setName(name.trim());
-      setDescription(description.trim());
-    }
+    onSave(name, description);
   };
 
   return (
-    <CollapsibleSection title="Group info" testID={testID}>
+    <>
       <InputField
         label="Group name"
         value={name}
@@ -59,11 +68,11 @@ export function GroupInfoForm({
       />
       <StyledButton
         label="Save changes"
-        onPress={() => void save()}
+        onPress={save}
         variant="secondary"
         isLoading={isLoading}
         testID="update-group-button"
       />
-    </CollapsibleSection>
+    </>
   );
 }

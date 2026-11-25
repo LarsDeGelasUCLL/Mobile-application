@@ -26,6 +26,7 @@ const membership = (
 });
 
 export const storyGroup = {
+  id: "group-1",
   name: "Weekend Ghent",
   description: "Trip costs for the weekend.",
 };
