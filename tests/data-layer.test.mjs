@@ -788,12 +788,23 @@ test("unused mock Home components and filter types are removed", async () => {
 
 test("service-worker failures are actionable and produce no debug success log", async () => {
   const rootLayout = await fs.readFile("app/_layout.tsx", "utf8");
+  const serviceWorker = await fs.readFile(
+    "src/features/app/useServiceWorker.ts",
+    "utf8",
+  );
+  const notice = await fs.readFile(
+    "src/features/app/components/ServiceWorkerNotice.tsx",
+    "utf8",
+  );
 
-  assert.doesNotMatch(rootLayout, /console\.log/);
-  assert.doesNotMatch(rootLayout, /\.catch\(\(err\)\s*=>\s*console\.error/);
-  assert.match(rootLayout, /FeedbackBanner/);
-  assert.match(rootLayout, /service-worker-error/);
-  assert.match(rootLayout, /Retry offline support/);
+  for (const source of [rootLayout, serviceWorker]) {
+    assert.doesNotMatch(source, /console\.log/);
+    assert.doesNotMatch(source, /\.catch\(\(err\)\s*=>\s*console\.error/);
+  }
+  assert.match(rootLayout, /<ServiceWorkerNotice/);
+  assert.match(notice, /FeedbackBanner/);
+  assert.match(notice, /service-worker-error/);
+  assert.match(notice, /Retry offline support/);
 });
 
 test("login does not display provisional app-brand copy", async () => {
@@ -843,6 +854,79 @@ test("auth deep-link exchange distinguishes unrelated, completed, and failed lin
     "failed",
   );
   assert.deepEqual(codes, ["valid-code"]);
+});
+
+test("auth service exchanges an auth link code and throws the Supabase message", async () => {
+  const codes = [];
+  let exchangeError = null;
+  const { exchangeCodeForSession } = await loadTypeScriptModule(
+    "src/services/auth/authService.ts",
+    {
+      "../profiles/profileService": {},
+      "../supabase": {
+        supabase: {
+          auth: {
+            exchangeCodeForSession: async (code) => {
+              codes.push(code);
+              return { data: {}, error: exchangeError };
+            },
+          },
+        },
+      },
+    },
+  );
+
+  await exchangeCodeForSession("valid-code");
+  exchangeError = { message: "Invalid code verifier" };
+  await assert.rejects(exchangeCodeForSession("expired-code"), {
+    message: "Invalid code verifier",
+  });
+  assert.deepEqual(codes, ["valid-code", "expired-code"]);
+});
+
+test("auth store exchanges an auth link code through the service", async () => {
+  const codes = [];
+  const { createAuthActions } = await loadTypeScriptModule(
+    "src/state/auth/authStoreActions.ts",
+    {
+      "../../services": {
+        exchangeCodeForSession: async (code) => {
+          codes.push(code);
+          if (code === "expired-code") throw new Error("Invalid code");
+        },
+      },
+      "../expenses/useExpenseStore": {
+        useExpenseStore: { getState: () => ({}) },
+      },
+      "../groups/useGroupStore": { useGroupStore: { getState: () => ({}) } },
+      "../settings/useSettingsStore": {
+        useSettingsStore: { getState: () => ({}) },
+      },
+    },
+  );
+  const state = {
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    isInitialized: true,
+  };
+  const before = { ...state };
+  const actions = createAuthActions(
+    (update) =>
+      Object.assign(
+        state,
+        typeof update === "function" ? update(state) : update,
+      ),
+    () => state,
+  );
+
+  await actions.exchangeCodeForSession("valid-code");
+  await assert.rejects(actions.exchangeCodeForSession("expired-code"), {
+    message: "Invalid code",
+  });
+  assert.deepEqual(codes, ["valid-code", "expired-code"]);
+  // The auth listener applies the new session; the action sets no state.
+  assert.deepEqual(state, before);
 });
 
 test("settings service rejects requests for another authenticated user", async () => {
@@ -2471,7 +2555,11 @@ test("dark mode: root resolves the scheme from settings + device and themes nav,
   assert.match(root, /<ThemeProvider scheme=\{scheme\}>/);
   assert.match(root, /<NavigationThemeProvider value=\{/);
   assert.doesNotMatch(root, /<StatusBar style="auto"/);
-  assert.match(root, /theme-color/);
+  assert.match(root, /useWebThemeColor\(scheme\)/);
+  assert.match(
+    await read("src/features/app/useWebThemeColor.ts"),
+    /theme-color/,
+  );
   assert.doesNotMatch(root, /theme\/colors/);
 
   // Saved theme applies app-wide, not only after opening Settings.

@@ -85,6 +85,14 @@ export async function requestPasswordReset(
   }
 }
 
+/** Signs in with the PKCE `code` from an auth email link. */
+export async function exchangeCodeForSession(code: string): Promise<void> {
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function setPassword(
   payload: SetPasswordRequestDto,
 ): Promise<void> {

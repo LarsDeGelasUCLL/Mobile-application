@@ -1,10 +1,4 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider as NavigationThemeProvider,
-  router,
-  Slot,
-} from "expo-router";
+import { ThemeProvider as NavigationThemeProvider, Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -14,20 +8,15 @@ import {
   useFonts,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Linking,
-  Platform,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { useEffect } from "react";
+import { useColorScheme } from "react-native";
 import { useAuthStore } from "../src/state/useAuthStore";
 import { useSettingsStore } from "../src/state/useSettingsStore";
-import { supabase } from "../src/services";
-import { exchangeAuthLinkCode } from "../src/features/auth/authLink";
-import { FeedbackBanner } from "../src/components/primitives";
-import { darkPalette, lightPalette } from "../src/theme/palettes";
+import { ServiceWorkerNotice } from "../src/features/app/components/ServiceWorkerNotice";
+import { useNavigationTheme } from "../src/features/app/useNavigationTheme";
+import { useServiceWorker } from "../src/features/app/useServiceWorker";
+import { useWebThemeColor } from "../src/features/app/useWebThemeColor";
+import { useAuthDeepLinks } from "../src/features/auth/useAuthDeepLinks";
 import { resolveScheme } from "../src/theme/scheme";
 import { ThemeProvider } from "../src/theme/ThemeProvider";
 
@@ -37,23 +26,7 @@ export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
   const uiTheme = useSettingsStore((state) => state.settings?.uiTheme);
   const scheme = resolveScheme(uiTheme, useColorScheme());
-  const colors = scheme === "dark" ? darkPalette : lightPalette;
-  const navigationTheme = useMemo(() => {
-    const base = scheme === "dark" ? DarkTheme : DefaultTheme;
-    return {
-      ...base,
-      colors: {
-        ...base.colors,
-        primary: colors.primary,
-        background: colors.background,
-        card: colors.surface,
-        text: colors.text,
-        border: colors.border,
-        notification: colors.error,
-      },
-    };
-  }, [scheme, colors]);
-  const [serviceWorkerError, setServiceWorkerError] = useState(false);
+  const navigationTheme = useNavigationTheme(scheme);
   const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_600SemiBold,
@@ -66,72 +39,13 @@ export default function RootLayout() {
     if (fontsReady) void SplashScreen.hideAsync();
   }, [fontsReady]);
 
-  const registerServiceWorker = useCallback(async () => {
-    try {
-      await navigator.serviceWorker.register("/sw.js");
-      setServiceWorkerError(false);
-    } catch (error) {
-      console.error("Could not register the service worker.", error);
-      setServiceWorkerError(true);
-    }
-  }, []);
-
+  // Starts auth (and its session listener) before any deep link is handled.
   useEffect(() => {
     void initialize();
-
-    const showAuthLinkFailure = () =>
-      router.replace("/login?mode=reset&authLinkError=1");
-    const handleAuthDeepLink = async (url: string | null | undefined) => {
-      if (!url) return;
-      const result = await exchangeAuthLinkCode(url, async (code) => {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        return { error };
-      });
-      if (result === "failed") {
-        showAuthLinkFailure();
-      } else if (result === "completed") {
-        router.replace("/login?mode=set-password");
-      }
-    };
-
-    if (Platform.OS !== "web") {
-      void Linking.getInitialURL()
-        .then(handleAuthDeepLink)
-        .catch(showAuthLinkFailure);
-      const subscription = Linking.addEventListener("url", ({ url }) => {
-        void handleAuthDeepLink(url).catch(showAuthLinkFailure);
-      });
-      return () => subscription.remove();
-    }
-
-    if (Platform.OS === "web" && typeof document !== "undefined") {
-      if (!document.querySelector('link[rel="manifest"]')) {
-        const link = document.createElement("link");
-        link.rel = "manifest";
-        link.href = "/manifest.json";
-        document.head.appendChild(link);
-      }
-
-      if ("serviceWorker" in navigator) {
-        void registerServiceWorker();
-      }
-    }
-  }, [initialize, registerServiceWorker]);
-
-  useEffect(() => {
-    if (Platform.OS !== "web" || typeof document === "undefined") return;
-    let meta = document.querySelector<HTMLMetaElement>(
-      'meta[name="theme-color"]',
-    );
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "theme-color";
-      document.head.appendChild(meta);
-    }
-    meta.content = colors.surface;
-    document.documentElement.style.colorScheme = scheme;
-    document.body.style.backgroundColor = colors.background;
-  }, [scheme, colors]);
+  }, [initialize]);
+  useAuthDeepLinks();
+  const serviceWorker = useServiceWorker();
+  useWebThemeColor(scheme);
 
   if (!fontsReady) return null;
 
@@ -140,16 +54,8 @@ export default function RootLayout() {
       <NavigationThemeProvider value={navigationTheme}>
         <SafeAreaProvider>
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-          {serviceWorkerError ? (
-            <View style={styles.serviceWorkerNotice}>
-              <FeedbackBanner
-                tone="warning"
-                message="Offline support could not start. The app is still available online."
-                onRetry={() => void registerServiceWorker()}
-                retryLabel="Retry offline support"
-                testID="service-worker-error"
-              />
-            </View>
+          {serviceWorker.hasError ? (
+            <ServiceWorkerNotice onRetry={serviceWorker.retry} />
           ) : null}
           <Slot />
         </SafeAreaProvider>
@@ -157,10 +63,3 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  serviceWorkerNotice: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-});

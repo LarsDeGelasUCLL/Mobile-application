@@ -1,5 +1,6 @@
 import {
   changeEmail,
+  exchangeCodeForSession,
   getCurrentUser,
   login,
   logout,
@@ -136,6 +137,9 @@ export const createAuthActions: AuthActionCreator = (set, get) => {
         user: await register(payload),
         isAuthenticated: true,
       })),
+
+    // No loading state: the auth listener applies the new session.
+    exchangeCodeForSession: (code) => exchangeCodeForSession(code),
 
     requestPasswordReset: (payload) =>
       withLoading(() => requestPasswordReset(payload)),

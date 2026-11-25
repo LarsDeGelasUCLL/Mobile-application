@@ -18,6 +18,8 @@ export interface AuthState {
   initialize: () => Promise<void>;
   login: (payload: LoginRequestDto) => Promise<void>;
   register: (payload: RegisterRequestDto) => Promise<void>;
+  /** Signs in with an auth email link's code; throws when it fails. */
+  exchangeCodeForSession: (code: string) => Promise<void>;
   requestPasswordReset: (payload: PasswordResetRequestDto) => Promise<void>;
   setPassword: (payload: SetPasswordRequestDto) => Promise<void>;
   changeEmail: (payload: ChangeEmailRequestDto) => Promise<void>;
