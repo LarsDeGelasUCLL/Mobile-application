@@ -1,8 +1,27 @@
-const themes = [
+interface Theme {
+  label: string;
+  value: string;
+}
+
+const themes: Theme[] = [
   { label: 'System', value: 'SYSTEM' },
   { label: 'Light', value: 'LIGHT' },
   { label: 'Dark', value: 'DARK' },
 ];
+
+// Picks a theme on the settings page and waits for the server save.
+// Needs a `@saveSettings` intercept on the settings PATCH.
+function chooseTheme({ value, label }: Theme) {
+  cy.getBySel('settings-theme-select').click();
+  cy.getBySel(`settings-theme-select-option-${value}`).click();
+  cy.wait('@saveSettings').its('response.statusCode').should('eq', 200);
+  cy.getBySel('settings-success').should('contain', 'Settings saved.');
+  cy.getBySel('settings-theme-select').should(
+    'have.attr',
+    'aria-label',
+    `Theme, ${label}`,
+  );
+}
 
 // Blocks account writes: a validation test must never change the account.
 // A stubbed request still counts, so `@x.all` proves nothing was sent.
@@ -40,31 +59,35 @@ describe('Profile and settings', () => {
       });
   });
 
-  it('changes the theme and restores the original', () => {
+  // Set by the theme test; afterEach puts it back even when the test fails.
+  let originalTheme: Theme | undefined;
+
+  afterEach(() => {
+    const theme = originalTheme;
+    originalTheme = undefined;
+    if (!theme) return;
     cy.intercept('PATCH', '**/rest/v1/user_settings*').as('saveSettings');
     cy.visit('/settings');
+    cy.getBySel('settings-theme-select')
+      .invoke('attr', 'aria-label')
+      .then((ariaLabel) => {
+        if (ariaLabel !== `Theme, ${theme.label}`) chooseTheme(theme);
+      });
+  });
 
-    const chooseTheme = (value: string, label: string) => {
-      cy.getBySel('settings-theme-select').click();
-      cy.getBySel(`settings-theme-select-option-${value}`).click();
-      cy.wait('@saveSettings').its('response.statusCode').should('eq', 200);
-      cy.getBySel('settings-success').should('contain', 'Settings saved.');
-      cy.getBySel('settings-theme-select').should(
-        'have.attr',
-        'aria-label',
-        `Theme, ${label}`,
-      );
-    };
+  it('changes the theme', () => {
+    cy.intercept('PATCH', '**/rest/v1/user_settings*').as('saveSettings');
+    cy.visit('/settings');
 
     cy.getBySel('settings-theme-select')
       .invoke('attr', 'aria-label')
       .then((ariaLabel) => {
         const original = themes.find((t) => ariaLabel === `Theme, ${t.label}`);
         if (!original) throw new Error(`Unknown theme label: ${ariaLabel}`);
+        originalTheme = original;
         const next = themes.find((t) => t.value !== original.value) ?? original;
 
-        chooseTheme(next.value, next.label);
-        chooseTheme(original.value, original.label);
+        chooseTheme(next);
       });
   });
 

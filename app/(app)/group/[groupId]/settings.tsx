@@ -1,9 +1,10 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Avatar,
   Card,
+  CardList,
   CollapsibleSection,
   ConfirmDialog,
   Divider,
@@ -14,8 +15,9 @@ import {
   Row,
   Screen,
   ScreenHeader,
+  SectionHeader,
   Sheet,
-  Skeleton,
+  SkeletonCard,
   Stack,
   StyledButton,
   Text,
@@ -166,261 +168,241 @@ export default function GroupSettingsScreen() {
     member.userProfile?.displayName ?? "Group member";
 
   return (
-    <Screen padding="lg" refreshing={isLoading} onRefresh={() => void reload()}>
-      <View testID="group-settings-screen">
-        <Stack gap="lg">
-          <ScreenHeader
-            title="Group settings"
-            subtitle={group?.name}
-            onBack={() =>
-              router.canGoBack()
-                ? router.back()
-                : router.replace({
-                    pathname: "/group/[groupId]",
-                    params: { groupId },
-                  })
-            }
-            testID="group-settings-header"
+    <Screen
+      padding="lg"
+      refreshing={isLoading}
+      onRefresh={() => void reload()}
+      testID="group-settings-screen"
+    >
+      <Stack gap="lg">
+        <ScreenHeader
+          title="Group settings"
+          subtitle={group?.name}
+          onBack={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.replace({
+                  pathname: "/group/[groupId]",
+                  params: { groupId },
+                })
+          }
+          testID="group-settings-header"
+        />
+
+        {storeError ? (
+          <FeedbackBanner
+            tone="error"
+            message={storeError}
+            onRetry={() => void reload()}
+            isRetrying={isLoading}
+            retryTestID="group-settings-retry-button"
+            testID="group-settings-error"
           />
+        ) : null}
 
-          {storeError ? (
-            <FeedbackBanner tone="error" testID="group-settings-error">
-              <Text size="sm" tone="error">
-                {storeError}
-              </Text>
+        {feedback ? (
+          <FeedbackBanner
+            tone="success"
+            message={feedback}
+            testID="group-feedback"
+          />
+        ) : null}
+
+        {!group && isLoading ? (
+          <SkeletonCard lines={2} />
+        ) : !group ? (
+          <EmptyState
+            icon="people-outline"
+            title="Group unavailable"
+            description="This group could not be found in your active groups."
+            action={
               <StyledButton
-                label="Retry"
-                onPress={() => void reload()}
+                label="Back to groups"
+                onPress={() => router.dismissTo("/groups")}
                 variant="secondary"
-                isLoading={isLoading}
-                testID="group-settings-retry-button"
               />
-            </FeedbackBanner>
-          ) : null}
-
-          {feedback ? (
-            <FeedbackBanner tone="success" testID="group-feedback">
-              <Text size="sm" tone="success">
-                {feedback}
-              </Text>
-            </FeedbackBanner>
-          ) : null}
-
-          {!group && isLoading ? (
-            <Card>
-              <Stack gap="sm">
-                <Skeleton height={44} />
-                <Skeleton height={44} />
-              </Stack>
-            </Card>
-          ) : !group ? (
-            <EmptyState
-              icon="people-outline"
-              title="Group unavailable"
-              description="This group could not be found in your active groups."
-              action={
-                <StyledButton
-                  label="Back to groups"
-                  onPress={() => router.dismissTo("/groups")}
-                  variant="secondary"
+            }
+          />
+        ) : (
+          <>
+            {isAdmin ? (
+              <CollapsibleSection
+                title="Group info"
+                testID="group-info-section"
+              >
+                <InputField
+                  label="Group name"
+                  value={name}
+                  onChangeText={(value) => {
+                    setName(value);
+                    setNameError(undefined);
+                  }}
+                  error={nameError}
+                  testID="group-name-input"
                 />
-              }
-            />
-          ) : (
-            <>
-              {isAdmin ? (
-                <CollapsibleSection
-                  title="Group info"
-                  testID="group-info-section"
-                >
-                  <InputField
-                    label="Group name"
-                    value={name}
-                    onChangeText={(value) => {
-                      setName(value);
-                      setNameError(undefined);
-                    }}
-                    error={nameError}
-                    testID="group-name-input"
-                  />
-                  <InputField
-                    label="Description"
-                    value={description}
-                    onChangeText={setDescription}
-                    placeholder="Add a short description"
-                    testID="group-description-input"
-                  />
-                  <StyledButton
-                    label="Save changes"
-                    onPress={handleUpdateGroup}
-                    variant="secondary"
-                    isLoading={isLoading}
-                    testID="update-group-button"
-                  />
-                </CollapsibleSection>
-              ) : null}
+                <InputField
+                  label="Description"
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Add a short description"
+                  testID="group-description-input"
+                />
+                <StyledButton
+                  label="Save changes"
+                  onPress={handleUpdateGroup}
+                  variant="secondary"
+                  isLoading={isLoading}
+                  testID="update-group-button"
+                />
+              </CollapsibleSection>
+            ) : null}
 
-              {isAdmin && joinRequests.length > 0 ? (
-                <Stack gap="sm">
-                  <Text size="sm" weight="bold" tone="muted">
-                    JOIN REQUESTS ({joinRequests.length})
-                  </Text>
-                  <Card>
-                    <Stack gap="md">
-                      {joinRequests.map((request, index) => (
-                        <Stack gap="sm" key={request.id}>
-                          {index > 0 && <Divider />}
-                          <Row gap="sm" align="center">
-                            <Avatar
-                              name={memberName(request)}
-                              uri={
-                                request.userProfile?.profilePictureUrl ??
-                                undefined
-                              }
-                              size="sm"
-                            />
-                            <Stack gap="none" flex={1}>
-                              <Text weight="medium">{memberName(request)}</Text>
-                              <Text size="sm" tone="muted">
-                                Requested{" "}
-                                {new Date(
-                                  request.joinedAt,
-                                ).toLocaleDateString()}
-                              </Text>
-                            </Stack>
-                          </Row>
-                          <Row gap="sm">
-                            <View style={styles.buttonColumn}>
-                              <StyledButton
-                                label="Approve"
-                                onPress={() =>
-                                  handleJoinRequest(request.id, true)
-                                }
-                                variant="secondary"
-                                isLoading={isLoading}
-                                testID={`join-request-approve-${request.id}`}
-                              />
-                            </View>
-                            <View style={styles.buttonColumn}>
-                              <StyledButton
-                                label="Reject"
-                                onPress={() =>
-                                  handleJoinRequest(request.id, false)
-                                }
-                                variant="secondary"
-                                isLoading={isLoading}
-                                testID={`join-request-reject-${request.id}`}
-                              />
-                            </View>
-                          </Row>
-                        </Stack>
-                      ))}
-                    </Stack>
-                  </Card>
-                </Stack>
-              ) : null}
-
+            {isAdmin && joinRequests.length > 0 ? (
               <Stack gap="sm">
-                <Text size="sm" weight="bold" tone="muted">
-                  MEMBERS ({members.length})
-                </Text>
-                {isLoading && members.length === 0 ? (
-                  <Card>
-                    <Stack gap="sm">
-                      <Skeleton height={44} />
-                      <Skeleton height={44} />
-                    </Stack>
-                  </Card>
-                ) : (
-                  <Card flush>
-                    {members.map((member, index) => {
-                      const isCurrentUser = member.userId === user?.id;
-                      return (
-                        <Fragment key={member.id}>
-                          {index > 0 && <Divider />}
-                          <ListRow
-                            leading={
-                              <Avatar
-                                name={memberName(member)}
-                                uri={
-                                  member.userProfile?.profilePictureUrl ??
-                                  undefined
-                                }
-                                size="sm"
-                              />
+                <SectionHeader
+                  title="JOIN REQUESTS"
+                  count={joinRequests.length}
+                />
+                <Card>
+                  <Stack gap="md">
+                    {joinRequests.map((request, index) => (
+                      <Stack gap="sm" key={request.id}>
+                        {index > 0 && <Divider />}
+                        <Row gap="sm" align="center">
+                          <Avatar
+                            name={memberName(request)}
+                            uri={
+                              request.userProfile?.profilePictureUrl ??
+                              undefined
                             }
-                            label={`${memberName(member)}${isCurrentUser ? " (you)" : ""}`}
-                            description={
-                              member.groupRole === "ADMIN" ? "Admin" : "Member"
-                            }
-                            onPress={
-                              isAdmin && !isCurrentUser
-                                ? () => setSelectedMember(member)
-                                : undefined
-                            }
-                            testID={`group-member-${member.id}`}
+                            size="sm"
                           />
-                        </Fragment>
-                      );
-                    })}
-                  </Card>
-                )}
+                          <Stack gap="none" flex={1}>
+                            <Text weight="medium">{memberName(request)}</Text>
+                            <Text size="sm" tone="muted">
+                              Requested{" "}
+                              {new Date(request.joinedAt).toLocaleDateString()}
+                            </Text>
+                          </Stack>
+                        </Row>
+                        <Row gap="sm">
+                          <View style={styles.buttonColumn}>
+                            <StyledButton
+                              label="Approve"
+                              onPress={() =>
+                                handleJoinRequest(request.id, true)
+                              }
+                              variant="secondary"
+                              isLoading={isLoading}
+                              testID={`join-request-approve-${request.id}`}
+                            />
+                          </View>
+                          <View style={styles.buttonColumn}>
+                            <StyledButton
+                              label="Reject"
+                              onPress={() =>
+                                handleJoinRequest(request.id, false)
+                              }
+                              variant="secondary"
+                              isLoading={isLoading}
+                              testID={`join-request-reject-${request.id}`}
+                            />
+                          </View>
+                        </Row>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Card>
               </Stack>
+            ) : null}
 
-              {isAdmin ? (
-                <CollapsibleSection
-                  title="Invite by email"
-                  testID="group-invite-section"
-                >
-                  <InputField
-                    label="Email address"
-                    value={email}
-                    onChangeText={(value) => {
-                      setEmail(value);
-                      setEmailError(undefined);
-                    }}
-                    placeholder="friend@example.com"
-                    keyboardType="email-address"
-                    error={emailError}
-                    testID="group-invite-email-input"
-                  />
-                  <StyledButton
-                    label="Send invitation"
-                    onPress={() => void handleInvite()}
-                    variant="secondary"
-                    isLoading={isLoading}
-                    testID="group-invite-button"
-                  />
-                </CollapsibleSection>
+            <Stack gap="sm">
+              <SectionHeader title="MEMBERS" count={members.length} />
+              {isLoading && members.length === 0 ? (
+                <SkeletonCard lines={2} />
+              ) : (
+                <CardList>
+                  {members.map((member) => {
+                    const isCurrentUser = member.userId === user?.id;
+                    return (
+                      <ListRow
+                        key={member.id}
+                        leading={
+                          <Avatar
+                            name={memberName(member)}
+                            uri={
+                              member.userProfile?.profilePictureUrl ?? undefined
+                            }
+                            size="sm"
+                          />
+                        }
+                        label={`${memberName(member)}${isCurrentUser ? " (you)" : ""}`}
+                        description={
+                          member.groupRole === "ADMIN" ? "Admin" : "Member"
+                        }
+                        onPress={
+                          isAdmin && !isCurrentUser
+                            ? () => setSelectedMember(member)
+                            : undefined
+                        }
+                        testID={`group-member-${member.id}`}
+                      />
+                    );
+                  })}
+                </CardList>
+              )}
+            </Stack>
+
+            {isAdmin ? (
+              <CollapsibleSection
+                title="Invite by email"
+                testID="group-invite-section"
+              >
+                <InputField
+                  label="Email address"
+                  value={email}
+                  onChangeText={(value) => {
+                    setEmail(value);
+                    setEmailError(undefined);
+                  }}
+                  placeholder="friend@example.com"
+                  keyboardType="email-address"
+                  error={emailError}
+                  testID="group-invite-email-input"
+                />
+                <StyledButton
+                  label="Send invitation"
+                  onPress={() => void handleInvite()}
+                  variant="secondary"
+                  isLoading={isLoading}
+                  testID="group-invite-button"
+                />
+              </CollapsibleSection>
+            ) : null}
+
+            <CardList>
+              {currentMembership ? (
+                <ListRow
+                  icon="exit-outline"
+                  label="Leave group"
+                  destructive
+                  onPress={() => setConfirm("leave")}
+                  testID="leave-group-button"
+                />
               ) : null}
-
-              <Card flush>
-                {currentMembership ? (
-                  <ListRow
-                    icon="exit-outline"
-                    label="Leave group"
-                    destructive
-                    onPress={() => setConfirm("leave")}
-                    testID="leave-group-button"
-                  />
-                ) : null}
-                {isAdmin ? (
-                  <>
-                    {currentMembership ? <Divider /> : null}
-                    <ListRow
-                      icon="trash-outline"
-                      label="Delete group"
-                      destructive
-                      onPress={() => setConfirm("delete")}
-                      testID="delete-group-button"
-                    />
-                  </>
-                ) : null}
-              </Card>
-            </>
-          )}
-        </Stack>
-      </View>
+              {isAdmin ? (
+                <ListRow
+                  icon="trash-outline"
+                  label="Delete group"
+                  destructive
+                  onPress={() => setConfirm("delete")}
+                  testID="delete-group-button"
+                />
+              ) : null}
+            </CardList>
+          </>
+        )}
+      </Stack>
 
       <Sheet
         visible={selectedMember !== null && confirm === null}

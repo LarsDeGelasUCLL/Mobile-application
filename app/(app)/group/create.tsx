@@ -7,7 +7,6 @@ import {
   ScreenHeader,
   Stack,
   StyledButton,
-  Text,
 } from "../../../src/components/primitives";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
@@ -86,11 +85,11 @@ export default function CreateGroupScreen() {
           testID="create-group-description-input"
         />
         {storeError ? (
-          <FeedbackBanner tone="error" testID="create-group-error">
-            <Text size="sm" tone="error">
-              {storeError}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={storeError}
+            testID="create-group-error"
+          />
         ) : null}
       </Stack>
     </Screen>

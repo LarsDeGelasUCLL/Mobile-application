@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { View } from 'react-native';
 import { Text } from './Text';
-import { useTheme } from '../../theme/ThemeProvider';
+import { makeStyles } from '../../theme/ThemeProvider';
 import type { Tone } from '../../theme/tone';
 
 const meta: Meta<typeof Text> = { title: 'Primitives/Text', component: Text };
@@ -18,18 +18,18 @@ export const Centered: Story = { args: { children: 'Centered text', align: 'cent
 const onSurfaceTones: Tone[] = ['default', 'muted', 'primary', 'error', 'success', 'warning'];
 
 function ToneList() {
-  const { colors, spacing } = useTheme();
+  const styles = useStyles();
   return (
-    <View style={{ gap: spacing.sm }}>
+    <View style={styles.list}>
       {onSurfaceTones.map((tone) => (
         <Text key={tone} tone={tone}>
           tone=&quot;{tone}&quot;
         </Text>
       ))}
-      <View style={{ backgroundColor: colors.primary, padding: spacing.sm }}>
+      <View style={styles.primaryFill}>
         <Text tone="onPrimary">tone=&quot;onPrimary&quot; (on a primary fill)</Text>
       </View>
-      <View style={{ backgroundColor: colors.text, padding: spacing.sm }}>
+      <View style={styles.textFill}>
         <Text tone="inverse">tone=&quot;inverse&quot; (on a text fill)</Text>
       </View>
     </View>
@@ -37,3 +37,9 @@ function ToneList() {
 }
 
 export const Tones: Story = { render: () => <ToneList /> };
+
+const useStyles = makeStyles((t) => ({
+  list: { gap: t.spacing.sm },
+  primaryFill: { backgroundColor: t.colors.primary, padding: t.spacing.sm },
+  textFill: { backgroundColor: t.colors.text, padding: t.spacing.sm },
+}));

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Badge,
@@ -12,7 +11,8 @@ import {
   Row,
   Screen,
   ScreenHeader,
-  Skeleton,
+  SectionHeader,
+  SkeletonCard,
   Stack,
   StyledButton,
   Text,
@@ -174,28 +174,24 @@ export default function ExpenseDetailScreen() {
         />
 
         {error ? (
-          <FeedbackBanner tone="error" testID="expense-detail-error">
-            <Text size="sm" tone="error">
-              {error}
-            </Text>
-            <StyledButton
-              label="Retry"
-              onPress={() => void retry()}
-              variant="secondary"
-              isLoading={isLoading}
-              testID="expense-detail-retry-button"
-            />
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={error}
+            onRetry={() => void retry()}
+            isRetrying={isLoading}
+            retryTestID="expense-detail-retry-button"
+            testID="expense-detail-error"
+          />
         ) : null}
 
         {expenseLoading && !expense ? (
-          <Card>
-            <Stack gap="sm">
-              <Skeleton height={24} width="65%" />
-              <Skeleton height={18} width="45%" />
-              <Skeleton height={18} width="80%" />
-            </Stack>
-          </Card>
+          <SkeletonCard
+            lines={[
+              { height: 24, width: "65%" },
+              { height: 18, width: "45%" },
+              { height: 18, width: "80%" },
+            ]}
+          />
         ) : !expense ? (
           <EmptyState
             title={deletedGroupId ? "Expense deleted" : "Expense unavailable"}
@@ -214,46 +210,42 @@ export default function ExpenseDetailScreen() {
           />
         ) : (
           <>
-            <View testID="expense-detail-summary">
-              <Card>
-                <Stack gap="sm">
-                  <Row justify="space-between" align="center">
-                    <Text size="lg" weight="bold">
-                      {expense.title}
-                    </Text>
-                    <Badge
-                      label={expense.groupId ? "Group expense" : "Personal"}
-                    />
-                  </Row>
-                  <Text size="xxl" weight="bold">
-                    {formatCurrency(expense.amount)}
+            <Card testID="expense-detail-summary">
+              <Stack gap="sm">
+                <Row justify="space-between" align="center">
+                  <Text size="lg" weight="bold">
+                    {expense.title}
                   </Text>
+                  <Badge
+                    label={expense.groupId ? "Group expense" : "Personal"}
+                  />
+                </Row>
+                <Text size="xxl" weight="bold">
+                  {formatCurrency(expense.amount)}
+                </Text>
+                <Text size="sm" tone="muted">
+                  Paid by{" "}
+                  {expense.paidByProfile?.displayName ?? "A participant"}
+                </Text>
+                <Text size="sm" tone="muted">
+                  Created by{" "}
+                  {expense.createdByProfile?.displayName ??
+                    expense.paidByProfile?.displayName ??
+                    "A participant"}
+                </Text>
+                <Text size="sm" tone="muted">
+                  {new Date(expense.recordCreated).toLocaleString()}
+                </Text>
+                {expense.receiptUrl ? (
                   <Text size="sm" tone="muted">
-                    Paid by{" "}
-                    {expense.paidByProfile?.displayName ?? "A participant"}
+                    Receipt: {expense.receiptUrl}
                   </Text>
-                  <Text size="sm" tone="muted">
-                    Created by{" "}
-                    {expense.createdByProfile?.displayName ??
-                      expense.paidByProfile?.displayName ??
-                      "A participant"}
-                  </Text>
-                  <Text size="sm" tone="muted">
-                    {new Date(expense.recordCreated).toLocaleString()}
-                  </Text>
-                  {expense.receiptUrl ? (
-                    <Text size="sm" tone="muted">
-                      Receipt: {expense.receiptUrl}
-                    </Text>
-                  ) : null}
-                </Stack>
-              </Card>
-            </View>
+                ) : null}
+              </Stack>
+            </Card>
 
             <Stack gap="sm">
-              <Text size="lg" weight="bold">
-                Split breakdown
-              </Text>
+              <SectionHeader title="Split breakdown" variant="title" />
               {expense.splits.map((split) => {
                 const isPayer = split.userId === expense.paidByUserId;
                 const canSettle =

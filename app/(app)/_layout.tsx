@@ -7,7 +7,6 @@ import {
   Screen,
   Stack as ContentStack,
   Spinner,
-  StyledButton,
   Text,
 } from "../../src/components/primitives";
 
@@ -34,18 +33,17 @@ export default function AppLayout() {
               <Text>Restoring your session...</Text>
             </>
           ) : (
-            <FeedbackBanner tone="error" testID="session-recovery-error">
-              <Text size="sm">
-                {isAuthenticated
+            <FeedbackBanner
+              tone="error"
+              message={
+                isAuthenticated
                   ? "Could not load your profile."
-                  : "Could not restore your session."}
-              </Text>
-              <StyledButton
-                label="Try again"
-                onPress={() => void initialize()}
-                variant="secondary"
-              />
-            </FeedbackBanner>
+                  : "Could not restore your session."
+              }
+              onRetry={() => void initialize()}
+              retryLabel="Try again"
+              testID="session-recovery-error"
+            />
           )}
         </ContentStack>
       </Screen>

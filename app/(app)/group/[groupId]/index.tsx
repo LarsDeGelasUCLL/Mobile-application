@@ -1,10 +1,9 @@
-import { Fragment, useState } from "react";
-import { View } from "react-native";
+import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   BalanceRow,
   Card,
-  Divider,
+  CardList,
   EmptyState,
   FeedbackBanner,
   IconButton,
@@ -12,8 +11,9 @@ import {
   MaskedValue,
   Screen,
   ScreenHeader,
+  SectionHeader,
   Sheet,
-  Skeleton,
+  SkeletonCard,
   Stack,
   StyledButton,
   Text,
@@ -57,189 +57,167 @@ export default function GroupDetailScreen() {
           />
         ) : undefined
       }
+      testID="group-detail-screen"
     >
-      <View testID="group-detail-screen">
-        <Stack gap="lg">
-          <ScreenHeader
-            title={group?.name ?? "Group"}
-            onBack={() =>
-              router.canGoBack() ? router.back() : router.replace("/groups")
-            }
-            actions={
-              group ? (
-                <>
-                  <IconButton
-                    icon="key-outline"
-                    accessibilityLabel="Show invite code"
-                    onPress={() => setCodeOpen(true)}
-                    testID="group-invite-code-button"
-                  />
-                  <IconButton
-                    icon="settings-outline"
-                    accessibilityLabel="Group settings"
-                    onPress={() =>
-                      router.push({
-                        pathname: "/group/[groupId]/settings",
-                        params: { groupId },
-                      })
-                    }
-                    testID="group-settings-button"
-                  />
-                </>
-              ) : undefined
-            }
-            testID="group-detail-header"
-          />
-
-          {storeError ? (
-            <FeedbackBanner tone="error" testID="group-detail-error">
-              <Text size="sm" tone="error">
-                {storeError}
-              </Text>
-              <StyledButton
-                label="Retry"
-                onPress={() => void reload()}
-                variant="secondary"
-                isLoading={isLoading}
-                testID="group-detail-retry-button"
-              />
-            </FeedbackBanner>
-          ) : null}
-
-          {expensesError ? (
-            <FeedbackBanner tone="error" testID="group-expenses-error">
-              <Text size="sm" tone="error">
-                {expensesError}
-              </Text>
-              <StyledButton
-                label="Retry expenses"
-                onPress={retryExpenses}
-                variant="secondary"
-                isLoading={expensesLoading}
-                testID="group-expenses-retry-button"
-              />
-            </FeedbackBanner>
-          ) : null}
-
-          {!group && isLoading ? (
-            <Card>
-              <Stack gap="sm">
-                <Skeleton height={24} width="60%" />
-                <Skeleton height={16} width="85%" />
-              </Stack>
-            </Card>
-          ) : !group ? (
-            <EmptyState
-              icon="people-outline"
-              title="Group unavailable"
-              description="This group could not be found in your active groups."
-              action={
-                <StyledButton
-                  label="Back to groups"
-                  onPress={() => router.replace("/groups")}
-                  variant="secondary"
+      <Stack gap="lg">
+        <ScreenHeader
+          title={group?.name ?? "Group"}
+          onBack={() =>
+            router.canGoBack() ? router.back() : router.replace("/groups")
+          }
+          actions={
+            group ? (
+              <>
+                <IconButton
+                  icon="key-outline"
+                  accessibilityLabel="Show invite code"
+                  onPress={() => setCodeOpen(true)}
+                  testID="group-invite-code-button"
                 />
-              }
-            />
-          ) : (
-            <>
-              <Stack gap="sm">
-                <Text size="sm" weight="bold" tone="muted">
-                  BALANCES
-                </Text>
-                {expensesError &&
-                visibleBalances.length === 0 ? null : expensesLoading &&
-                  visibleBalances.length === 0 ? (
-                  <Card>
-                    <Stack gap="sm">
-                      <Skeleton height={20} width="60%" />
-                      <Skeleton height={18} width="45%" />
-                    </Stack>
-                  </Card>
-                ) : !balancesLoaded && !expensesError ? (
-                  <Card>
-                    <Text size="sm" tone="muted">
-                      Balances are loading.
-                    </Text>
-                  </Card>
-                ) : visibleBalances.length === 0 ? (
-                  <EmptyState
-                    icon="wallet-outline"
-                    title="No balances yet"
-                    description="Balances appear after your group records its first expense."
-                  />
-                ) : (
-                  <Card>
-                    {visibleBalances.map((balance, index) => (
-                      <Fragment key={balance.userId}>
-                        {index > 0 && <Divider />}
-                        <BalanceRow
-                          name={
-                            balance.userId === user?.id
-                              ? "You"
-                              : balance.displayName
-                          }
-                          amount={balance.netBalance}
-                          testID={`group-balance-${balance.userId}`}
-                        />
-                      </Fragment>
-                    ))}
-                  </Card>
-                )}
-              </Stack>
+                <IconButton
+                  icon="settings-outline"
+                  accessibilityLabel="Group settings"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/group/[groupId]/settings",
+                      params: { groupId },
+                    })
+                  }
+                  testID="group-settings-button"
+                />
+              </>
+            ) : undefined
+          }
+          testID="group-detail-header"
+        />
 
-              <Stack gap="sm">
-                <Text size="sm" weight="bold" tone="muted">
-                  RECENT EXPENSES
-                </Text>
-                {expensesError &&
-                groupExpenses.length === 0 ? null : expensesLoading &&
-                  groupExpenses.length === 0 ? (
-                  <Card>
-                    <Stack gap="sm">
-                      <Skeleton height={22} width="55%" />
-                      <Skeleton height={16} width="80%" />
-                    </Stack>
-                  </Card>
-                ) : groupExpenses.length === 0 ? (
-                  <EmptyState
-                    icon="receipt-outline"
-                    title="No group expenses"
-                    description="Add an expense to start tracking shared costs."
-                  />
-                ) : (
-                  <Card flush>
-                    {/* Store keeps them newest first. */}
-                    {groupExpenses
-                      .slice(0, RECENT_EXPENSES)
-                      .map((expense, index) => (
-                        <Fragment key={expense.id}>
-                          {index > 0 && <Divider />}
-                          <ExpenseRow expense={expense} />
-                        </Fragment>
-                      ))}
-                    {groupExpenses.length > RECENT_EXPENSES ? (
-                      <>
-                        <Divider />
-                        <ListRow
-                          label={`See all ${groupExpenses.length} expenses`}
-                          onPress={() =>
-                            router.push({
-                              pathname: "/group/[groupId]/expenses",
-                              params: { groupId },
-                            })
-                          }
-                          testID="group-see-all-expenses"
-                        />
-                      </>
-                    ) : null}
-                  </Card>
-                )}
-              </Stack>
-            </>
-          )}
-        </Stack>
-      </View>
+        {storeError ? (
+          <FeedbackBanner
+            tone="error"
+            message={storeError}
+            onRetry={() => void reload()}
+            isRetrying={isLoading}
+            retryTestID="group-detail-retry-button"
+            testID="group-detail-error"
+          />
+        ) : null}
+
+        {expensesError ? (
+          <FeedbackBanner
+            tone="error"
+            message={expensesError}
+            onRetry={retryExpenses}
+            retryLabel="Retry expenses"
+            isRetrying={expensesLoading}
+            retryTestID="group-expenses-retry-button"
+            testID="group-expenses-error"
+          />
+        ) : null}
+
+        {!group && isLoading ? (
+          <SkeletonCard
+            lines={[
+              { height: 24, width: "60%" },
+              { height: 16, width: "85%" },
+            ]}
+          />
+        ) : !group ? (
+          <EmptyState
+            icon="people-outline"
+            title="Group unavailable"
+            description="This group could not be found in your active groups."
+            action={
+              <StyledButton
+                label="Back to groups"
+                onPress={() => router.replace("/groups")}
+                variant="secondary"
+              />
+            }
+          />
+        ) : (
+          <>
+            <Stack gap="sm">
+              <SectionHeader title="BALANCES" />
+              {expensesError &&
+              visibleBalances.length === 0 ? null : expensesLoading &&
+                visibleBalances.length === 0 ? (
+                <SkeletonCard
+                  lines={[
+                    { height: 20, width: "60%" },
+                    { height: 18, width: "45%" },
+                  ]}
+                />
+              ) : !balancesLoaded && !expensesError ? (
+                <Card>
+                  <Text size="sm" tone="muted">
+                    Balances are loading.
+                  </Text>
+                </Card>
+              ) : visibleBalances.length === 0 ? (
+                <EmptyState
+                  icon="wallet-outline"
+                  title="No balances yet"
+                  description="Balances appear after your group records its first expense."
+                />
+              ) : (
+                <CardList variant="padded">
+                  {visibleBalances.map((balance) => (
+                    <BalanceRow
+                      key={balance.userId}
+                      name={
+                        balance.userId === user?.id
+                          ? "You"
+                          : balance.displayName
+                      }
+                      amount={balance.netBalance}
+                      testID={`group-balance-${balance.userId}`}
+                    />
+                  ))}
+                </CardList>
+              )}
+            </Stack>
+
+            <Stack gap="sm">
+              <SectionHeader title="RECENT EXPENSES" />
+              {expensesError &&
+              groupExpenses.length === 0 ? null : expensesLoading &&
+                groupExpenses.length === 0 ? (
+                <SkeletonCard
+                  lines={[
+                    { height: 22, width: "55%" },
+                    { height: 16, width: "80%" },
+                  ]}
+                />
+              ) : groupExpenses.length === 0 ? (
+                <EmptyState
+                  icon="receipt-outline"
+                  title="No group expenses"
+                  description="Add an expense to start tracking shared costs."
+                />
+              ) : (
+                <CardList>
+                  {/* Store keeps them newest first. */}
+                  {groupExpenses.slice(0, RECENT_EXPENSES).map((expense) => (
+                    <ExpenseRow key={expense.id} expense={expense} />
+                  ))}
+                  {groupExpenses.length > RECENT_EXPENSES ? (
+                    <ListRow
+                      label={`See all ${groupExpenses.length} expenses`}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/group/[groupId]/expenses",
+                          params: { groupId },
+                        })
+                      }
+                      testID="group-see-all-expenses"
+                    />
+                  ) : null}
+                </CardList>
+              )}
+            </Stack>
+          </>
+        )}
+      </Stack>
 
       {group ? (
         <Sheet

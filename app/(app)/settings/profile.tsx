@@ -8,7 +8,6 @@ import {
   ScreenHeader,
   Stack,
   StyledButton,
-  Text,
 } from "../../../src/components/primitives";
 import {
   validateProfile,
@@ -154,25 +153,25 @@ export default function EditProfileScreen() {
           testID="profile-bio-input"
         />
         {profileError !== "" ? (
-          <FeedbackBanner tone="error" testID="profile-save-error">
-            <Text size="sm" tone="error">
-              {profileError}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={profileError}
+            testID="profile-save-error"
+          />
         ) : null}
         {savedMessage !== "" ? (
-          <FeedbackBanner tone="success" testID="profile-saved-message">
-            <Text size="sm" tone="success">
-              {savedMessage}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="success"
+            message={savedMessage}
+            testID="profile-saved-message"
+          />
         ) : null}
         {partialSuccessWarning !== "" ? (
-          <FeedbackBanner tone="warning" testID="profile-save-warning">
-            <Text size="sm" tone="warning">
-              {partialSuccessWarning}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="warning"
+            message={partialSuccessWarning}
+            testID="profile-save-warning"
+          />
         ) : null}
       </Stack>
     </Screen>

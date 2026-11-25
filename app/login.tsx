@@ -269,8 +269,8 @@ export default function LoginScreen() {
             : "Welcome back";
 
   return (
-    <Screen padding="lg">
-      <View style={styles.container} testID="login-screen">
+    <Screen padding="lg" testID="login-screen">
+      <View style={styles.container}>
         <BrandHeader testID="login-brand-header" />
         <Card>
           <Stack gap="lg" padding="md">
@@ -285,18 +285,18 @@ export default function LoginScreen() {
                   email before logging in.
                 </Text>
                 {successMessage !== "" ? (
-                  <FeedbackBanner tone="success" testID="confirmation-success">
-                    <Text size="sm" tone="success">
-                      {successMessage}
-                    </Text>
-                  </FeedbackBanner>
+                  <FeedbackBanner
+                    tone="success"
+                    message={successMessage}
+                    testID="confirmation-success"
+                  />
                 ) : null}
                 {formError !== "" ? (
-                  <FeedbackBanner tone="error" testID="confirmation-error">
-                    <Text size="sm" tone="error">
-                      {formError}
-                    </Text>
-                  </FeedbackBanner>
+                  <FeedbackBanner
+                    tone="error"
+                    message={formError}
+                    testID="confirmation-error"
+                  />
                 ) : null}
                 <StyledButton
                   label="Resend confirmation"
@@ -380,19 +380,19 @@ export default function LoginScreen() {
                 ) : null}
 
                 {formError !== "" ? (
-                  <FeedbackBanner tone="error" testID="auth-error">
-                    <Text size="sm" tone="error">
-                      {formError}
-                    </Text>
-                  </FeedbackBanner>
+                  <FeedbackBanner
+                    tone="error"
+                    message={formError}
+                    testID="auth-error"
+                  />
                 ) : null}
 
                 {successMessage !== "" ? (
-                  <FeedbackBanner tone="success" testID="auth-success">
-                    <Text size="sm" tone="success">
-                      {successMessage}
-                    </Text>
-                  </FeedbackBanner>
+                  <FeedbackBanner
+                    tone="success"
+                    message={successMessage}
+                    testID="auth-success"
+                  />
                 ) : null}
 
                 {mode === "login" ? (
@@ -433,12 +433,11 @@ export default function LoginScreen() {
                 ) : (
                   <>
                     {!isAuthenticated ? (
-                      <FeedbackBanner tone="error" testID="expired-auth-link">
-                        <Text size="sm" tone="error">
-                          This reset link is no longer active. Request a new
-                          reset email to continue.
-                        </Text>
-                      </FeedbackBanner>
+                      <FeedbackBanner
+                        tone="error"
+                        message="This reset link is no longer active. Request a new reset email to continue."
+                        testID="expired-auth-link"
+                      />
                     ) : null}
                     {isAuthenticated ? (
                       <StyledButton

@@ -1,17 +1,28 @@
 import { View } from "react-native";
+import { StyledButton } from "./StyledButton";
+import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
 
 type FeedbackTone = "error" | "success" | "warning";
 
 interface FeedbackBannerProps {
+  message: string;
   tone: FeedbackTone;
-  children: React.ReactNode;
+  /** Shows a secondary retry button under the message. */
+  onRetry?: () => void;
+  retryLabel?: string;
+  isRetrying?: boolean;
+  retryTestID?: string;
   testID?: string;
 }
 
 export function FeedbackBanner({
+  message,
   tone,
-  children,
+  onRetry,
+  retryLabel = "Retry",
+  isRetrying = false,
+  retryTestID,
   testID,
 }: FeedbackBannerProps) {
   const styles = useStyles();
@@ -21,7 +32,18 @@ export function FeedbackBanner({
       style={[styles.base, styles[tone]]}
       testID={testID}
     >
-      {children}
+      <Text size="sm" tone={tone}>
+        {message}
+      </Text>
+      {onRetry !== undefined ? (
+        <StyledButton
+          label={retryLabel}
+          onPress={onRetry}
+          variant="secondary"
+          isLoading={isRetrying}
+          testID={retryTestID}
+        />
+      ) : null}
     </View>
   );
 }

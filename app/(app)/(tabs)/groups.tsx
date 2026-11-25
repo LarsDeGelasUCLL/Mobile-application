@@ -1,8 +1,9 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { router, Tabs } from "expo-router";
 import {
   Card,
+  CardList,
   CollapsibleSection,
   Divider,
   EmptyState,
@@ -11,8 +12,9 @@ import {
   ListRow,
   Row,
   Screen,
+  SectionHeader,
   Sheet,
-  Skeleton,
+  SkeletonCard,
   Stack,
   StyledButton,
   Text,
@@ -90,7 +92,12 @@ export default function GroupsScreen() {
   };
 
   return (
-    <Screen padding="lg" refreshing={isLoading} onRefresh={loadGroups}>
+    <Screen
+      padding="lg"
+      refreshing={isLoading}
+      onRefresh={loadGroups}
+      testID="groups-screen"
+    >
       <Tabs.Screen
         options={{
           headerRight: () => (
@@ -103,163 +110,147 @@ export default function GroupsScreen() {
           ),
         }}
       />
-      <View testID="groups-screen">
-        <Stack gap="lg">
-          {storeError ? (
-            <FeedbackBanner tone="error" testID="groups-error">
-              <Text size="sm" tone="error">
-                {storeError}
-              </Text>
-              <StyledButton
-                label="Retry"
-                onPress={loadGroups}
-                variant="secondary"
-                isLoading={isLoading}
-                testID="groups-retry-button"
-              />
-            </FeedbackBanner>
-          ) : null}
+      <Stack gap="lg">
+        {storeError ? (
+          <FeedbackBanner
+            tone="error"
+            message={storeError}
+            onRetry={loadGroups}
+            isRetrying={isLoading}
+            retryTestID="groups-retry-button"
+            testID="groups-error"
+          />
+        ) : null}
 
-          {feedback ? (
-            <FeedbackBanner tone="success" testID="groups-feedback">
-              <Text size="sm" tone="success">
-                {feedback}
-              </Text>
-            </FeedbackBanner>
-          ) : null}
+        {feedback ? (
+          <FeedbackBanner
+            tone="success"
+            message={feedback}
+            testID="groups-feedback"
+          />
+        ) : null}
 
-          <Stack gap="sm">
-            <Text size="sm" weight="bold" tone="muted">
-              YOUR GROUPS
-            </Text>
-            {storeError && groups.length === 0 ? null : isLoading &&
-              groups.length === 0 ? (
-              <Card>
+        <Stack gap="sm">
+          <SectionHeader title="YOUR GROUPS" />
+          {storeError && groups.length === 0 ? null : isLoading &&
+            groups.length === 0 ? (
+            <SkeletonCard
+              lines={[
+                { height: 22, width: "60%" },
+                { height: 16, width: "35%" },
+              ]}
+            />
+          ) : groups.length === 0 ? (
+            <EmptyState
+              icon="people-outline"
+              title="No groups yet"
+              description="Create a group, or join friends with an invite code."
+              action={
                 <Stack gap="sm">
-                  <Skeleton height={22} width="60%" />
-                  <Skeleton height={16} width="35%" />
-                </Stack>
-              </Card>
-            ) : groups.length === 0 ? (
-              <EmptyState
-                icon="people-outline"
-                title="No groups yet"
-                description="Create a group, or join friends with an invite code."
-                action={
-                  <Stack gap="sm">
-                    <StyledButton
-                      label="Create group"
-                      onPress={() => openPage("/group/create")}
-                      testID="groups-empty-create"
-                    />
-                    <StyledButton
-                      label="Join with code"
-                      onPress={() => openPage("/group/join")}
-                      variant="link"
-                      testID="groups-empty-join"
-                    />
-                  </Stack>
-                }
-              />
-            ) : (
-              <Card flush>
-                {groups.map(({ group, groupRole }, index) => (
-                  <Fragment key={group.id}>
-                    {index > 0 && <Divider />}
-                    <ListRow
-                      icon="people-outline"
-                      label={group.name}
-                      description={groupSummary(
-                        group.id,
-                        groupRole === "ADMIN",
-                      )}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/group/[groupId]",
-                          params: { groupId: group.id },
-                        })
-                      }
-                      testID={`group-row-${group.id}`}
-                    />
-                  </Fragment>
-                ))}
-              </Card>
-            )}
-          </Stack>
-
-          {pendingInvites.length > 0 ? (
-            <CollapsibleSection
-              title="Invitations"
-              count={pendingInvites.length}
-              testID="groups-invitations"
-            >
-              {pendingInvites.map((invite, index) => (
-                <Stack gap="sm" key={invite.membershipId}>
-                  {index > 0 && <Divider />}
-                  <Text weight="bold">{invite.group.name}</Text>
-                  <Text size="sm" tone="muted">
-                    {invite.invitedByProfile
-                      ? `Invited by ${invite.invitedByProfile.displayName}`
-                      : "You have been invited to this group."}
-                  </Text>
-                  <Row gap="sm">
-                    <View style={styles.buttonColumn}>
-                      <StyledButton
-                        label="Accept"
-                        onPress={() =>
-                          void handleInviteResponse(invite.membershipId, true)
-                        }
-                        variant="secondary"
-                        isLoading={isLoading}
-                        testID={`accept-invite-${invite.membershipId}`}
-                      />
-                    </View>
-                    <View style={styles.buttonColumn}>
-                      <StyledButton
-                        label="Decline"
-                        onPress={() =>
-                          void handleInviteResponse(invite.membershipId, false)
-                        }
-                        variant="secondary"
-                        isLoading={isLoading}
-                        testID={`decline-invite-${invite.membershipId}`}
-                      />
-                    </View>
-                  </Row>
-                </Stack>
-              ))}
-            </CollapsibleSection>
-          ) : null}
-
-          {sentJoinRequests.length > 0 ? (
-            <CollapsibleSection
-              title="Sent join requests"
-              count={sentJoinRequests.length}
-              testID="groups-sent-requests"
-            >
-              {sentJoinRequests.map((request, index) => (
-                <Stack gap="sm" key={request.membershipId}>
-                  {index > 0 && <Divider />}
-                  <Text weight="bold">{request.group.name}</Text>
-                  <Text size="sm" tone="muted">
-                    Requested{" "}
-                    {new Date(request.requestedAt).toLocaleDateString()}
-                  </Text>
                   <StyledButton
-                    label="Cancel request"
-                    onPress={() =>
-                      void handleCancelRequest(request.membershipId)
-                    }
-                    variant="secondary"
-                    isLoading={isLoading}
-                    testID={`sent-request-cancel-${request.membershipId}`}
+                    label="Create group"
+                    onPress={() => openPage("/group/create")}
+                    testID="groups-empty-create"
+                  />
+                  <StyledButton
+                    label="Join with code"
+                    onPress={() => openPage("/group/join")}
+                    variant="link"
+                    testID="groups-empty-join"
                   />
                 </Stack>
+              }
+            />
+          ) : (
+            <CardList>
+              {groups.map(({ group, groupRole }) => (
+                <ListRow
+                  key={group.id}
+                  icon="people-outline"
+                  label={group.name}
+                  description={groupSummary(group.id, groupRole === "ADMIN")}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/group/[groupId]",
+                      params: { groupId: group.id },
+                    })
+                  }
+                  testID={`group-row-${group.id}`}
+                />
               ))}
-            </CollapsibleSection>
-          ) : null}
+            </CardList>
+          )}
         </Stack>
-      </View>
+
+        {pendingInvites.length > 0 ? (
+          <CollapsibleSection
+            title="Invitations"
+            count={pendingInvites.length}
+            testID="groups-invitations"
+          >
+            {pendingInvites.map((invite, index) => (
+              <Stack gap="sm" key={invite.membershipId}>
+                {index > 0 && <Divider />}
+                <Text weight="bold">{invite.group.name}</Text>
+                <Text size="sm" tone="muted">
+                  {invite.invitedByProfile
+                    ? `Invited by ${invite.invitedByProfile.displayName}`
+                    : "You have been invited to this group."}
+                </Text>
+                <Row gap="sm">
+                  <View style={styles.buttonColumn}>
+                    <StyledButton
+                      label="Accept"
+                      onPress={() =>
+                        void handleInviteResponse(invite.membershipId, true)
+                      }
+                      variant="secondary"
+                      isLoading={isLoading}
+                      testID={`accept-invite-${invite.membershipId}`}
+                    />
+                  </View>
+                  <View style={styles.buttonColumn}>
+                    <StyledButton
+                      label="Decline"
+                      onPress={() =>
+                        void handleInviteResponse(invite.membershipId, false)
+                      }
+                      variant="secondary"
+                      isLoading={isLoading}
+                      testID={`decline-invite-${invite.membershipId}`}
+                    />
+                  </View>
+                </Row>
+              </Stack>
+            ))}
+          </CollapsibleSection>
+        ) : null}
+
+        {sentJoinRequests.length > 0 ? (
+          <CollapsibleSection
+            title="Sent join requests"
+            count={sentJoinRequests.length}
+            testID="groups-sent-requests"
+          >
+            {sentJoinRequests.map((request, index) => (
+              <Stack gap="sm" key={request.membershipId}>
+                {index > 0 && <Divider />}
+                <Text weight="bold">{request.group.name}</Text>
+                <Text size="sm" tone="muted">
+                  Requested {new Date(request.requestedAt).toLocaleDateString()}
+                </Text>
+                <StyledButton
+                  label="Cancel request"
+                  onPress={() => void handleCancelRequest(request.membershipId)}
+                  variant="secondary"
+                  isLoading={isLoading}
+                  testID={`sent-request-cancel-${request.membershipId}`}
+                />
+              </Stack>
+            ))}
+          </CollapsibleSection>
+        ) : null}
+      </Stack>
 
       <Sheet
         visible={menuOpen}

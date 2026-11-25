@@ -26,11 +26,7 @@ import { useAuthStore } from "../src/state/useAuthStore";
 import { useSettingsStore } from "../src/state/useSettingsStore";
 import { supabase } from "../src/services";
 import { exchangeAuthLinkCode } from "../src/features/auth/authLink";
-import {
-  FeedbackBanner,
-  StyledButton,
-  Text,
-} from "../src/components/primitives";
+import { FeedbackBanner } from "../src/components/primitives";
 import { darkPalette, lightPalette } from "../src/theme/palettes";
 import { resolveScheme } from "../src/theme/scheme";
 import { ThemeProvider } from "../src/theme/ThemeProvider";
@@ -146,17 +142,13 @@ export default function RootLayout() {
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
           {serviceWorkerError ? (
             <View style={styles.serviceWorkerNotice}>
-              <FeedbackBanner tone="warning" testID="service-worker-error">
-                <Text size="sm" tone="warning">
-                  Offline support could not start. The app is still available
-                  online.
-                </Text>
-                <StyledButton
-                  label="Retry offline support"
-                  onPress={() => void registerServiceWorker()}
-                  variant="secondary"
-                />
-              </FeedbackBanner>
+              <FeedbackBanner
+                tone="warning"
+                message="Offline support could not start. The app is still available online."
+                onRetry={() => void registerServiceWorker()}
+                retryLabel="Retry offline support"
+                testID="service-worker-error"
+              />
             </View>
           ) : null}
           <Slot />

@@ -1,13 +1,11 @@
-import { Fragment, useCallback, useEffect } from "react";
-import { View } from "react-native";
+import { useCallback, useEffect } from "react";
 import { router } from "expo-router";
 import {
-  Card,
-  Divider,
+  CardList,
   EmptyState,
   FeedbackBanner,
   Screen,
-  Skeleton,
+  SkeletonCard,
   Stack,
   StyledButton,
   Text,
@@ -52,60 +50,52 @@ export default function ExpensesScreen() {
           testID="create-personal-expense-button"
         />
       }
+      testID="expenses-screen"
     >
-      <View testID="expenses-screen">
-        <Stack gap="md">
-          <Stack gap="none">
-            <Text size="lg" weight="bold">
-              Personal expenses
-            </Text>
-            <Text size="sm" tone="muted">
-              Costs outside a group, shared with anyone you know.
-            </Text>
-          </Stack>
-
-          {error ? (
-            <FeedbackBanner tone="error" testID="personal-expenses-error">
-              <Text size="sm" tone="error">
-                {error}
-              </Text>
-              <StyledButton
-                label="Retry"
-                onPress={() => void loadExpenses()}
-                variant="secondary"
-                isLoading={isLoading}
-                testID="personal-expenses-retry-button"
-              />
-            </FeedbackBanner>
-          ) : null}
-
-          {error && expenses.length === 0 ? null : isLoading &&
-            expenses.length === 0 ? (
-            <Card>
-              <Stack gap="sm">
-                <Skeleton height={22} width="60%" />
-                <Skeleton height={16} width="85%" />
-                <Skeleton height={16} width="40%" />
-              </Stack>
-            </Card>
-          ) : expenses.length === 0 ? (
-            <EmptyState
-              icon="receipt-outline"
-              title="No personal expenses yet"
-              description="Add an expense to start tracking a cost or a shared split."
-            />
-          ) : (
-            <Card flush>
-              {expenses.map((expense, index) => (
-                <Fragment key={expense.id}>
-                  {index > 0 ? <Divider /> : null}
-                  <ExpenseRow expense={expense} />
-                </Fragment>
-              ))}
-            </Card>
-          )}
+      <Stack gap="md">
+        <Stack gap="none">
+          <Text size="lg" weight="bold">
+            Personal expenses
+          </Text>
+          <Text size="sm" tone="muted">
+            Costs outside a group, shared with anyone you know.
+          </Text>
         </Stack>
-      </View>
+
+        {error ? (
+          <FeedbackBanner
+            tone="error"
+            message={error}
+            onRetry={() => void loadExpenses()}
+            isRetrying={isLoading}
+            retryTestID="personal-expenses-retry-button"
+            testID="personal-expenses-error"
+          />
+        ) : null}
+
+        {error && expenses.length === 0 ? null : isLoading &&
+          expenses.length === 0 ? (
+          <SkeletonCard
+            lines={[
+              { height: 22, width: "60%" },
+              { height: 16, width: "85%" },
+              { height: 16, width: "40%" },
+            ]}
+          />
+        ) : expenses.length === 0 ? (
+          <EmptyState
+            icon="receipt-outline"
+            title="No personal expenses yet"
+            description="Add an expense to start tracking a cost or a shared split."
+          />
+        ) : (
+          <CardList>
+            {expenses.map((expense) => (
+              <ExpenseRow key={expense.id} expense={expense} />
+            ))}
+          </CardList>
+        )}
+      </Stack>
     </Screen>
   );
 }

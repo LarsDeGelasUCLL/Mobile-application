@@ -8,11 +8,11 @@ const meta: Meta<typeof SectionHeader> = {
 export default meta;
 type Story = StoryObj<typeof SectionHeader>;
 
-export const Default: Story = { args: { title: "Recent expenses" } };
-export const WithDescriptionAndBadge: Story = {
-  args: {
-    title: "Join requests",
-    description: "People waiting for approval",
-    badgeLabel: "2",
-  },
+export const Label: Story = { args: { title: "BALANCES" } };
+export const WithCount: Story = { args: { title: "MEMBERS", count: 3 } };
+export const Title: Story = {
+  args: { title: "Recent expenses", variant: "title" },
+};
+export const WithAction: Story = {
+  args: { title: "Groups", variant: "title", onAction: () => {} },
 };

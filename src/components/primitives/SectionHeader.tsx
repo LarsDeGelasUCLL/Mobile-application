@@ -1,50 +1,65 @@
 import { View } from "react-native";
-import { Badge } from "./Badge";
-import { Stack } from "./Stack";
+import { StyledButton } from "./StyledButton";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
 
 interface SectionHeaderProps {
   title: string;
-  description?: string;
-  badgeLabel?: string;
+  /** Shown as "Title (n)". */
+  count?: number;
+  /**
+   * `label` (default): small, bold, muted ("MEMBERS (3)").
+   * `title`: large, bold ("Recent expenses" on Home).
+   */
+  variant?: "label" | "title";
+  /** Text link on the right, e.g. "See all". Shown when `onAction` is set. */
+  actionLabel?: string;
+  onAction?: () => void;
+  actionTestID?: string;
   testID?: string;
 }
 
 export function SectionHeader({
   title,
-  description,
-  badgeLabel,
-  testID = "section-header",
+  count,
+  variant = "label",
+  actionLabel = "See all",
+  onAction,
+  actionTestID,
+  testID,
 }: SectionHeaderProps) {
   const styles = useStyles();
+  const heading = count !== undefined ? `${title} (${count})` : title;
   return (
-    <View style={styles.sectionHeading} testID={testID}>
-      <View style={styles.copy}>
-        <Stack gap="sm">
-          <Text size="md" weight="bold">
-            {title}
+    <View style={styles.base} testID={testID}>
+      <View style={styles.title}>
+        {variant === "title" ? (
+          <Text size="lg" weight="bold">
+            {heading}
           </Text>
-          {description !== undefined && (
-            <Text size="sm" tone="muted">
-              {description}
-            </Text>
-          )}
-        </Stack>
+        ) : (
+          <Text size="sm" weight="bold" tone="muted">
+            {heading}
+          </Text>
+        )}
       </View>
-      {badgeLabel !== undefined && <Badge label={badgeLabel} />}
+      {onAction !== undefined ? (
+        <StyledButton
+          label={actionLabel}
+          onPress={onAction}
+          variant="link"
+          testID={actionTestID}
+        />
+      ) : null}
     </View>
   );
 }
 
-const useStyles = makeStyles((t) => ({
-  sectionHeading: {
+const useStyles = makeStyles(() => ({
+  base: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: t.spacing.md,
   },
-  copy: {
-    flex: 1,
-  },
+  title: { flex: 1 },
 }));

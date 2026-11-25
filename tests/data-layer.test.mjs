@@ -344,7 +344,7 @@ test("group detail shows balances then recent expenses; members and admin tools 
   ])
     assert.ok(settings.includes(needle), `settings: ${needle}`);
 
-  assert.match(expenses, /<FlatList/);
+  assert.match(expenses, /<CardFlatList/);
   assert.match(expenses, /footer=/);
 });
 

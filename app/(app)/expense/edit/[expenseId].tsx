@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  Card,
   EmptyState,
   FeedbackBanner,
   Screen,
   ScreenHeader,
-  Skeleton,
+  SkeletonCard,
   Stack,
   StyledButton,
-  Text,
 } from "../../../../src/components/primitives";
 import {
   ExpenseForm,
@@ -218,27 +216,23 @@ export default function EditExpenseScreen() {
           testID="edit-expense-header"
         />
         {loadError ? (
-          <FeedbackBanner tone="error" testID="expense-edit-error">
-            <Text size="sm" tone="error">
-              {loadError}
-            </Text>
-            <StyledButton
-              label="Retry"
-              onPress={() => void loadExpense()}
-              variant="secondary"
-              isLoading={participantsLoading || groupLoading}
-            />
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={loadError}
+            onRetry={() => void loadExpense()}
+            isRetrying={participantsLoading || groupLoading}
+            testID="expense-edit-error"
+          />
         ) : null}
 
         {expenseLoading && !expense ? (
-          <Card>
-            <Stack gap="sm">
-              <Skeleton height={24} width="65%" />
-              <Skeleton height={48} />
-              <Skeleton height={48} />
-            </Stack>
-          </Card>
+          <SkeletonCard
+            lines={[
+              { height: 24, width: "65%" },
+              { height: 48 },
+              { height: 48 },
+            ]}
+          />
         ) : !expense ? (
           <EmptyState
             title="Expense unavailable"
@@ -262,13 +256,13 @@ export default function EditExpenseScreen() {
             }
           />
         ) : !participantsLoaded ? (
-          <Card>
-            <Stack gap="sm">
-              <Skeleton height={24} width="65%" />
-              <Skeleton height={48} />
-              <Skeleton height={48} />
-            </Stack>
-          </Card>
+          <SkeletonCard
+            lines={[
+              { height: 24, width: "65%" },
+              { height: 48 },
+              { height: 48 },
+            ]}
+          />
         ) : loadError ? null : participants.length === 0 ? (
           <EmptyState
             title="No participants available"

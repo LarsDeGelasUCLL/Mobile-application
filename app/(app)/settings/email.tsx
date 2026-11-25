@@ -78,18 +78,18 @@ export default function ChangeEmailScreen() {
           once you confirm.
         </Text>
         {emailRequestError !== "" ? (
-          <FeedbackBanner tone="error" testID="change-email-error">
-            <Text size="sm" tone="error">
-              {emailRequestError}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={emailRequestError}
+            testID="change-email-error"
+          />
         ) : null}
         {emailMessage !== "" ? (
-          <FeedbackBanner tone="success" testID="change-email-success">
-            <Text size="sm" tone="success">
-              {emailMessage}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="success"
+            message={emailMessage}
+            testID="change-email-success"
+          />
         ) : null}
       </Stack>
     </Screen>

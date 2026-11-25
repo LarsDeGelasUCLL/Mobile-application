@@ -8,7 +8,6 @@ import {
   ScreenHeader,
   Stack,
   StyledButton,
-  Text,
 } from "../../../src/components/primitives";
 import { validatePassword } from "../../../src/features/auth/authValidation";
 
@@ -85,18 +84,18 @@ export default function ChangePasswordScreen() {
           testID="settings-confirm-password-input"
         />
         {passwordRequestError !== "" ? (
-          <FeedbackBanner tone="error" testID="change-password-error">
-            <Text size="sm" tone="error">
-              {passwordRequestError}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={passwordRequestError}
+            testID="change-password-error"
+          />
         ) : null}
         {passwordMessage !== "" ? (
-          <FeedbackBanner tone="success" testID="change-password-success">
-            <Text size="sm" tone="success">
-              {passwordMessage}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="success"
+            message={passwordMessage}
+            testID="change-password-success"
+          />
         ) : null}
       </Stack>
     </Screen>

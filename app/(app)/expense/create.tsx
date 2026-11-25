@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  Card,
   EmptyState,
   FeedbackBanner,
   Screen,
   ScreenHeader,
-  Skeleton,
+  SkeletonCard,
   Stack,
   StyledButton,
-  Text,
 } from "../../../src/components/primitives";
 import {
   ExpenseForm,
@@ -228,37 +226,31 @@ export default function CreateExpenseScreen() {
         />
 
         {createdExpenseId ? (
-          <FeedbackBanner tone="warning" testID="expense-partial-success">
-            <Text size="sm" tone="warning">
-              {expenseError ?? partialMutationError}
-            </Text>
-            <StyledButton
-              label="Retry balance refresh"
-              onPress={() => void retryBalances()}
-              variant="secondary"
-              isLoading={expenseLoading}
-            />
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="warning"
+            message={expenseError ?? partialMutationError ?? ""}
+            onRetry={() => void retryBalances()}
+            retryLabel="Retry balance refresh"
+            isRetrying={expenseLoading}
+            testID="expense-partial-success"
+          />
         ) : loadError ? (
-          <FeedbackBanner tone="error" testID="expense-participants-error">
-            <Text size="sm" tone="error">
-              {loadError}
-            </Text>
-            <StyledButton
-              label="Retry participants"
-              onPress={() => void loadParticipants()}
-              variant="secondary"
-              isLoading={participantsLoading || groupLoading}
-            />
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={loadError}
+            onRetry={() => void loadParticipants()}
+            retryLabel="Retry participants"
+            isRetrying={participantsLoading || groupLoading}
+            testID="expense-participants-error"
+          />
         ) : !participantsLoaded ? (
-          <Card>
-            <Stack gap="sm">
-              <Skeleton height={24} width="65%" />
-              <Skeleton height={48} />
-              <Skeleton height={48} />
-            </Stack>
-          </Card>
+          <SkeletonCard
+            lines={[
+              { height: 24, width: "65%" },
+              { height: 48 },
+              { height: 48 },
+            ]}
+          />
         ) : participants.length === 0 ? (
           <EmptyState
             title="No participants available"

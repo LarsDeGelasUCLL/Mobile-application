@@ -15,7 +15,6 @@ import {
   Radio,
   Row,
   Stack,
-  StyledButton,
   Text,
 } from "../../../components/primitives";
 import {
@@ -169,19 +168,13 @@ export function ExpenseForm({
   return (
     <Stack gap="md">
       {error || validationError ? (
-        <FeedbackBanner tone="error" testID="expense-form-error">
-          <Text size="sm" tone="error">
-            {validationError ?? error}
-          </Text>
-          {error ? (
-            <StyledButton
-              label="Retry"
-              onPress={handleSubmit}
-              variant="secondary"
-              isLoading={isLoading}
-            />
-          ) : null}
-        </FeedbackBanner>
+        <FeedbackBanner
+          tone="error"
+          message={validationError ?? error ?? ""}
+          onRetry={error ? handleSubmit : undefined}
+          isRetrying={isLoading}
+          testID="expense-form-error"
+        />
       ) : null}
 
       <Card>

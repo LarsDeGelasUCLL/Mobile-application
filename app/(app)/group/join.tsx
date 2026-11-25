@@ -87,18 +87,18 @@ export default function JoinGroupScreen() {
           join right away.
         </Text>
         {storeError ? (
-          <FeedbackBanner tone="error" testID="join-group-error">
-            <Text size="sm" tone="error">
-              {storeError}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="error"
+            message={storeError}
+            testID="join-group-error"
+          />
         ) : null}
         {feedback ? (
-          <FeedbackBanner tone="success" testID="join-group-feedback">
-            <Text size="sm" tone="success">
-              {feedback}
-            </Text>
-          </FeedbackBanner>
+          <FeedbackBanner
+            tone="success"
+            message={feedback}
+            testID="join-group-feedback"
+          />
         ) : null}
       </Stack>
     </Screen>
