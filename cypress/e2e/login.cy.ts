@@ -1,3 +1,5 @@
+import { testCredentials } from '../support/credentials';
+
 describe('Login screen', () => {
   beforeEach(() => {
     cy.visit('/login');
@@ -10,10 +12,9 @@ describe('Login screen', () => {
   });
 
   it('logs in with valid credentials and navigates to home', () => {
-    cy.getBySel('email-input').type(Cypress.env('TEST_EMAIL'));
-    cy.getBySel('password-input').type(Cypress.env('TEST_PASSWORD'), {
-      log: false,
-    });
+    const { email, password } = testCredentials();
+    cy.getBySel('email-input').type(email);
+    cy.getBySel('password-input').type(password, { log: false });
     cy.getBySel('login-button').click();
 
     cy.getBySel('home-screen').should('be.visible');

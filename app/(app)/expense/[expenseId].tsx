@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Badge,
@@ -216,39 +217,41 @@ export default function ExpenseDetailScreen() {
           />
         ) : (
           <>
-            <Card>
-              <Stack gap="sm">
-                <Row justify="space-between" align="center">
-                  <Text size="lg" weight="bold">
-                    {expense.title}
+            <View testID="expense-detail-summary">
+              <Card>
+                <Stack gap="sm">
+                  <Row justify="space-between" align="center">
+                    <Text size="lg" weight="bold">
+                      {expense.title}
+                    </Text>
+                    <Badge
+                      label={expense.groupId ? "Group expense" : "Personal"}
+                    />
+                  </Row>
+                  <Text size="xxl" weight="bold">
+                    {formatCurrency(expense.amount)}
                   </Text>
-                  <Badge
-                    label={expense.groupId ? "Group expense" : "Personal"}
-                  />
-                </Row>
-                <Text size="xxl" weight="bold">
-                  {formatCurrency(expense.amount)}
-                </Text>
-                <Text size="sm" color={colors.textMuted}>
-                  Paid by{" "}
-                  {expense.paidByProfile?.displayName ?? "A participant"}
-                </Text>
-                <Text size="sm" color={colors.textMuted}>
-                  Created by{" "}
-                  {expense.createdByProfile?.displayName ??
-                    expense.paidByProfile?.displayName ??
-                    "A participant"}
-                </Text>
-                <Text size="sm" color={colors.textMuted}>
-                  {new Date(expense.recordCreated).toLocaleString()}
-                </Text>
-                {expense.receiptUrl ? (
                   <Text size="sm" color={colors.textMuted}>
-                    Receipt: {expense.receiptUrl}
+                    Paid by{" "}
+                    {expense.paidByProfile?.displayName ?? "A participant"}
                   </Text>
-                ) : null}
-              </Stack>
-            </Card>
+                  <Text size="sm" color={colors.textMuted}>
+                    Created by{" "}
+                    {expense.createdByProfile?.displayName ??
+                      expense.paidByProfile?.displayName ??
+                      "A participant"}
+                  </Text>
+                  <Text size="sm" color={colors.textMuted}>
+                    {new Date(expense.recordCreated).toLocaleString()}
+                  </Text>
+                  {expense.receiptUrl ? (
+                    <Text size="sm" color={colors.textMuted}>
+                      Receipt: {expense.receiptUrl}
+                    </Text>
+                  ) : null}
+                </Stack>
+              </Card>
+            </View>
 
             <Stack gap="sm">
               <Text size="lg" weight="bold">

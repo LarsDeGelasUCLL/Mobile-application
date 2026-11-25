@@ -1,0 +1,112 @@
+const themes = [
+  { label: 'System', value: 'SYSTEM' },
+  { label: 'Light', value: 'LIGHT' },
+  { label: 'Dark', value: 'DARK' },
+];
+
+// Blocks account writes: a validation test must never change the account.
+// A stubbed request still counts, so `@x.all` proves nothing was sent.
+function stubAccountWrites() {
+  cy.intercept('PUT', '**/auth/v1/user*', { statusCode: 500, body: {} }).as(
+    'updateAuthUser',
+  );
+  cy.intercept('POST', '**/rest/v1/rpc/update_my_user_profile*', {
+    statusCode: 500,
+    body: {},
+  }).as('updateProfile');
+}
+
+function expectNoAccountWrites() {
+  cy.get('@updateAuthUser.all').should('have.length', 0);
+  cy.get('@updateProfile.all').should('have.length', 0);
+}
+
+describe('Profile and settings', () => {
+  beforeEach(() => {
+    cy.login();
+  });
+
+  it('shows the display name on the profile tab', () => {
+    cy.visit('/settings/profile');
+    cy.getBySel('profile-name-input')
+      .invoke('val')
+      .should('be.a', 'string')
+      .and('not.be.empty')
+      .then((name) => {
+        cy.visit('/profile');
+        cy.getBySel('profile-screen')
+          .should('be.visible')
+          .and('contain', String(name));
+      });
+  });
+
+  it('changes the theme and restores the original', () => {
+    cy.intercept('PATCH', '**/rest/v1/user_settings*').as('saveSettings');
+    cy.visit('/settings');
+
+    const chooseTheme = (value: string, label: string) => {
+      cy.getBySel('settings-theme-select').click();
+      cy.getBySel(`settings-theme-select-option-${value}`).click();
+      cy.wait('@saveSettings').its('response.statusCode').should('eq', 200);
+      cy.getBySel('settings-success').should('contain', 'Settings saved.');
+      cy.getBySel('settings-theme-select').should(
+        'have.attr',
+        'aria-label',
+        `Theme, ${label}`,
+      );
+    };
+
+    cy.getBySel('settings-theme-select')
+      .invoke('attr', 'aria-label')
+      .then((ariaLabel) => {
+        const original = themes.find((t) => ariaLabel === `Theme, ${t.label}`);
+        if (!original) throw new Error(`Unknown theme label: ${ariaLabel}`);
+        const next = themes.find((t) => t.value !== original.value) ?? original;
+
+        chooseTheme(next.value, next.label);
+        chooseTheme(original.value, original.label);
+      });
+  });
+
+  it('rejects an invalid phone number and IBAN without saving', () => {
+    stubAccountWrites();
+    cy.visit('/settings/profile');
+    cy.getBySel('profile-name-input').invoke('val').should('not.be.empty');
+
+    cy.getBySel('profile-phone-input').fill('abc');
+    cy.getBySel('profile-iban-input').fill('NL00BANK0123456789');
+    cy.getBySel('save-profile-button').click();
+
+    cy.contains('Enter a valid phone number.').should('be.visible');
+    cy.contains('Enter a valid IBAN.').should('be.visible');
+    cy.getBySel('profile-saved-message').should('not.exist');
+    expectNoAccountWrites();
+  });
+
+  it('rejects an invalid new email', () => {
+    stubAccountWrites();
+    cy.visit('/settings/email');
+    cy.getBySel('profile-new-email-input').fill('not-an-email');
+    cy.getBySel('change-email-button').click();
+
+    cy.contains('Enter a valid email address.').should('be.visible');
+    cy.getBySel('change-email-success').should('not.exist');
+    expectNoAccountWrites();
+  });
+
+  it('rejects mismatched passwords', () => {
+    stubAccountWrites();
+    cy.visit('/settings/password');
+    cy.getBySel('settings-new-password-input').fill('cy-password-1', {
+      log: false,
+    });
+    cy.getBySel('settings-confirm-password-input').fill('cy-password-2', {
+      log: false,
+    });
+    cy.getBySel('change-password-button').click();
+
+    cy.contains('Passwords must match.').should('be.visible');
+    cy.getBySel('change-password-success').should('not.exist');
+    expectNoAccountWrites();
+  });
+});
