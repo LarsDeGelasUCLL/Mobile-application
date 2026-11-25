@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { goBackOr } from "../../../../src/features/navigation/goBackOr";
 import {
@@ -6,7 +6,6 @@ import {
   FeedbackBanner,
   Screen,
   ScreenHeader,
-  SkeletonCard,
   Stack,
   StyledButton,
 } from "../../../../src/components/primitives";
@@ -14,100 +13,45 @@ import {
   ExpenseForm,
   type ExpenseFormHandle,
 } from "../../../../src/features/expenses/components/ExpenseForm";
+import { ExpenseFormSkeleton } from "../../../../src/features/expenses/components/ExpenseFormSkeleton";
+import { canManageExpense } from "../../../../src/features/expenses/expensePermissions";
+import { useExpenseParticipants } from "../../../../src/features/expenses/useExpenseParticipants";
 import type { ValidExpenseForm } from "../../../../src/services/expenses/expenseValidation";
-import { getUserExpenseParticipants } from "../../../../src/services";
-import { getErrorMessage } from "../../../../src/utils/errors";
 import { useAuthStore } from "../../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../../src/state/useGroupStore";
-import type { PublicUserProfileDto, User } from "../../../../src/types";
-
-function currentUserProfile(user: User | null): PublicUserProfileDto | null {
-  if (!user) return null;
-  return {
-    id: user.id,
-    displayName: user.displayName,
-    profilePictureUrl: user.profilePictureUrl,
-    customBio: user.customBio,
-    recordCreated: user.recordCreated,
-  };
-}
-
-function includeCurrentUser(
-  participants: PublicUserProfileDto[],
-  user: User | null,
-): PublicUserProfileDto[] {
-  const merged = new Map(participants.map((profile) => [profile.id, profile]));
-  const currentUser = currentUserProfile(user);
-  if (currentUser && !merged.has(currentUser.id)) {
-    merged.set(currentUser.id, currentUser);
-  }
-  return Array.from(merged.values());
-}
-
-const participantsErrorFallback = "Could not load participants.";
 
 export default function EditExpenseScreen() {
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
   const formRef = useRef<ExpenseFormHandle>(null);
   const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
   const selectedExpense = useExpenseStore((state) => state.selectedExpense);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
   const expenseError = useExpenseStore((state) => state.error);
   const fetchExpenseDetail = useExpenseStore(
     (state) => state.fetchExpenseDetail,
   );
-  const fetchIndividualExpenses = useExpenseStore(
-    (state) => state.fetchIndividualExpenses,
-  );
   const updateExpense = useExpenseStore((state) => state.updateExpense);
   const clearExpenseError = useExpenseStore((state) => state.clearError);
-  const activeGroupMembers = useGroupStore((state) => state.activeGroupMembers);
   const groups = useGroupStore((state) => state.groups);
   const groupLoading = useGroupStore((state) => state.isLoading);
   const groupError = useGroupStore((state) => state.error);
-  const fetchMembersForGroup = useGroupStore(
-    (state) => state.fetchMembersForGroup,
-  );
   const fetchGroupsAndInvites = useGroupStore(
     (state) => state.fetchGroupsAndInvites,
   );
   const clearGroupError = useGroupStore((state) => state.clearError);
-  const [personalParticipants, setPersonalParticipants] = useState<
-    PublicUserProfileDto[]
-  >([]);
-  const [participantsLoading, setParticipantsLoading] = useState(false);
-  // `participants` always holds the current user, so length cannot signal the first load.
-  const [participantsLoaded, setParticipantsLoaded] = useState(false);
-  const [participantsError, setParticipantsError] = useState<string | null>(
-    null,
-  );
   const expense = selectedExpense?.id === expenseId ? selectedExpense : null;
-  const groupParticipants = useMemo(() => {
-    const profiles = activeGroupMembers
-      .filter(
-        (member) =>
-          member.groupId === expense?.groupId && member.status === "ACTIVE",
-      )
-      .flatMap((member) => (member.userProfile ? [member.userProfile] : []));
-    return includeCurrentUser(profiles, user);
-  }, [activeGroupMembers, expense?.groupId, user]);
-  const personalParticipantOptions = useMemo(
-    () => includeCurrentUser(personalParticipants, user),
-    [personalParticipants, user],
-  );
-  const participants = expense?.groupId
-    ? groupParticipants
-    : personalParticipantOptions;
-  const groupMembership = expense?.groupId
-    ? groups.find((item) => item.group.id === expense.groupId)
-    : undefined;
-  const canManage =
-    !!user &&
-    !!expense &&
-    (groupMembership?.groupRole === "ADMIN" ||
-      expense.createdByUserId === user.id ||
-      expense.paidByUserId === user.id);
+  // The expense tells which participants to load, so this page loads them.
+  const {
+    participants,
+    isLoading: participantsLoading,
+    isLoaded: participantsLoaded,
+    error: participantsError,
+    runLoad,
+    fetchParticipants,
+  } = useExpenseParticipants(expense?.groupId ?? null, { autoLoad: false });
+  const canManage = canManageExpense(user, expense, groups);
   const navigateBack = () =>
     goBackOr(
       expense
@@ -122,39 +66,23 @@ export default function EditExpenseScreen() {
     if (!expenseId) return;
     clearExpenseError();
     clearGroupError();
-    setParticipantsError(null);
-    setParticipantsLoading(true);
-    try {
+    await runLoad(async () => {
       await fetchExpenseDetail(expenseId);
       const loadedExpense = useExpenseStore.getState().selectedExpense;
       if (!loadedExpense) return;
-      if (loadedExpense.groupId) {
-        await fetchMembersForGroup(loadedExpense.groupId);
-        if (user?.id) await fetchGroupsAndInvites(user.id);
-      } else if (user?.id) {
-        await fetchIndividualExpenses(user.id);
-        const history = useExpenseStore.getState().individualExpenses;
-        const knownParticipants = await getUserExpenseParticipants(
-          user.id,
-          history,
-        );
-        setPersonalParticipants(knownParticipants);
-      }
-    } catch (error) {
-      setParticipantsError(getErrorMessage(error, participantsErrorFallback));
-    } finally {
-      setParticipantsLoading(false);
-      setParticipantsLoaded(true);
-    }
+      await fetchParticipants(loadedExpense.groupId);
+      // Group roles decide `canManage`.
+      if (loadedExpense.groupId && userId) await fetchGroupsAndInvites(userId);
+    });
   }, [
     clearExpenseError,
     clearGroupError,
     expenseId,
     fetchExpenseDetail,
     fetchGroupsAndInvites,
-    fetchIndividualExpenses,
-    fetchMembersForGroup,
-    user?.id,
+    fetchParticipants,
+    runLoad,
+    userId,
   ]);
 
   useEffect(() => {
@@ -221,13 +149,7 @@ export default function EditExpenseScreen() {
         ) : null}
 
         {expenseLoading && !expense ? (
-          <SkeletonCard
-            lines={[
-              { height: 24, width: "65%" },
-              { height: 48 },
-              { height: 48 },
-            ]}
-          />
+          <ExpenseFormSkeleton />
         ) : !expense ? (
           <EmptyState
             title="Expense unavailable"
@@ -251,13 +173,7 @@ export default function EditExpenseScreen() {
             }
           />
         ) : !participantsLoaded ? (
-          <SkeletonCard
-            lines={[
-              { height: 24, width: "65%" },
-              { height: 48 },
-              { height: 48 },
-            ]}
-          />
+          <ExpenseFormSkeleton />
         ) : loadError ? null : participants.length === 0 ? (
           <EmptyState
             title="No participants available"
@@ -265,6 +181,7 @@ export default function EditExpenseScreen() {
           />
         ) : (
           <ExpenseForm
+            key={expense.id}
             ref={formRef}
             groupId={expense.groupId}
             currentUserId={user?.id ?? ""}

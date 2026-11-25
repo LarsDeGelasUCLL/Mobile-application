@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 import type {
   CreateExpenseDto,
   ExpenseDto,
+  PublicUserProfileDto,
   UpdateExpenseDto,
   UserBalanceDto,
 } from "../../types";
@@ -17,6 +18,8 @@ export interface ExpenseState {
   fetchGroupExpensesAndBalances: (groupId: string) => Promise<void>;
   fetchIndividualExpenses: (userId: string) => Promise<void>;
   fetchExpenseDetail: (expenseId: string) => Promise<void>;
+  /** Loads the personal history, then everyone the user can split with. */
+  fetchExpenseParticipants: (userId: string) => Promise<PublicUserProfileDto[]>;
   addExpense: (payload: CreateExpenseDto) => Promise<ExpenseDto>;
   updateExpense: (
     expenseId: string,

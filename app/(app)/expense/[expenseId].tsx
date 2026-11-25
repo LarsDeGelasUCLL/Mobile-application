@@ -2,30 +2,33 @@ import { useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import {
-  Badge,
   Card,
   ConfirmDialog,
   EmptyState,
   FeedbackBanner,
   IconButton,
   ListRow,
-  Row,
   Screen,
   ScreenHeader,
   SectionHeader,
   SkeletonCard,
   Stack,
   StyledButton,
-  Text,
 } from "../../../src/components/primitives";
+import { ExpenseSummaryCard } from "../../../src/features/expenses/components/ExpenseSummaryCard";
+import { SplitRow } from "../../../src/features/expenses/components/SplitRow";
+import {
+  canManageExpense,
+  canSettleSplit,
+} from "../../../src/features/expenses/expensePermissions";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
-import { formatCurrency } from "../../../src/utils/money";
 
 export default function ExpenseDetailScreen() {
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
   const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
   const expenseLoading = useExpenseStore((state) => state.isLoading);
   const expenseError = useExpenseStore((state) => state.error);
   const selectedExpense = useExpenseStore((state) => state.selectedExpense);
@@ -49,16 +52,7 @@ export default function ExpenseDetailScreen() {
   const [deletedGroupId, setDeletedGroupId] = useState<string | null>(null);
 
   const expense = selectedExpense?.id === expenseId ? selectedExpense : null;
-  const groupMembership = expense?.groupId
-    ? groups.find((item) => item.group.id === expense.groupId)
-    : undefined;
-  const isGroupAdmin = groupMembership?.groupRole === "ADMIN";
-  const canManage =
-    !!user &&
-    !!expense &&
-    (isGroupAdmin ||
-      expense.createdByUserId === user.id ||
-      expense.paidByUserId === user.id);
+  const canManage = canManageExpense(user, expense, groups);
   const isLoading = expenseLoading || groupLoading;
 
   const loadExpense = useCallback(async () => {
@@ -68,8 +62,8 @@ export default function ExpenseDetailScreen() {
     try {
       await fetchExpenseDetail(expenseId);
       const loadedExpense = useExpenseStore.getState().selectedExpense;
-      if (loadedExpense?.groupId && user?.id) {
-        await fetchGroupsAndInvites(user.id);
+      if (loadedExpense?.groupId && userId) {
+        await fetchGroupsAndInvites(userId);
         await fetchGroupExpensesAndBalances(loadedExpense.groupId);
       }
     } catch {
@@ -82,7 +76,7 @@ export default function ExpenseDetailScreen() {
     fetchExpenseDetail,
     fetchGroupExpensesAndBalances,
     fetchGroupsAndInvites,
-    user?.id,
+    userId,
   ]);
 
   useEffect(() => {
@@ -203,85 +197,29 @@ export default function ExpenseDetailScreen() {
           />
         ) : (
           <>
-            <Card testID="expense-detail-summary">
-              <Stack gap="sm">
-                <Row justify="space-between" align="center">
-                  <Text size="lg" weight="bold">
-                    {expense.title}
-                  </Text>
-                  <Badge
-                    label={expense.groupId ? "Group expense" : "Personal"}
-                  />
-                </Row>
-                <Text size="xxl" weight="bold">
-                  {formatCurrency(expense.amount)}
-                </Text>
-                <Text size="sm" tone="muted">
-                  Paid by{" "}
-                  {expense.paidByProfile?.displayName ?? "A participant"}
-                </Text>
-                <Text size="sm" tone="muted">
-                  Created by{" "}
-                  {expense.createdByProfile?.displayName ??
-                    expense.paidByProfile?.displayName ??
-                    "A participant"}
-                </Text>
-                <Text size="sm" tone="muted">
-                  {new Date(expense.recordCreated).toLocaleString()}
-                </Text>
-                {expense.receiptUrl ? (
-                  <Text size="sm" tone="muted">
-                    Receipt: {expense.receiptUrl}
-                  </Text>
-                ) : null}
-              </Stack>
-            </Card>
+            <ExpenseSummaryCard
+              expense={expense}
+              testID="expense-detail-summary"
+            />
 
             <Stack gap="sm">
               <SectionHeader title="Split breakdown" variant="title" />
-              {expense.splits.map((split) => {
-                const isPayer = split.userId === expense.paidByUserId;
-                const canSettle =
-                  !!user &&
-                  !isPayer &&
-                  (split.userId === user.id ||
-                    expense.paidByUserId === user.id);
-                return (
-                  <Card key={split.id}>
-                    <Row justify="space-between" align="center">
-                      <Stack gap="none" flex={1}>
-                        <Text weight="medium">
-                          {split.userProfile?.displayName ?? "Participant"}
-                          {isPayer ? " (payer)" : ""}
-                        </Text>
-                        <Text size="sm" tone="muted">
-                          {split.isSettled ? "Settled" : "Not settled"}
-                        </Text>
-                      </Stack>
-                      <Stack gap="sm" align="flex-end">
-                        <Text weight="bold">
-                          {formatCurrency(split.amountOwed)}
-                        </Text>
-                        {canSettle ? (
-                          <StyledButton
-                            label={split.isSettled ? "Unsettle" : "Settle"}
-                            onPress={() =>
-                              void toggleSettleSplit(
-                                split.id,
-                                !split.isSettled,
-                                expense.groupId,
-                              ).catch(() => undefined)
-                            }
-                            variant="secondary"
-                            isLoading={expenseLoading}
-                            testID={`settle-split-${split.id}`}
-                          />
-                        ) : null}
-                      </Stack>
-                    </Row>
-                  </Card>
-                );
-              })}
+              {expense.splits.map((split) => (
+                <SplitRow
+                  key={split.id}
+                  split={split}
+                  isPayer={split.userId === expense.paidByUserId}
+                  canSettle={canSettleSplit(user, expense, split)}
+                  isLoading={expenseLoading}
+                  onToggleSettled={() =>
+                    void toggleSettleSplit(
+                      split.id,
+                      !split.isSettled,
+                      expense.groupId,
+                    ).catch(() => undefined)
+                  }
+                />
+              ))}
             </Stack>
 
             {canManage ? (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import {
@@ -6,7 +6,6 @@ import {
   FeedbackBanner,
   Screen,
   ScreenHeader,
-  SkeletonCard,
   Stack,
   StyledButton,
 } from "../../../src/components/primitives";
@@ -14,38 +13,12 @@ import {
   ExpenseForm,
   type ExpenseFormHandle,
 } from "../../../src/features/expenses/components/ExpenseForm";
+import { ExpenseFormSkeleton } from "../../../src/features/expenses/components/ExpenseFormSkeleton";
+import { useExpenseParticipants } from "../../../src/features/expenses/useExpenseParticipants";
 import type { ValidExpenseForm } from "../../../src/services/expenses/expenseValidation";
-import { getUserExpenseParticipants } from "../../../src/services";
-import { getErrorMessage } from "../../../src/utils/errors";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
-import type { PublicUserProfileDto, User } from "../../../src/types";
-
-function currentUserProfile(user: User | null): PublicUserProfileDto | null {
-  if (!user) return null;
-  return {
-    id: user.id,
-    displayName: user.displayName,
-    profilePictureUrl: user.profilePictureUrl,
-    customBio: user.customBio,
-    recordCreated: user.recordCreated,
-  };
-}
-
-function includeCurrentUser(
-  participants: PublicUserProfileDto[],
-  user: User | null,
-): PublicUserProfileDto[] {
-  const merged = new Map(participants.map((profile) => [profile.id, profile]));
-  const currentUser = currentUserProfile(user);
-  if (currentUser && !merged.has(currentUser.id)) {
-    merged.set(currentUser.id, currentUser);
-  }
-  return Array.from(merged.values());
-}
-
-const participantsErrorFallback = "Could not load participants.";
 
 export default function CreateExpenseScreen() {
   const { groupId: routeGroupId } = useLocalSearchParams<{
@@ -56,100 +29,27 @@ export default function CreateExpenseScreen() {
   const user = useAuthStore((state) => state.user);
   const expenseLoading = useExpenseStore((state) => state.isLoading);
   const expenseError = useExpenseStore((state) => state.error);
-  const fetchIndividualExpenses = useExpenseStore(
-    (state) => state.fetchIndividualExpenses,
-  );
   const addExpense = useExpenseStore((state) => state.addExpense);
   const fetchGroupExpensesAndBalances = useExpenseStore(
     (state) => state.fetchGroupExpensesAndBalances,
   );
-  const clearExpenseError = useExpenseStore((state) => state.clearError);
-  const activeGroupMembers = useGroupStore((state) => state.activeGroupMembers);
   const groupLoading = useGroupStore((state) => state.isLoading);
   const groupError = useGroupStore((state) => state.error);
-  const fetchMembersForGroup = useGroupStore(
-    (state) => state.fetchMembersForGroup,
-  );
-  const clearGroupError = useGroupStore((state) => state.clearError);
-  const [personalParticipants, setPersonalParticipants] = useState<
-    PublicUserProfileDto[]
-  >([]);
-  const [participantsLoading, setParticipantsLoading] = useState(false);
-  // `participants` always holds the current user, so length cannot signal the first load.
-  const [participantsLoaded, setParticipantsLoaded] = useState(false);
-  const [participantsError, setParticipantsError] = useState<string | null>(
-    null,
-  );
+  const {
+    participants,
+    isLoading: participantsLoading,
+    isLoaded: participantsLoaded,
+    error: participantsError,
+    reload: reloadParticipants,
+  } = useExpenseParticipants(groupId);
   const [createdExpenseId, setCreatedExpenseId] = useState<string | null>(null);
   const [partialMutationError, setPartialMutationError] = useState<
     string | null
   >(null);
 
-  const groupParticipants = useMemo(() => {
-    const profiles = activeGroupMembers
-      .filter(
-        (member) => member.groupId === groupId && member.status === "ACTIVE",
-      )
-      .flatMap((member) => (member.userProfile ? [member.userProfile] : []));
-    return includeCurrentUser(profiles, user);
-  }, [activeGroupMembers, groupId, user]);
-  const personalParticipantOptions = useMemo(
-    () => includeCurrentUser(personalParticipants, user),
-    [personalParticipants, user],
-  );
-  const participants = groupId ? groupParticipants : personalParticipantOptions;
-
-  const loadParticipants = useCallback(async () => {
-    if (!user?.id) return;
-    setParticipantsLoading(true);
-    setParticipantsError(null);
-    if (groupId) {
-      clearGroupError();
-      try {
-        await fetchMembersForGroup(groupId);
-      } catch (error) {
-        setParticipantsError(getErrorMessage(error, participantsErrorFallback));
-      } finally {
-        setParticipantsLoading(false);
-        setParticipantsLoaded(true);
-      }
-      return;
-    }
-
-    clearExpenseError();
-    try {
-      await fetchIndividualExpenses(user.id);
-      const history = useExpenseStore.getState().individualExpenses;
-      const knownParticipants = await getUserExpenseParticipants(
-        user.id,
-        history,
-      );
-      setPersonalParticipants(knownParticipants);
-    } catch (error) {
-      setParticipantsError(getErrorMessage(error, participantsErrorFallback));
-    } finally {
-      setParticipantsLoading(false);
-      setParticipantsLoaded(true);
-    }
-  }, [
-    clearExpenseError,
-    clearGroupError,
-    fetchIndividualExpenses,
-    fetchMembersForGroup,
-    groupId,
-    user?.id,
-  ]);
-
-  useEffect(() => {
-    void loadParticipants();
-  }, [loadParticipants]);
-
   const handleCreate = async (draft: ValidExpenseForm) => {
     try {
-      const created = await addExpense({
-        ...draft,
-        groupId,
-      });
+      const created = await addExpense({ ...draft, groupId });
       const mutationError = useExpenseStore.getState().error;
       if (mutationError) {
         setCreatedExpenseId(created.id);
@@ -192,7 +92,7 @@ export default function CreateExpenseScreen() {
     <Screen
       padding="lg"
       refreshing={participantsLoading}
-      onRefresh={() => void loadParticipants()}
+      onRefresh={() => void reloadParticipants()}
       footer={
         showForm ? (
           <StyledButton
@@ -231,19 +131,13 @@ export default function CreateExpenseScreen() {
           <FeedbackBanner
             tone="error"
             message={loadError}
-            onRetry={() => void loadParticipants()}
+            onRetry={() => void reloadParticipants()}
             retryLabel="Retry participants"
             isRetrying={participantsLoading || groupLoading}
             testID="expense-participants-error"
           />
         ) : !participantsLoaded ? (
-          <SkeletonCard
-            lines={[
-              { height: 24, width: "65%" },
-              { height: 48 },
-              { height: 48 },
-            ]}
-          />
+          <ExpenseFormSkeleton />
         ) : participants.length === 0 ? (
           <EmptyState
             title="No participants available"

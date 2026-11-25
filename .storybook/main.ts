@@ -78,7 +78,10 @@ const reactNativeEsbuildPlugin: EsbuildPlugin = {
 };
 
 const config: StorybookConfig = {
-  stories: ["../src/components/**/*.stories.tsx"],
+  stories: [
+    "../src/components/**/*.stories.tsx",
+    "../src/features/**/*.stories.tsx",
+  ],
   addons: [],
   framework: {
     name: "@storybook/react-vite",

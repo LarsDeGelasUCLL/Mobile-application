@@ -4,6 +4,7 @@ import {
   getExpenseById,
   getGroupExpenses,
   getIndividualExpenses,
+  getUserExpenseParticipants,
 } from "../../services";
 import { getErrorMessage } from "../../utils/errors";
 
@@ -11,7 +12,8 @@ export const createExpenseLoadActions: ExpenseActionCreator<
   | "fetchGroupExpensesAndBalances"
   | "fetchIndividualExpenses"
   | "fetchExpenseDetail"
-> = (set) => ({
+  | "fetchExpenseParticipants"
+> = (set, get) => ({
   fetchGroupExpensesAndBalances: async (groupId) => {
     set({ isLoading: true, error: null });
     try {
@@ -61,5 +63,11 @@ export const createExpenseLoadActions: ExpenseActionCreator<
       });
       throw error;
     }
+  },
+
+  // Participant failures reach the caller only; the store error stays unset.
+  fetchExpenseParticipants: async (userId) => {
+    await get().fetchIndividualExpenses(userId);
+    return getUserExpenseParticipants(userId, get().individualExpenses);
   },
 });
