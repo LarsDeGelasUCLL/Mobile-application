@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ExpenseForm } from "./ExpenseForm";
-import { storyExpense, storyParticipants } from "./expenseStoryData";
+import { storyExpense, storyParticipants } from "../storyData/expenseStoryData";
 
 const meta: Meta<typeof ExpenseForm> = {
   title: "Expenses/ExpenseForm",

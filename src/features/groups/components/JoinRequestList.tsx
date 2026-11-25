@@ -20,7 +20,8 @@ interface JoinRequestListProps {
   testID?: string;
 }
 
-/** "JOIN REQUESTS": one card, an approve/reject pair per request (admins). */
+/** "JOIN REQUESTS": one card, an approve/reject pair per request (admins);
+ * nothing when there are none. */
 export function JoinRequestList({
   requests,
   isLoading,
@@ -28,6 +29,7 @@ export function JoinRequestList({
   testID,
 }: JoinRequestListProps) {
   const styles = useStyles();
+  if (requests.length === 0) return null;
   // Not `CardList`: each request keeps a gap above and below its divider.
   return (
     <Stack gap="sm" testID={testID}>

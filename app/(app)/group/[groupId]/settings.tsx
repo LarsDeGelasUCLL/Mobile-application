@@ -22,7 +22,6 @@ export default function GroupSettingsScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const page = useGroupSettings(groupId);
   const { group, isAdmin, isLoading, joinRequests, selectedMember } = page;
-  const closeDialog = () => page.setConfirm(null);
 
   return (
     <Screen
@@ -72,7 +71,7 @@ export default function GroupSettingsScreen() {
                 testID="group-info-section"
               />
             ) : null}
-            {isAdmin && joinRequests.length > 0 ? (
+            {isAdmin ? (
               <JoinRequestList
                 requests={joinRequests}
                 isLoading={isLoading}
@@ -83,7 +82,7 @@ export default function GroupSettingsScreen() {
               members={page.members}
               currentUserId={page.user?.id}
               isLoading={isLoading}
-              onSelect={isAdmin ? page.setSelectedMember : undefined}
+              onSelect={isAdmin ? page.openMemberActions : undefined}
             />
             {isAdmin ? (
               <InviteByEmailForm
@@ -95,8 +94,8 @@ export default function GroupSettingsScreen() {
             <GroupDangerZone
               canLeave={!!page.currentMembership}
               canDelete={isAdmin}
-              onLeave={() => page.setConfirm("leave")}
-              onDelete={() => page.setConfirm("delete")}
+              onLeave={() => page.askConfirm("leave")}
+              onDelete={() => page.askConfirm("delete")}
             />
           </>
         )}
@@ -105,9 +104,9 @@ export default function GroupSettingsScreen() {
       <MemberActionsSheet
         member={selectedMember}
         visible={selectedMember !== null && page.confirm === null}
-        onClose={() => page.setSelectedMember(null)}
+        onClose={page.closeMemberActions}
         onChangeRole={page.changeRole}
-        onRemove={() => page.setConfirm("remove")}
+        onRemove={() => page.askConfirm("remove")}
         testID="group-member-sheet"
       />
       <ConfirmDialog
@@ -116,7 +115,7 @@ export default function GroupSettingsScreen() {
         message={`They lose access to '${group?.name ?? "this group"}'.`}
         confirmLabel="Remove"
         onConfirm={() => void page.confirmRemove()}
-        onCancel={closeDialog}
+        onCancel={page.closeConfirm}
         isLoading={isLoading}
         testID="remove-member-dialog"
       />
@@ -126,7 +125,7 @@ export default function GroupSettingsScreen() {
         message="You need a new invite or an approved request to come back."
         confirmLabel="Leave group"
         onConfirm={() => void page.confirmLeave()}
-        onCancel={closeDialog}
+        onCancel={page.closeConfirm}
         isLoading={isLoading}
         testID="leave-group-dialog"
       />
@@ -136,7 +135,7 @@ export default function GroupSettingsScreen() {
         message="This deletes the group, its members and its expenses for everyone."
         confirmLabel="Delete group"
         onConfirm={() => void page.confirmDelete()}
-        onCancel={closeDialog}
+        onCancel={page.closeConfirm}
         isLoading={isLoading}
         testID="delete-group-dialog"
       />

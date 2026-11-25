@@ -12,7 +12,6 @@ import { useHomePage } from "../../../src/features/home/useHomePage";
 
 export default function HomeScreen() {
   const page = useHomePage();
-  const { expenses, pendingInviteCount } = page;
 
   return (
     <Screen
@@ -24,20 +23,20 @@ export default function HomeScreen() {
       <Stack gap="lg">
         <HomeHeader name={page.userName} />
 
-        {page.expenseError && expenses.length === 0 ? null : (
+        {page.expenseError && page.expenses.length === 0 ? null : (
           <BalanceSummaryCard
             youAreOwed={page.balances.youAreOwed}
             youOwe={page.balances.youOwe}
-            isLoading={page.expenseLoading && expenses.length === 0}
+            isLoading={page.expenseLoading && page.expenses.length === 0}
             testID="home-balance-summary"
           />
         )}
 
-        {pendingInviteCount > 0 ? (
+        {page.pendingInviteCount > 0 ? (
           <Card flush>
             <ListRow
               icon="mail-outline"
-              label={`${pendingInviteCount} ${pendingInviteCount === 1 ? "invitation" : "invitations"}`}
+              label={page.invitationLabel}
               description="Waiting for your answer"
               onPress={page.openGroups}
               testID="home-invitations-row"
@@ -54,12 +53,13 @@ export default function HomeScreen() {
           onOpenGroup={page.openGroup}
         />
         <HomeRecentExpenses
-          expenses={expenses}
+          expenses={page.expenses}
           isLoading={page.expenseLoading}
           error={page.expenseError}
           onRetry={page.loadExpenses}
           onSeeAll={page.openExpenses}
           onAddExpense={page.createExpense}
+          onOpenExpense={page.openExpense}
         />
       </Stack>
     </Screen>

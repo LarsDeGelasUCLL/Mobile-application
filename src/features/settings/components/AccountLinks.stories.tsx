@@ -8,5 +8,7 @@ const meta: Meta<typeof AccountLinks> = {
 export default meta;
 type Story = StoryObj<typeof AccountLinks>;
 
-export const Default: Story = { args: { email: "sam@example.com" } };
-export const NoEmail: Story = { args: {} };
+export const Default: Story = {
+  args: { email: "sam@example.com", onOpen: () => {} },
+};
+export const NoEmail: Story = { args: { onOpen: () => {} } };

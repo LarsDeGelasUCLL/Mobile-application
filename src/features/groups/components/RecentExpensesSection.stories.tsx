@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { RecentExpensesSection } from "./RecentExpensesSection";
-import { storyExpense } from "../../expenses/components/expenseStoryData";
+import { storyExpense } from "../../expenses/storyData/expenseStoryData";
 
 const meta: Meta<typeof RecentExpensesSection> = {
   title: "Groups/RecentExpensesSection",
@@ -22,6 +22,7 @@ export const FewExpenses: Story = {
     isLoading: false,
     hasError: false,
     onSeeAll: () => {},
+    onOpenExpense: () => {},
   },
 };
 export const WithSeeAll: Story = {

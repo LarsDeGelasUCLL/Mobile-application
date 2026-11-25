@@ -3,7 +3,7 @@ import { GroupHighlights } from "./GroupHighlights";
 import {
   storyGroupImageUri,
   storyUserGroups,
-} from "../../groups/components/groupStoryData";
+} from "../../groups/storyData/groupStoryData";
 
 const meta: Meta<typeof GroupHighlights> = {
   title: "Home/GroupHighlights",

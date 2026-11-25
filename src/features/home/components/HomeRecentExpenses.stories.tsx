@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { HomeRecentExpenses } from "./HomeRecentExpenses";
-import { storyExpense } from "../../expenses/components/expenseStoryData";
+import { storyExpense } from "../../expenses/storyData/expenseStoryData";
 
 const meta: Meta<typeof HomeRecentExpenses> = {
   title: "Home/HomeRecentExpenses",
@@ -25,6 +25,7 @@ export const FewExpenses: Story = {
     onRetry: () => {},
     onSeeAll: () => {},
     onAddExpense: () => {},
+    onOpenExpense: () => {},
   },
 };
 export const WithSeeAll: Story = {

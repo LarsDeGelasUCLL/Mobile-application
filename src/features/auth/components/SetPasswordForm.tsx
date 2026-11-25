@@ -7,7 +7,7 @@ import {
 import { useAuthStore } from "../../../state/useAuthStore";
 import { getErrorMessage } from "../../../utils/errors";
 import { validateNewPassword, type NewPasswordErrors } from "../authValidation";
-import type { AuthFieldProps } from "../useLoginPage";
+import type { AuthFieldProps } from "../types";
 import { BackToLoginLink } from "./BackToLoginLink";
 import { NewPasswordFields } from "./NewPasswordFields";
 
@@ -37,6 +37,8 @@ export function SetPasswordForm({
   const { password } = fields;
 
   const submit = async () => {
+    // Unreachable today (the button only renders when signed in); kept so
+    // submit never calls setPassword without the reset link's session.
     if (!isAuthenticated) {
       setFormError(
         "This reset link is no longer active. Request a new reset link and try again.",

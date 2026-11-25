@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Platform } from "react-native";
 import {
   FeedbackBanner,
-  InputField,
   Stack,
   StyledButton,
 } from "../../../components/primitives";
 import { useAuthStore } from "../../../state/useAuthStore";
 import { getErrorMessage } from "../../../utils/errors";
 import { validateEmail } from "../authValidation";
-import type { AuthFieldProps } from "../useLoginPage";
+import type { AuthFieldProps } from "../types";
+import { AuthEmailField } from "./AuthEmailField";
 import { BackToLoginLink } from "./BackToLoginLink";
 
 interface ResetFormProps extends AuthFieldProps {
@@ -71,14 +71,10 @@ export function ResetForm({
 
   return (
     <Stack gap="lg" testID={testID}>
-      <InputField
-        label="Email"
+      <AuthEmailField
         value={email}
         onChangeText={(value) => onChangeField("email", value)}
-        placeholder="you@example.com"
-        keyboardType="email-address"
         error={emailError}
-        testID="email-input"
       />
       {formError !== "" ? (
         <FeedbackBanner tone="error" message={formError} testID="auth-error" />

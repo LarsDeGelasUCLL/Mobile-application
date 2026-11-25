@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { SentRequestList } from "./SentRequestList";
-import { storySentRequests } from "./groupStoryData";
+import { storySentRequests } from "../storyData/groupStoryData";
 
 const meta: Meta<typeof SentRequestList> = {
   title: "Groups/SentRequestList",

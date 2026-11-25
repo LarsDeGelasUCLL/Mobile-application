@@ -3,6 +3,7 @@ import {
   ConfirmDialog,
   FeedbackBanner,
   ListRow,
+  Stack,
 } from "../../../components/primitives";
 
 interface LogoutRowProps {
@@ -17,7 +18,8 @@ interface LogoutRowProps {
   testID?: string;
 }
 
-/** "Log out" row with its error banner and confirm dialog. */
+/** "Log out" row with its error banner and confirm dialog. `testID` goes on
+ * the wrapping stack, whose gap matches the settings page's. */
 export function LogoutRow({
   error,
   confirmVisible,
@@ -28,7 +30,7 @@ export function LogoutRow({
   testID,
 }: LogoutRowProps) {
   return (
-    <>
+    <Stack gap="lg" testID={testID}>
       {error !== "" ? (
         <FeedbackBanner
           tone="error"
@@ -36,7 +38,7 @@ export function LogoutRow({
           testID="settings-logout-error"
         />
       ) : null}
-      <Card flush testID={testID}>
+      <Card flush>
         <ListRow
           icon="log-out-outline"
           label="Log out"
@@ -55,6 +57,6 @@ export function LogoutRow({
         isLoading={isLoggingOut}
         testID="logout-dialog"
       />
-    </>
+    </Stack>
   );
 }

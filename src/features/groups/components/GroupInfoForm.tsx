@@ -21,7 +21,7 @@ export function GroupInfoForm({ group, testID, ...props }: GroupInfoFormProps) {
   return (
     <CollapsibleSection title="Group info" testID={testID}>
       <GroupInfoFields
-        key={`${group.id}:${group.name}:${group.description ?? ""}`}
+        key={JSON.stringify([group.id, group.name, group.description ?? ""])}
         group={group}
         {...props}
       />

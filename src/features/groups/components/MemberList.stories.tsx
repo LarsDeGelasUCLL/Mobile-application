@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemberList } from "./MemberList";
-import { storyMembers } from "./groupStoryData";
+import { storyMembers } from "../storyData/groupStoryData";
 
 const meta: Meta<typeof MemberList> = {
   title: "Groups/MemberList",

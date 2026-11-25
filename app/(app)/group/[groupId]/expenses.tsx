@@ -10,6 +10,7 @@ import {
   StyledButton,
 } from "../../../../src/components/primitives";
 import { ExpenseRow } from "../../../../src/features/expenses/components/ExpenseRow";
+import { openExpense } from "../../../../src/features/expenses/openExpense";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
 
 export default function GroupExpensesScreen() {
@@ -62,7 +63,9 @@ export default function GroupExpensesScreen() {
         <CardFlatList
           data={groupExpenses}
           keyExtractor={(expense) => expense.id}
-          renderItem={({ item }) => <ExpenseRow expense={item} />}
+          renderItem={({ item }) => (
+            <ExpenseRow expense={item} onOpen={openExpense} />
+          )}
           refreshing={expensesLoading}
           onRefresh={() => void reload()}
           ListEmptyComponent={

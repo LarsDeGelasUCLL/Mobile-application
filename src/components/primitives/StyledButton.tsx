@@ -88,7 +88,7 @@ const useStyles = makeStyles((t) => ({
     borderColor: t.colors.error,
   },
   dangerPressed: { opacity: 0.85 },
-  // 44pt tap height; no fill, so it reads as text.
+  // Touch-target height; no fill, so it reads as text.
   link: {
     minHeight: t.controlSize.touch,
     width: "auto",

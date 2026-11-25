@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import {
   Card,
   Divider,
@@ -7,14 +6,20 @@ import {
   Stack,
 } from "../../../components/primitives";
 
+/** The pages the rows open. */
+export type AccountHref =
+  "/settings/profile" | "/settings/email" | "/settings/password";
+
 interface AccountLinksProps {
   /** Shown under "Email". */
   email?: string;
+  /** Gets the pressed row's page; the page routes to it. */
+  onOpen: (href: AccountHref) => void;
   testID?: string;
 }
 
 /** "ACCOUNT": rows to the profile, email and password pages. */
-export function AccountLinks({ email, testID }: AccountLinksProps) {
+export function AccountLinks({ email, onOpen, testID }: AccountLinksProps) {
   return (
     <Stack gap="sm" testID={testID}>
       <SectionHeader title="ACCOUNT" />
@@ -22,7 +27,7 @@ export function AccountLinks({ email, testID }: AccountLinksProps) {
         <ListRow
           icon="person-outline"
           label="Edit profile"
-          onPress={() => router.push("/settings/profile")}
+          onPress={() => onOpen("/settings/profile")}
           testID="settings-edit-profile"
         />
         <Divider />
@@ -30,14 +35,14 @@ export function AccountLinks({ email, testID }: AccountLinksProps) {
           icon="mail-outline"
           label="Email"
           description={email}
-          onPress={() => router.push("/settings/email")}
+          onPress={() => onOpen("/settings/email")}
           testID="settings-email"
         />
         <Divider />
         <ListRow
           icon="lock-closed-outline"
           label="Password"
-          onPress={() => router.push("/settings/password")}
+          onPress={() => onOpen("/settings/password")}
           testID="settings-password"
         />
       </Card>

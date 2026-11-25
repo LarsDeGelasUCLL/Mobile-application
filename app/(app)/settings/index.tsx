@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import { AccountLinks } from "../../../src/features/settings/components/AccountLinks";
 import { LogoutRow } from "../../../src/features/settings/components/LogoutRow";
@@ -32,7 +33,7 @@ export default function SettingsScreen() {
           onBack={() => goBackOr("/profile")}
           testID="settings-header"
         />
-        <AccountLinks email={email} />
+        <AccountLinks email={email} onOpen={(href) => router.push(href)} />
 
         {settings ? (
           <>

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule } from "./support/loadModule.mjs";
 
-const { profileFormValues } = await loadModule(
+const { profileFormKey, profileFormValues } = await loadModule(
   "src/features/profile/profileValidation.ts",
 );
 
@@ -95,5 +95,40 @@ test("profile validation accepts valid details and rejects invalid values", asyn
       profilePictureUrl: "Enter a valid HTTPS URL.",
       customBio: "Bio must be 500 characters or fewer.",
     },
+  );
+});
+
+test("profileFormKey is stable for the same inputs", () => {
+  const values = { ...EMPTY, displayName: "Ada", customBio: "Hi" };
+  assert.equal(
+    profileFormKey(1, "user-1", values),
+    profileFormKey(1, "user-1", { ...values }),
+  );
+});
+
+test("profileFormKey changes when any input changes", () => {
+  const values = { ...EMPTY, displayName: "Ada" };
+  const key = profileFormKey(0, "user-1", values);
+  assert.notEqual(profileFormKey(1, "user-1", values), key);
+  assert.notEqual(profileFormKey(0, "user-2", values), key);
+  assert.notEqual(
+    profileFormKey(0, "user-1", { ...values, iban: "BE71096123456769" }),
+    key,
+  );
+});
+
+test("profileFormKey does not collide on a bio with line breaks", () => {
+  // Joined with "\n", these two gave the same key.
+  assert.notEqual(
+    profileFormKey(0, "user-1", {
+      ...EMPTY,
+      profilePictureUrl: "a",
+      customBio: "b\nc",
+    }),
+    profileFormKey(0, "user-1", {
+      ...EMPTY,
+      profilePictureUrl: "a\nb",
+      customBio: "c",
+    }),
   );
 });

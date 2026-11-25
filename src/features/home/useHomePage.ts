@@ -4,6 +4,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useExpenseStore } from "../../state/useExpenseStore";
 import { useGroupStore } from "../../state/useGroupStore";
+import { openExpense } from "../expenses/openExpense";
 import type { GroupHighlight } from "../../types";
 import { summarizeBalances } from "../../utils/money";
 
@@ -65,11 +66,13 @@ export function useHomePage() {
   );
   // Personal expenses only: Home loads no group expenses (see AI_OVERVIEW §7).
   const balances = summarizeBalances(expenseState.expenses, userId ?? "");
+  const pendingInviteCount = groupState.pendingInvites.length;
 
   return {
     userName: user?.displayName ?? "User",
     groupHighlights,
-    pendingInviteCount: groupState.pendingInvites.length,
+    pendingInviteCount,
+    invitationLabel: `${pendingInviteCount} ${pendingInviteCount === 1 ? "invitation" : "invitations"}`,
     groupLoading: groupState.isLoading,
     groupError: groupState.error,
     expenses: expenseState.expenses,
@@ -84,5 +87,6 @@ export function useHomePage() {
       router.push({ pathname: "/group/[groupId]", params: { groupId } }),
     openExpenses: () => router.push("/expenses"),
     createExpense: () => router.push("/expense/create"),
+    openExpense,
   };
 }

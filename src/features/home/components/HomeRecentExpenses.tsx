@@ -21,6 +21,8 @@ interface HomeRecentExpensesProps {
   /** Shown as "See all" when there are more than fit. */
   onSeeAll: () => void;
   onAddExpense: () => void;
+  /** Gets the pressed expense's id. */
+  onOpenExpense: (expenseId: string) => void;
   testID?: string;
 }
 
@@ -32,6 +34,7 @@ export function HomeRecentExpenses({
   onRetry,
   onSeeAll,
   onAddExpense,
+  onOpenExpense,
   testID,
 }: HomeRecentExpensesProps) {
   return (
@@ -58,6 +61,7 @@ export function HomeRecentExpenses({
         isLoading={isLoading}
         hasError={!!error}
         onAddExpense={onAddExpense}
+        onOpenExpense={onOpenExpense}
       />
     </Stack>
   );
@@ -69,7 +73,11 @@ function RecentExpensesBody({
   isLoading,
   hasError,
   onAddExpense,
-}: Pick<HomeRecentExpensesProps, "expenses" | "isLoading" | "onAddExpense"> & {
+  onOpenExpense,
+}: Pick<
+  HomeRecentExpensesProps,
+  "expenses" | "isLoading" | "onAddExpense" | "onOpenExpense"
+> & {
   hasError: boolean;
 }) {
   if (hasError && expenses.length === 0) return null;
@@ -96,7 +104,7 @@ function RecentExpensesBody({
   return (
     <CardList>
       {expenses.slice(0, RECENT_EXPENSES).map((expense) => (
-        <ExpenseRow key={expense.id} expense={expense} />
+        <ExpenseRow key={expense.id} expense={expense} onOpen={onOpenExpense} />
       ))}
     </CardList>
   );

@@ -9,20 +9,7 @@ import {
   type AuthLinkParams,
   type AuthMode,
 } from "./authMode";
-
-/** The values that carry over when the user switches mode. */
-export interface AuthFields {
-  email: string;
-  password: string;
-  displayName: string;
-  phoneNumber: string;
-}
-
-/** What each login form gets for its carried-over values. */
-export interface AuthFieldProps {
-  fields: AuthFields;
-  onChangeField: (field: keyof AuthFields, value: string) => void;
-}
+import type { AuthFieldProps, AuthFields } from "./types";
 
 const EMPTY_FIELDS: AuthFields = {
   email: "",
@@ -71,6 +58,8 @@ export function useLoginPage() {
   const changeField = (field: keyof AuthFields, value: string) =>
     setFields((current) => ({ ...current, [field]: value }));
 
+  const fieldProps: AuthFieldProps = { fields, onChangeField: changeField };
+
   const requireConfirmation = (email: string) => {
     setConfirmationEmail(email);
     setMode("confirmation");
@@ -80,10 +69,10 @@ export function useLoginPage() {
     mode,
     title: AUTH_TITLES[mode],
     linkError,
-    fields,
-    changeField,
+    fieldProps,
     confirmationEmail,
     switchMode,
+    backToLogin: () => switchMode("login"),
     requireConfirmation,
     goHome: () => router.replace("/"),
     retryRestore: () => void initialize(),

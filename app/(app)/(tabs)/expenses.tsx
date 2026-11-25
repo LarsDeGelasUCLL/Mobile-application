@@ -12,6 +12,7 @@ import {
   Text,
 } from "../../../src/components/primitives";
 import { ExpenseRow } from "../../../src/features/expenses/components/ExpenseRow";
+import { openExpense } from "../../../src/features/expenses/openExpense";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
@@ -95,7 +96,11 @@ export default function ExpensesScreen() {
         ) : (
           <CardList>
             {expenses.map((expense) => (
-              <ExpenseRow key={expense.id} expense={expense} />
+              <ExpenseRow
+                key={expense.id}
+                expense={expense}
+                onOpen={openExpense}
+              />
             ))}
           </CardList>
         )}

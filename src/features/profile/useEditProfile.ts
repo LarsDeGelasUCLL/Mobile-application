@@ -4,6 +4,7 @@ import { ProfileUpdatePartialSuccessError } from "../../services/profiles/profil
 import { useAuthStore } from "../../state/useAuthStore";
 import { getErrorMessage } from "../../utils/errors";
 import {
+  profileFormKey,
   profileFormValues,
   validateProfile,
   type ProfileFieldErrors,
@@ -31,9 +32,7 @@ export function useEditProfile() {
   const initialValues = profileFormValues(user);
   // A new key remounts the form with fresh values, as the old effect on
   // `user` re-seeded them.
-  const formKey = [savedCount, user?.id ?? "", ...Object.values(initialValues)]
-    .map(String)
-    .join("\n");
+  const formKey = profileFormKey(savedCount, user?.id ?? "", initialValues);
 
   const clearMessages = () => {
     setSavedMessage("");

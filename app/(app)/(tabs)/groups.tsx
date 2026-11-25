@@ -30,7 +30,7 @@ export default function GroupsScreen() {
             <IconButton
               icon="add"
               accessibilityLabel="Create or join a group"
-              onPress={() => page.setMenuOpen(true)}
+              onPress={page.openMenu}
               testID="groups-add-button"
             />
           ),
@@ -80,7 +80,7 @@ export default function GroupsScreen() {
 
       <AddGroupSheet
         visible={page.menuOpen}
-        onClose={() => page.setMenuOpen(false)}
+        onClose={page.closeMenu}
         onCreate={openCreate}
         onJoin={openJoin}
         testID="groups-add-sheet"

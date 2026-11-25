@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { GroupBalancesSection } from "./GroupBalancesSection";
-import { storyBalances } from "./groupStoryData";
+import { storyBalances } from "../storyData/groupStoryData";
 
 const meta: Meta<typeof GroupBalancesSection> = {
   title: "Groups/GroupBalancesSection",

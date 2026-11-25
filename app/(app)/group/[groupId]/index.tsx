@@ -105,6 +105,7 @@ export default function GroupDetailScreen() {
               isLoading={expensesLoading}
               hasError={!!expensesError}
               onSeeAll={page.openAllExpenses}
+              onOpenExpense={page.openExpense}
             />
           </>
         )}

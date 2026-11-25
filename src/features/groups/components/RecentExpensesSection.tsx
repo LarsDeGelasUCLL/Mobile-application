@@ -18,6 +18,8 @@ interface RecentExpensesSectionProps {
   /** The page shows the load error in its banner. */
   hasError: boolean;
   onSeeAll: () => void;
+  /** Gets the pressed expense's id. */
+  onOpenExpense: (expenseId: string) => void;
   testID?: string;
 }
 
@@ -39,6 +41,7 @@ function RecentExpensesBody({
   isLoading,
   hasError,
   onSeeAll,
+  onOpenExpense,
 }: Omit<RecentExpensesSectionProps, "testID">) {
   if (hasError && expenses.length === 0) return null;
   if (isLoading && expenses.length === 0) {
@@ -63,7 +66,7 @@ function RecentExpensesBody({
   return (
     <CardList>
       {expenses.slice(0, RECENT_EXPENSES).map((expense) => (
-        <ExpenseRow key={expense.id} expense={expense} />
+        <ExpenseRow key={expense.id} expense={expense} onOpen={onOpenExpense} />
       ))}
       {expenses.length > RECENT_EXPENSES ? (
         <ListRow

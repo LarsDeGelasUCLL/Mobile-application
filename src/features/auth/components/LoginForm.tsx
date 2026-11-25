@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   FeedbackBanner,
-  InputField,
   Row,
   Stack,
   StyledButton,
@@ -9,7 +8,9 @@ import {
 import { useAuthStore } from "../../../state/useAuthStore";
 import { getErrorMessage } from "../../../utils/errors";
 import { validateEmail, validatePassword } from "../authValidation";
-import type { AuthFieldProps } from "../useLoginPage";
+import type { AuthFieldProps } from "../types";
+import { AuthEmailField } from "./AuthEmailField";
+import { AuthPasswordField } from "./AuthPasswordField";
 
 interface LoginFormProps extends AuthFieldProps {
   onLoggedIn: () => void;
@@ -50,23 +51,15 @@ export function LoginForm({
 
   return (
     <Stack gap="lg" testID={testID}>
-      <InputField
-        label="Email"
+      <AuthEmailField
         value={email}
         onChangeText={(value) => onChangeField("email", value)}
-        placeholder="you@example.com"
-        keyboardType="email-address"
         error={emailError}
-        testID="email-input"
       />
-      <InputField
-        label="Password"
+      <AuthPasswordField
         value={password}
         onChangeText={(value) => onChangeField("password", value)}
-        placeholder="At least 8 characters"
-        secureTextEntry
         error={passwordError}
-        testID="password-input"
       />
       <Row justify="flex-end">
         <StyledButton

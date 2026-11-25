@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { PaidByPicker } from "./PaidByPicker";
-import { storyParticipants } from "./expenseStoryData";
+import { storyParticipants } from "../storyData/expenseStoryData";
 
 const meta: Meta<typeof PaidByPicker> = {
   title: "Expenses/PaidByPicker",

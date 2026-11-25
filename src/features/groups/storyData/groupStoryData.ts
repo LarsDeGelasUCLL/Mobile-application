@@ -33,11 +33,12 @@ const membership = (
   userProfile,
 });
 
+// The fields `GroupInfoForm` edits.
 export const storyGroup = {
   id: "group-1",
   name: "Weekend Ghent",
   description: "Trip costs for the weekend.",
-};
+} satisfies Pick<GroupDto, "id" | "name" | "description">;
 
 export const storyMembers = [
   membership("m-sam", profile("sam", "Sam"), "ADMIN", "ACTIVE"),
@@ -60,7 +61,10 @@ const group = (id: string, name: string): GroupDto => ({
   recordCreated: "2026-01-01T12:00:00Z",
 });
 
-export const storyFullGroup = group("group-1", "Weekend Ghent");
+export const storyFullGroup: GroupDto = {
+  ...group(storyGroup.id, storyGroup.name),
+  ...storyGroup,
+};
 
 export const storyUserGroups: UserGroupDto[] = [
   {

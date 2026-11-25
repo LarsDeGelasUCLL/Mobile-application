@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { GroupInfoForm } from "./GroupInfoForm";
-import { storyGroup } from "./groupStoryData";
+import { storyGroup } from "../storyData/groupStoryData";
 
 const meta: Meta<typeof GroupInfoForm> = {
   title: "Groups/GroupInfoForm",

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { BalanceRow } from './BalanceRow';
-import { CardFlatList, CardList } from './CardList';
+import { CardFlatList } from './CardFlatList';
+import { CardList } from './CardList';
 import { ListRow } from './ListRow';
 
 const meta: Meta<typeof CardList> = { title: 'Primitives/CardList', component: CardList };

@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { GroupList } from "./GroupList";
-import { storyJoinRequestCounts, storyUserGroups } from "./groupStoryData";
+import {
+  storyJoinRequestCounts,
+  storyUserGroups,
+} from "../storyData/groupStoryData";
 
 const meta: Meta<typeof GroupList> = {
   title: "Groups/GroupList",
@@ -25,4 +28,7 @@ export const Loading: Story = {
 };
 export const Empty: Story = {
   args: { ...WithGroups.args, groups: [] },
+};
+export const Failed: Story = {
+  args: { ...WithGroups.args, groups: [], hasError: true },
 };

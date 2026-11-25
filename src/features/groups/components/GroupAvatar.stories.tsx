@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { GroupAvatar } from "./GroupAvatar";
-import { storyGroup, storyGroupImageUri } from "./groupStoryData";
+import { storyGroup, storyGroupImageUri } from "../storyData/groupStoryData";
 
 const meta: Meta<typeof GroupAvatar> = {
   title: "Groups/GroupAvatar",

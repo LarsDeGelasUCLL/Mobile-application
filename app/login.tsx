@@ -10,9 +10,7 @@ import { useLoginPage } from "../src/features/auth/useLoginPage";
 
 export default function LoginScreen() {
   const page = useLoginPage();
-  const { mode, switchMode } = page;
-  const fieldProps = { fields: page.fields, onChangeField: page.changeField };
-  const backToLogin = () => switchMode("login");
+  const { mode, switchMode, fieldProps, backToLogin } = page;
 
   if (!page.isInitialized) {
     return (

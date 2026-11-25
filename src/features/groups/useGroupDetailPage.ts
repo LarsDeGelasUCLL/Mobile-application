@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { router } from "expo-router";
+import { openExpense } from "../expenses/openExpense";
 import { useGroupDetail } from "./useGroupDetail";
 
 /** The group detail page: the loaded group plus the invite-code sheet and
@@ -20,6 +21,7 @@ export function useGroupDetailPage(groupId: string) {
         pathname: "/group/[groupId]/expenses",
         params: { groupId },
       }),
+    openExpense,
     openSettings: () =>
       router.push({
         pathname: "/group/[groupId]/settings",

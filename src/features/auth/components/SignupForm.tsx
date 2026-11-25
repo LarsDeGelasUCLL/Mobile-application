@@ -13,7 +13,9 @@ import {
   validateEmail,
   validatePassword,
 } from "../authValidation";
-import type { AuthFieldProps } from "../useLoginPage";
+import type { AuthFieldProps } from "../types";
+import { AuthEmailField } from "./AuthEmailField";
+import { AuthPasswordField } from "./AuthPasswordField";
 import { BackToLoginLink } from "./BackToLoginLink";
 
 interface SignupFormProps extends AuthFieldProps {
@@ -80,23 +82,15 @@ export function SignupForm({
         error={nameError}
         testID="display-name-input"
       />
-      <InputField
-        label="Email"
+      <AuthEmailField
         value={email}
         onChangeText={(value) => onChangeField("email", value)}
-        placeholder="you@example.com"
-        keyboardType="email-address"
         error={emailError}
-        testID="email-input"
       />
-      <InputField
-        label="Password"
+      <AuthPasswordField
         value={password}
         onChangeText={(value) => onChangeField("password", value)}
-        placeholder="At least 8 characters"
-        secureTextEntry
         error={passwordError}
-        testID="password-input"
       />
       <InputField
         label="Phone number (optional)"

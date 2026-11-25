@@ -21,6 +21,16 @@ export function profileFormValues(
   };
 }
 
+/** The edit-profile form's remount key: changes whenever a save lands, the
+ * user changes or a stored value changes, so the form re-seeds. */
+export function profileFormKey(
+  savedCount: number,
+  userId: string,
+  values: ProfileFormValues,
+): string {
+  return JSON.stringify([savedCount, userId, ...Object.values(values)]);
+}
+
 export type ProfileFieldErrors = Partial<
   Record<keyof ProfileFormValues, string>
 >;

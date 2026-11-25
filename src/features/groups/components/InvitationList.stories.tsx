@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { InvitationList } from "./InvitationList";
-import { storyInvites } from "./groupStoryData";
+import { storyInvites } from "../storyData/groupStoryData";
 
 const meta: Meta<typeof InvitationList> = {
   title: "Groups/InvitationList",
