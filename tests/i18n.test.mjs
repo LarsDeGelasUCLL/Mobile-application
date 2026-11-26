@@ -31,6 +31,26 @@ test("translate interpolates, pluralises and falls back", async () => {
   assert.equal(translate("en", "home.highlights.open"), "Open {name}");
 });
 
+test("translate pluralises without Intl.PluralRules (Hermes lacks it)", async () => {
+  const languages = await loadModule("src/i18n/languages.ts");
+  const dictionaries = await loadModule("src/i18n/dictionaries/index.ts", {
+    "./en": await loadModule("src/i18n/dictionaries/en.ts"),
+    "./nl": await loadModule("src/i18n/dictionaries/nl.ts"),
+  });
+  const { translate } = await loadModule(
+    "src/i18n/translate.ts",
+    { "./languages": languages, "./dictionaries": dictionaries },
+    { Intl: { ...Intl, PluralRules: undefined } },
+  );
+  for (const language of ["en", "nl"]) {
+    const one = dictionaries.dictionaries[language]["home.invitations_one"];
+    const other = dictionaries.dictionaries[language]["home.invitations_other"];
+    assert.equal(translate(language, "home.invitations", { count: 1 }), one.replace("{count}", "1"));
+    assert.equal(translate(language, "home.invitations", { count: 0 }), other.replace("{count}", "0"));
+    assert.equal(translate(language, "home.invitations", { count: 2 }), other.replace("{count}", "2"));
+  }
+});
+
 test("isTranslationKey only accepts dictionary keys", async () => {
   const { isTranslationKey } = await loadI18n();
   assert.equal(isTranslationKey("common.cancel"), true);

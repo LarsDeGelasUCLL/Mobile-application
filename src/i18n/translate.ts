@@ -1,5 +1,5 @@
 import { dictionaries, type Dictionary } from "./dictionaries";
-import { DEFAULT_LANGUAGE, intlLocale, type Language } from "./languages";
+import { DEFAULT_LANGUAGE, type Language } from "./languages";
 
 export type TranslationKey = keyof Dictionary;
 
@@ -14,24 +14,15 @@ export function isTranslationKey(value: string): value is TranslationKey {
   return Object.hasOwn(dictionaries[DEFAULT_LANGUAGE], value);
 }
 
-const pluralRules = new Map<Language, Intl.PluralRules>();
-
-function pluralCategory(language: Language, count: number): string {
-  let rules = pluralRules.get(language);
-  if (!rules) {
-    rules = new Intl.PluralRules(intlLocale(language));
-    pluralRules.set(language, rules);
-  }
-  return rules.select(count);
+// Not Intl.PluralRules: Hermes doesn't implement it. English and Dutch share
+// this rule; a language with other plural forms needs its own here.
+function pluralCategory(count: number): "one" | "other" {
+  return count === 1 ? "one" : "other";
 }
 
-function templateKey(
-  language: Language,
-  key: string,
-  count: unknown,
-): TranslationKey | undefined {
+function templateKey(key: string, count: unknown): TranslationKey | undefined {
   if (typeof count === "number") {
-    const variant = `${key}_${pluralCategory(language, count)}`;
+    const variant = `${key}_${pluralCategory(count)}`;
     if (isTranslationKey(variant)) return variant;
   }
   if (isTranslationKey(key)) return key;
@@ -50,7 +41,7 @@ export function translate(
   key: TranslationKey | PluralKey,
   params: TranslationParams = {},
 ): string {
-  const resolved = templateKey(language, key, params.count);
+  const resolved = templateKey(key, params.count);
   const template = resolved
     ? (dictionaries[language][resolved] ?? dictionaries[DEFAULT_LANGUAGE][resolved])
     : key;
