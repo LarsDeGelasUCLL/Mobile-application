@@ -1,11 +1,13 @@
 import { Redirect, Stack } from "expo-router";
 import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useI18n } from "../../src/i18n";
 import { useAuthStore } from "../../src/state/useAuthStore";
 import { useSettingsStore } from "../../src/state/useSettingsStore";
 import { SessionRestore } from "../../src/features/auth/components/SessionRestore";
 
 export default function AppLayout() {
+  const { t } = useI18n();
   const { isAuthenticated, isInitialized, isLoading, initialize, userId } =
     useAuthStore(
       useShallow((state) => ({
@@ -29,11 +31,11 @@ export default function AppLayout() {
         variant="banner"
         isLoading={isLoading}
         onRetry={() => void initialize()}
-        failedMessage={
+        failedMessage={t(
           isAuthenticated
-            ? "Could not load your profile."
-            : "Could not restore your session."
-        }
+            ? "app.session.profileFailed"
+            : "app.session.restoreFailed",
+        )}
       />
     );
   }

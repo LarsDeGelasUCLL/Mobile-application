@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule, plain, serviceDeps } from "./support/loadModule.mjs";
+import { i18nStub } from "./support/i18n.mjs";
+
+const i18nEn = await i18nStub("en");
 
 const { memberName } = await loadModule(
   "src/features/groups/memberName.ts",
@@ -10,36 +13,42 @@ const { groupSummary } = await loadModule(
 );
 
 test("memberName shows the profile display name", () => {
-  assert.equal(memberName({ userProfile: { displayName: "Ann" } }), "Ann");
+  assert.equal(memberName({ userProfile: { displayName: "Ann" } }, i18nEn.t), "Ann");
 });
 
 test("memberName falls back when the profile is missing", () => {
-  assert.equal(memberName({}), "Group member");
-  assert.equal(memberName({ userProfile: undefined }), "Group member");
+  assert.equal(memberName({}, i18nEn.t), "Group member");
+  assert.equal(memberName({ userProfile: undefined }, i18nEn.t), "Group member");
 });
 
 test("groupSummary shows the member role without requests", () => {
-  assert.equal(groupSummary("g1", false, {}), "Member");
+  assert.equal(groupSummary("g1", false, {}, i18nEn.t), "Member");
 });
 
 test("groupSummary ignores request counts for members", () => {
-  assert.equal(groupSummary("g1", false, { g1: 3 }), "Member");
+  assert.equal(groupSummary("g1", false, { g1: 3 }, i18nEn.t), "Member");
 });
 
 test("groupSummary shows the admin role when the group has no count", () => {
-  assert.equal(groupSummary("g1", true, { other: 2 }), "Admin");
+  assert.equal(groupSummary("g1", true, { other: 2 }, i18nEn.t), "Admin");
 });
 
 test("groupSummary shows the admin role when the count is zero", () => {
-  assert.equal(groupSummary("g1", true, { g1: 0 }), "Admin");
+  assert.equal(groupSummary("g1", true, { g1: 0 }, i18nEn.t), "Admin");
 });
 
 test("groupSummary shows one request in the singular", () => {
-  assert.equal(groupSummary("g1", true, { g1: 1 }), "Admin · 1 request");
+  assert.equal(groupSummary("g1", true, { g1: 1 }, i18nEn.t), "Admin · 1 request");
+});
+
+test("groupSummary and memberName follow the app language", async () => {
+  const nl = await i18nStub("nl");
+  assert.equal(groupSummary("g1", true, { g1: 2 }, nl.t), "Beheerder · 2 verzoeken");
+  assert.equal(memberName({}, nl.t), "Groepslid");
 });
 
 test("groupSummary shows more requests in the plural", () => {
-  assert.equal(groupSummary("g1", true, { g1: 2 }), "Admin · 2 requests");
+  assert.equal(groupSummary("g1", true, { g1: 2 }, i18nEn.t), "Admin · 2 requests");
 });
 
 test("group forms validate required names, invite codes, and email addresses", async () => {
@@ -51,13 +60,13 @@ test("group forms validate required names, invite codes, and email addresses", a
       "../auth/authValidation": authValidation,
     });
 
-  assert.equal(validateGroupName("   "), "Group name is required.");
+  assert.equal(validateGroupName("   "), "validation.groupNameRequired");
   assert.equal(validateGroupName("  Weekend trip  "), undefined);
-  assert.equal(validateInviteCode(" "), "Invite code is required.");
+  assert.equal(validateInviteCode(" "), "validation.inviteCodeRequired");
   assert.equal(validateInviteCode(" abcd-1234 "), undefined);
   assert.equal(
     validateInviteEmail("not-an-email"),
-    "Enter a valid email address.",
+    "validation.emailInvalid",
   );
   assert.equal(validateInviteEmail("  ada@example.com "), undefined);
 });
@@ -446,7 +455,7 @@ test("approving a join request calls the approve RPC and maps the membership", a
 const loadJoinRequestActions = () =>
   loadModule("src/state/groups/groupJoinRequestActions.ts", {
     "../../services": {},
-    "../../utils/errors": { getErrorMessage: (error) => String(error) },
+    "../../i18n": i18nEn,
   });
 
 test("sending an invitation does not add a pending member to active members", async () => {
@@ -465,9 +474,7 @@ test("sending an invitation does not add a pending member to active members", as
         respondToGroupInvite: async () => {},
       },
       "./groupJoinRequestActions": await loadJoinRequestActions(),
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = {
@@ -514,9 +521,7 @@ test("responding to an invitation updates the store before refresh completes", a
         respondToGroupInvite: async () => markResponseComplete(),
       },
       "./groupJoinRequestActions": await loadJoinRequestActions(),
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = {
@@ -587,10 +592,7 @@ async function createGroupActionsHarness(
   const module = await loadModule(filePath, {
     "../../services": services,
     "./groupJoinRequestActions": await loadJoinRequestActions(),
-    "../../utils/errors": {
-      getErrorMessage: (error, fallback) =>
-        error instanceof Error ? error.message : fallback,
-    },
+    "../../i18n": i18nEn,
   });
   return module[exportName](
     (update) => Object.assign(state, update),
@@ -659,7 +661,7 @@ test("joining by code says the code worked when only the refresh fails", async (
   );
   assert.match(
     state.error,
-    /Invite code accepted, but group data could not be refreshed: Refresh failed/,
+    /Invite code accepted, but group data could not be refreshed: Please retry\./,
   );
   assert.equal(state.isLoading, false);
 });
@@ -715,7 +717,7 @@ test("loading groups still shows groups when join request data fails to load", a
   assert.deepEqual(plain(state.joinRequestCounts), { old: 1 });
   assert.match(
     state.error,
-    /Groups loaded, but join requests could not be loaded: Counts failed/,
+    /Groups loaded, but join requests could not be loaded: Please retry\./,
   );
   assert.equal(state.isLoading, false);
 });

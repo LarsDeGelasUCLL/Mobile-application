@@ -9,6 +9,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import {
   ExpenseForm,
   type ExpenseFormHandle,
@@ -17,6 +18,7 @@ import { ExpenseFormSkeleton } from "../../../src/features/expenses/components/E
 import { useCreateExpense } from "../../../src/features/expenses/useCreateExpense";
 
 export default function CreateExpenseScreen() {
+  const { t } = useI18n();
   const { groupId: routeGroupId } = useLocalSearchParams<{
     groupId?: string;
   }>();
@@ -33,7 +35,7 @@ export default function CreateExpenseScreen() {
       footer={
         page.showForm ? (
           <StyledButton
-            label="Create expense"
+            label={t("expenses.create.submit")}
             onPress={() => formRef.current?.submit()}
             isLoading={isSaving}
             testID="save-expense-button"
@@ -43,8 +45,12 @@ export default function CreateExpenseScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title={`New ${groupId ? "group" : "personal"} expense`}
-          subtitle="Add the cost and decide how to split it."
+          title={t(
+            groupId
+              ? "expenses.create.titleGroup"
+              : "expenses.create.titlePersonal",
+          )}
+          subtitle={t("expenses.create.subtitle")}
           onBack={() =>
             goBackOr(
               groupId
@@ -60,7 +66,7 @@ export default function CreateExpenseScreen() {
             tone="warning"
             message={page.partialSuccessMessage}
             onRetry={() => void page.retryBalances()}
-            retryLabel="Retry balance refresh"
+            retryLabel={t("expenses.create.retryBalances")}
             isRetrying={page.expenseLoading}
             testID="expense-partial-success"
           />
@@ -69,7 +75,7 @@ export default function CreateExpenseScreen() {
             tone="error"
             message={page.loadError}
             onRetry={() => void page.reloadParticipants()}
-            retryLabel="Retry participants"
+            retryLabel={t("expenses.retryParticipants")}
             isRetrying={page.participantsLoading || page.groupLoading}
             testID="expense-participants-error"
           />
@@ -77,8 +83,8 @@ export default function CreateExpenseScreen() {
           <ExpenseFormSkeleton />
         ) : page.participants.length === 0 ? (
           <EmptyState
-            title="No participants available"
-            description="Join a group or add a known participant before recording an expense."
+            title={t("expenses.noParticipants.title")}
+            description={t("expenses.noParticipants.create")}
           />
         ) : (
           <ExpenseForm

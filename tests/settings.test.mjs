@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule, serviceDeps } from "./support/loadModule.mjs";
+import { i18nStub } from "./support/i18n.mjs";
+
+const i18nEn = await i18nStub("en");
 
 test("settings service rejects requests for another authenticated user", async () => {
   let queriedSettings = false;
@@ -50,9 +53,7 @@ test("settings store loads settings and persists returned updates", async () => 
           ...update,
         }),
       },
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = { settings: null, isLoading: false, error: null };
@@ -79,6 +80,31 @@ test("settings store loads settings and persists returned updates", async () => 
   assert.equal(state.settings.uiTheme, "DARK");
   assert.equal(state.settings.languageCode, "nl");
   assert.equal(state.settings.notifyGroupUpdates, true);
+});
+
+test("a failed settings load shows the fallback in the app language", async () => {
+  const load = async (language) => {
+    const { createSettingsActions } = await loadModule(
+      "src/state/settings/settingsStoreActions.ts",
+      {
+        "../../services": {
+          getUserSettings: async () => {
+            throw new Error("socket hang up");
+          },
+        },
+        "../../i18n": await i18nStub(language),
+      },
+    );
+    const state = { settings: null, isLoading: false, error: null };
+    const actions = createSettingsActions(
+      (update) => Object.assign(state, update),
+      () => state,
+    );
+    await assert.rejects(actions.fetchSettings("user-1"), /socket hang up/);
+    return state.error;
+  };
+  assert.equal(await load("en"), "Could not load settings.");
+  assert.equal(await load("nl"), "Kon de instellingen niet laden.");
 });
 
 test("canRetrySettingsLoad offers a retry when settings are missing or failed and nothing is in flight", async () => {

@@ -2,6 +2,7 @@ import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./Text";
 import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 interface SheetProps {
   visible: boolean;
@@ -19,6 +20,7 @@ export function Sheet({
   children,
   testID,
 }: SheetProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   const { spacing } = useTheme();
   const { bottom } = useSafeAreaInsets();
@@ -37,7 +39,7 @@ export function Sheet({
           style={styles.scrim}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close"
+          accessibilityLabel={t("common.close")}
         />
         <View
           style={[

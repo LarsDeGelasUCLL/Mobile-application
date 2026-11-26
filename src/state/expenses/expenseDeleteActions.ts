@@ -1,6 +1,6 @@
 import { calculateGroupBalances, deleteExpense } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 
 export const createExpenseDeleteActions: ExpenseActionCreator<
   "removeExpense"
@@ -38,13 +38,15 @@ export const createExpenseDeleteActions: ExpenseActionCreator<
         });
       } catch (error) {
         set({
-          error: `Expense deleted, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+          error: t("errors.partial.expenseDeleted", {
+          reason: errorMessage(error, "errors.fallback.tryAgain"),
+        }),
           isLoading: false,
         });
       }
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not delete expense."),
+        error: errorMessage(error, "errors.fallback.deleteExpense"),
         isLoading: false,
       });
       throw error;

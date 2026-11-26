@@ -7,6 +7,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { ExpenseDto } from "../../../types";
 import { ExpenseRow } from "../../expenses/components/ExpenseRow";
 
@@ -37,10 +38,11 @@ export function HomeRecentExpenses({
   onOpenExpense,
   testID,
 }: HomeRecentExpensesProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
       <SectionHeader
-        title="Recent expenses"
+        title={t("home.recent.title")}
         variant="title"
         onAction={expenses.length > RECENT_EXPENSES ? onSeeAll : undefined}
         actionTestID="home-expenses-see-all"
@@ -50,7 +52,7 @@ export function HomeRecentExpenses({
           tone="error"
           message={error}
           onRetry={onRetry}
-          retryLabel="Retry expenses"
+          retryLabel={t("common.retryExpenses")}
           isRetrying={isLoading}
           retryTestID="home-expenses-retry-button"
           testID="home-expenses-error"
@@ -80,6 +82,7 @@ function RecentExpensesBody({
 > & {
   hasError: boolean;
 }) {
+  const { t } = useI18n();
   if (hasError && expenses.length === 0) return null;
   if (isLoading && expenses.length === 0) {
     return (
@@ -95,9 +98,9 @@ function RecentExpensesBody({
     return (
       <EmptyState
         icon="receipt-outline"
-        title="No personal expenses yet"
-        description="Your recent personal expenses will appear here."
-        action={<StyledButton label="Add expense" onPress={onAddExpense} />}
+        title={t("home.recent.emptyTitle")}
+        description={t("home.recent.emptyText")}
+        action={<StyledButton label={t("common.addExpense")} onPress={onAddExpense} />}
       />
     );
   }

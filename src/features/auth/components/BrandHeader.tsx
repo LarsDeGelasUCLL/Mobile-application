@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 import { View } from "react-native";
 import { Icon, Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { makeStyles } from "../../../theme/ThemeProvider";
 
 interface BrandHeaderProps {
@@ -13,6 +14,7 @@ export function BrandHeader({
   iconName = "people",
   testID = "brand-header",
 }: BrandHeaderProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <View style={styles.brand} testID={testID}>
@@ -20,7 +22,7 @@ export function BrandHeader({
         <Icon name={iconName} size={28} tone="onPrimary" />
       </View>
       <Text size="md" weight="bold" tone="primary">
-        Laruna
+        {t("app.name")}
       </Text>
     </View>
   );

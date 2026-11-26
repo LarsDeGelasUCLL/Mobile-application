@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useShallow } from "zustand/react/shallow";
 import { useGroupDetail } from "./useGroupDetail";
 import { useActionFeedback } from "../shared/useActionFeedback";
+import { useI18n } from "../../i18n";
 import { useGroupStore } from "../../state/useGroupStore";
 import type { GroupRole, MembershipDto } from "../../types";
 
@@ -12,6 +13,7 @@ type ConfirmKind = "leave" | "delete" | "remove";
  * invite, join requests, roles, remove), leave and delete, with their
  * success feedback, member sheet and confirm dialogs. */
 export function useGroupSettings(groupId: string | undefined) {
+  const { t } = useI18n();
   const detail = useGroupDetail(groupId);
   const { user, group, currentMembership } = detail;
   const {
@@ -53,7 +55,7 @@ export function useGroupSettings(groupId: string | undefined) {
           name: name.trim(),
           description: description.trim() || null,
         }),
-      "Group details updated.",
+      t("groups.feedback.updated"),
     );
   };
 
@@ -62,7 +64,7 @@ export function useGroupSettings(groupId: string | undefined) {
     if (!group || !user?.id) return false;
     return run(
       () => inviteMemberByEmail(group.id, user.id, email.trim()),
-      "Invitation sent.",
+      t("groups.feedback.invitationSent"),
     );
   };
 
@@ -72,14 +74,20 @@ export function useGroupSettings(groupId: string | undefined) {
         approve
           ? approveJoinRequest(membershipId)
           : rejectJoinRequest(membershipId),
-      approve ? "Join request approved." : "Join request rejected.",
+      t(
+        approve
+          ? "groups.feedback.requestApproved"
+          : "groups.feedback.requestRejected",
+      ),
     );
 
   const changeRole = (membershipId: string, role: GroupRole) => {
     setSelectedMember(null);
     void run(
       () => changeMemberRole(membershipId, role),
-      `Member role changed to ${role}.`,
+      t("groups.feedback.roleChanged", {
+        role: t(role === "ADMIN" ? "groups.role.admin" : "groups.role.member"),
+      }),
     );
   };
 
@@ -87,7 +95,7 @@ export function useGroupSettings(groupId: string | undefined) {
     if (!user?.id || !group || !selectedMember) return;
     await run(
       () => leaveOrRemoveMember(user.id, selectedMember.id, group.id),
-      "Member removed.",
+      t("groups.feedback.memberRemoved"),
     );
     setConfirm(null);
     // Close the sheet either way, so an error banner is not hidden behind it.

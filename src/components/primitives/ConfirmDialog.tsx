@@ -2,6 +2,7 @@ import { Modal, Pressable, View } from "react-native";
 import { StyledButton } from "./StyledButton";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -23,13 +24,14 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
-  cancelLabel = "Cancel",
+  cancelLabel,
   onConfirm,
   onCancel,
   destructive = true,
   isLoading = false,
   testID,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   // Block dismiss while the action runs, so the user sees its result.
   const cancel = () => {
@@ -49,7 +51,7 @@ export function ConfirmDialog({
           style={styles.scrim}
           onPress={cancel}
           accessibilityRole="button"
-          accessibilityLabel={cancelLabel}
+          accessibilityLabel={cancelLabel ?? t("common.cancel")}
         />
         <View
           style={styles.dialog}
@@ -72,7 +74,7 @@ export function ConfirmDialog({
               testID={testID !== undefined ? `${testID}-confirm` : undefined}
             />
             <StyledButton
-              label={cancelLabel}
+              label={cancelLabel ?? t("common.cancel")}
               onPress={cancel}
               variant="secondary"
               disabled={isLoading}

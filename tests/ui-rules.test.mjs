@@ -105,7 +105,10 @@ test("the skeleton honours reduced motion, icons are decorative and carousel til
   );
   assert.match(highlights, /style=\{\(\{ pressed \}\) =>/);
   // Accessible name matches the visible label (WCAG 2.5.3).
-  assert.match(highlights, /accessibilityLabel="Find groups"/);
+  assert.match(
+    highlights,
+    /accessibilityLabel=\{t\("home\.highlights\.findGroups"\)\}[\s\S]*\{t\("home\.highlights\.findGroups"\)\}/,
+  );
 });
 
 test("text controls grow with font scale and the tab bar keeps the home-indicator inset", async () => {
@@ -127,4 +130,55 @@ test("text controls grow with font scale and the tab bar keeps the home-indicato
   const tabs = await read("app/(app)/(tabs)/_layout.tsx");
   assert.match(tabs, /useSafeAreaInsets\(\)/);
   assert.doesNotMatch(tabs, /height: 64,/);
+});
+
+// Folders (or single files) whose UI text must come from `t(…)`, not literals.
+const uiTextGuardDirs = ["app", "src/components/primitives", "src/features"];
+
+const uiTextPatterns = [
+  // JSX text: `<Text>Hello</Text>`.
+  /(?<![=\-])(?<!\S )>\s*[A-Za-z][^<{};=]*[<{]/g,
+  // A sentence passed to a call: `setFormError("This link …")`.
+  /\(\s*"[A-Z][a-z][^"]*"/g,
+  // A string literal for a visible or announced prop / option field.
+  /\b(?:label|title|subtitle|placeholder|accessibilityLabel|accessibilityHint|message|description|retryLabel|cancelLabel|confirmLabel|actionLabel|failedMessage|emptyText)=?:?\s*"[A-Za-z][^"]*"/g,
+  // A default for such a prop: `cancelLabel = "Cancel"`.
+  /^\s+\w+ = "[A-Z][^"]*"/gm,
+  // A sentence in a fallback or ternary: `?? "Choose…"`, `? "Could not …" :`.
+  /(?:\?\?|[?:]) "[A-Z][a-z][^"]*"/g,
+  // A sentence in a template literal: `Remove ${label}`.
+  /`[A-Z][a-z]+ [^`]*`/g,
+];
+
+async function uiTextFiles() {
+  const files = [];
+  for (const entry of uiTextGuardDirs) {
+    if (/\.tsx?$/.test(entry)) {
+      files.push(entry);
+      continue;
+    }
+    for (const file of await fs.readdir(entry, { recursive: true })) {
+      const path = `${entry}/${file.replaceAll("\\", "/")}`;
+      if (path.endsWith(".tsx") && !path.endsWith(".stories.tsx") && !path.includes("storyData")) {
+        files.push(path);
+      }
+    }
+  }
+  return files;
+}
+
+test("UI text comes from the dictionaries, not string literals", async () => {
+  const hits = [];
+  for (const file of await uiTextFiles()) {
+    // Comments may quote UI text.
+    const text = (await read(file))
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    for (const pattern of uiTextPatterns) {
+      for (const match of text.matchAll(pattern)) {
+        hits.push(`${file}: ${match[0].trim().replace(/\s+/g, " ")}`);
+      }
+    }
+  }
+  assert.deepEqual(hits, []);
 });

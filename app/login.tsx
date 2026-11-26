@@ -7,8 +7,10 @@ import { SessionRestore } from "../src/features/auth/components/SessionRestore";
 import { SetPasswordForm } from "../src/features/auth/components/SetPasswordForm";
 import { SignupForm } from "../src/features/auth/components/SignupForm";
 import { useLoginPage } from "../src/features/auth/useLoginPage";
+import { useI18n } from "../src/i18n";
 
 export default function LoginScreen() {
+  const { t } = useI18n();
   const page = useLoginPage();
   const { mode, switchMode, fieldProps, backToLogin } = page;
 
@@ -30,10 +32,10 @@ export default function LoginScreen() {
         mode === "login" ? (
           <Row justify="center" align="center" gap="none">
             <Text size="sm" tone="muted">
-              New to Laruna?
+              {t("auth.login.newHere")}
             </Text>
             <StyledButton
-              label="Create account"
+              label={t("auth.login.createAccount")}
               onPress={() => switchMode("signup")}
               variant="link"
               testID="signup-button"

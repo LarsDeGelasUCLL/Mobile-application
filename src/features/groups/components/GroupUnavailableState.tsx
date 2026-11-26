@@ -1,4 +1,5 @@
 import { EmptyState, StyledButton } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface GroupUnavailableStateProps {
   /** "Back to groups": each page picks how it leaves the dead group. */
@@ -11,14 +12,15 @@ export function GroupUnavailableState({
   onBack,
   testID,
 }: GroupUnavailableStateProps) {
+  const { t } = useI18n();
   return (
     <EmptyState
       icon="people-outline"
-      title="Group unavailable"
-      description="This group could not be found in your active groups."
+      title={t("groups.unavailable.title")}
+      description={t("groups.unavailable.text")}
       action={
         <StyledButton
-          label="Back to groups"
+          label={t("groups.unavailable.back")}
           onPress={onBack}
           variant="secondary"
         />

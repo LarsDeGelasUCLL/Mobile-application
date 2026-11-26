@@ -89,11 +89,11 @@ test("profile validation accepts valid details and rejects invalid values", asyn
       ),
     ),
     {
-      displayName: "Display name is required.",
-      phoneNumber: "Enter a valid phone number.",
-      iban: "Enter a valid IBAN.",
-      profilePictureUrl: "Enter a valid HTTPS URL.",
-      customBio: "Bio must be 500 characters or fewer.",
+      displayName: "validation.displayNameRequired",
+      phoneNumber: "validation.phoneInvalid",
+      iban: "validation.ibanInvalid",
+      profilePictureUrl: "validation.httpsUrlInvalid",
+      customBio: "validation.bioTooLong",
     },
   );
 });

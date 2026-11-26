@@ -4,6 +4,7 @@ import * as Clipboard from "expo-clipboard";
 import { Icon, type IconName } from "./Icon";
 import { Text } from "./Text";
 import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 interface MaskedValueProps {
   label: string;
@@ -23,6 +24,7 @@ export function MaskedValue({
   shareMessage,
   testID,
 }: MaskedValueProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -61,20 +63,20 @@ export function MaskedValue({
       <View style={styles.actions}>
         <Action
           icon={revealed ? "eye-off-outline" : "eye-outline"}
-          label={revealed ? "Hide" : "Reveal"}
+          label={revealed ? t("common.hide") : t("common.reveal")}
           onPress={() => setRevealed((v) => !v)}
           testID={testID !== undefined ? `${testID}-reveal` : undefined}
         />
         <Action
           icon={copied ? "checkmark" : "copy-outline"}
-          label={copied ? "Copied" : "Copy"}
+          label={copied ? t("common.copied") : t("common.copy")}
           onPress={copy}
           testID={testID !== undefined ? `${testID}-copy` : undefined}
         />
         {shareMessage !== undefined && (
           <Action
             icon="share-outline"
-            label="Share"
+            label={t("common.share")}
             onPress={share}
             testID={testID !== undefined ? `${testID}-share` : undefined}
           />

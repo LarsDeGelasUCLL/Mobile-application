@@ -6,7 +6,7 @@ import {
   getUserPendingInvites,
 } from "../../services";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 
 export const createGroupLoadActions: GroupActionCreator<
   "fetchGroupsAndInvites" | "fetchMembersForGroup"
@@ -21,7 +21,7 @@ export const createGroupLoadActions: GroupActionCreator<
       set({ groups, pendingInvites });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load groups and inbox."),
+        error: errorMessage(error, "errors.fallback.loadGroups"),
         isLoading: false,
       });
       throw error;
@@ -40,7 +40,9 @@ export const createGroupLoadActions: GroupActionCreator<
       set({ sentJoinRequests, joinRequestCounts, isLoading: false });
     } catch (error) {
       set({
-        error: `Groups loaded, but join requests could not be loaded: ${getErrorMessage(error, "Please retry.")}`,
+        error: t("errors.partial.joinRequestsNotLoaded", {
+          reason: errorMessage(error, "errors.fallback.pleaseRetry"),
+        }),
         isLoading: false,
       });
     }
@@ -53,7 +55,7 @@ export const createGroupLoadActions: GroupActionCreator<
       set({ activeGroupMembers, selectedGroupId: groupId, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load group members."),
+        error: errorMessage(error, "errors.fallback.loadMembers"),
         isLoading: false,
       });
       throw error;

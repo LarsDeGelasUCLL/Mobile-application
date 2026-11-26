@@ -1,3 +1,4 @@
+import type { TranslationKey } from "../../i18n";
 import type { UpdateUserProfileDto, User } from "../../types";
 
 export interface ProfileFormValues {
@@ -32,7 +33,7 @@ export function profileFormKey(
 }
 
 export type ProfileFieldErrors = Partial<
-  Record<keyof ProfileFormValues, string>
+  Record<keyof ProfileFormValues, TranslationKey>
 >;
 
 function isValidIban(iban: string): boolean {
@@ -63,28 +64,28 @@ export function validateProfile(values: ProfileFormValues): {
   const customBio = values.customBio.trim();
   const errors: ProfileFieldErrors = {};
 
-  if (!displayName) errors.displayName = "Display name is required.";
+  if (!displayName) errors.displayName = "validation.displayNameRequired";
   if (
     phoneNumber &&
     (phoneNumber.replace(/\D/g, "").length < 7 ||
       phoneNumber.replace(/\D/g, "").length > 15 ||
       !/^[+()\d\s.-]+$/.test(phoneNumber))
   ) {
-    errors.phoneNumber = "Enter a valid phone number.";
+    errors.phoneNumber = "validation.phoneInvalid";
   }
-  if (iban && !isValidIban(iban)) errors.iban = "Enter a valid IBAN.";
+  if (iban && !isValidIban(iban)) errors.iban = "validation.ibanInvalid";
   if (profilePictureUrl) {
     try {
       const url = new URL(profilePictureUrl);
       if (url.protocol !== "https:" || !url.hostname) {
-        errors.profilePictureUrl = "Enter a valid HTTPS URL.";
+        errors.profilePictureUrl = "validation.httpsUrlInvalid";
       }
     } catch {
-      errors.profilePictureUrl = "Enter a valid HTTPS URL.";
+      errors.profilePictureUrl = "validation.httpsUrlInvalid";
     }
   }
   if (customBio.length > 500) {
-    errors.customBio = "Bio must be 500 characters or fewer.";
+    errors.customBio = "validation.bioTooLong";
   }
 
   return {

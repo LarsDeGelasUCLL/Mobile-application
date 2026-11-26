@@ -2,12 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { router } from "expo-router";
 import { useShallow } from "zustand/react/shallow";
 import { useActionFeedback } from "../shared/useActionFeedback";
+import { useI18n } from "../../i18n";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useGroupStore } from "../../state/useGroupStore";
 
 /** The Groups tab: groups, invitations and sent join requests, the add-group
  * sheet, and the invitation / join request actions with their feedback. */
 export function useGroupsTab() {
+  const { t } = useI18n();
   const userId = useAuthStore((state) => state.user?.id);
   const {
     groups,
@@ -57,13 +59,20 @@ export function useGroupsTab() {
     router.push({ pathname: "/group/[groupId]", params: { groupId } });
 
   const cancelRequest = (membershipId: string) =>
-    void run(() => cancelJoinRequest(membershipId), "Join request cancelled.");
+    void run(
+      () => cancelJoinRequest(membershipId),
+      t("groups.feedback.requestCancelled"),
+    );
 
   const respondToInvitation = (membershipId: string, accept: boolean) => {
     if (!userId) return;
     void run(
       () => respondToInvite(userId, membershipId, accept),
-      accept ? "Invitation accepted." : "Invitation declined.",
+      t(
+        accept
+          ? "groups.feedback.invitationAccepted"
+          : "groups.feedback.invitationDeclined",
+      ),
     );
   };
 

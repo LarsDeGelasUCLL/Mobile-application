@@ -5,6 +5,7 @@ import {
   ListRow,
   Stack,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface LogoutRowProps {
   /** A failed logout; "" when none. */
@@ -29,6 +30,7 @@ export function LogoutRow({
   onCancel,
   testID,
 }: LogoutRowProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="lg" testID={testID}>
       {error !== "" ? (
@@ -41,7 +43,7 @@ export function LogoutRow({
       <Card flush>
         <ListRow
           icon="log-out-outline"
-          label="Log out"
+          label={t("settings.logout.label")}
           destructive
           onPress={onPress}
           testID="settings-logout-button"
@@ -49,9 +51,9 @@ export function LogoutRow({
       </Card>
       <ConfirmDialog
         visible={confirmVisible}
-        title="Log out of Laruna?"
-        message="You can log back in with your email and password."
-        confirmLabel="Log out"
+        title={t("settings.logout.title")}
+        message={t("settings.logout.message")}
+        confirmLabel={t("settings.logout.label")}
         onConfirm={onConfirm}
         onCancel={onCancel}
         isLoading={isLoggingOut}

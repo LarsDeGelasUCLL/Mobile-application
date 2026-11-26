@@ -6,6 +6,7 @@ import {
   SkeletonCard,
   Stack,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { ExpenseRow } from "../../expenses/components/ExpenseRow";
 import type { ExpenseDto } from "../../../types";
 
@@ -28,9 +29,10 @@ export function RecentExpensesSection({
   testID,
   ...props
 }: RecentExpensesSectionProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="RECENT EXPENSES" />
+      <SectionHeader title={t("groups.recent.title")} />
       <RecentExpensesBody {...props} />
     </Stack>
   );
@@ -43,6 +45,7 @@ function RecentExpensesBody({
   onSeeAll,
   onOpenExpense,
 }: Omit<RecentExpensesSectionProps, "testID">) {
+  const { t } = useI18n();
   if (hasError && expenses.length === 0) return null;
   if (isLoading && expenses.length === 0) {
     return (
@@ -58,8 +61,8 @@ function RecentExpensesBody({
     return (
       <EmptyState
         icon="receipt-outline"
-        title="No group expenses"
-        description="Add an expense to start tracking shared costs."
+        title={t("groups.expenses.emptyTitle")}
+        description={t("groups.expenses.emptyText")}
       />
     );
   }
@@ -70,7 +73,7 @@ function RecentExpensesBody({
       ))}
       {expenses.length > RECENT_EXPENSES ? (
         <ListRow
-          label={`See all ${expenses.length} expenses`}
+          label={t("groups.recent.seeAll", { count: expenses.length })}
           onPress={onSeeAll}
           testID="group-see-all-expenses"
         />

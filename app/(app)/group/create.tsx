@@ -12,8 +12,10 @@ import {
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import { validateGroupName } from "../../../src/features/groups/groupValidation";
+import { useI18n, type TranslationKey } from "../../../src/i18n";
 
 export default function CreateGroupScreen() {
+  const { t } = useI18n();
   const user = useAuthStore((state) => state.user);
   const createNewGroup = useGroupStore((state) => state.createNewGroup);
   const isLoading = useGroupStore((state) => state.isLoading);
@@ -22,7 +24,7 @@ export default function CreateGroupScreen() {
 
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
-  const [groupNameError, setGroupNameError] = useState<string>();
+  const [groupNameError, setGroupNameError] = useState<TranslationKey>();
 
   // A failed create must not leave its error on the Groups list.
   useEffect(() => clearError, [clearError]);
@@ -52,7 +54,7 @@ export default function CreateGroupScreen() {
       padding="lg"
       footer={
         <StyledButton
-          label="Create group"
+          label={t("groups.create.submit")}
           onPress={() => void handleCreateGroup()}
           isLoading={isLoading}
           testID="create-group-button"
@@ -61,26 +63,26 @@ export default function CreateGroupScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Create group"
+          title={t("groups.create.title")}
           onBack={() => goBackOr("/groups")}
           testID="create-group-header"
         />
         <InputField
-          label="Group name"
+          label={t("groups.field.name")}
           value={groupName}
           onChangeText={(value) => {
             setGroupName(value);
             setGroupNameError(undefined);
           }}
-          placeholder="Weekend trip"
-          error={groupNameError}
+          placeholder={t("groups.field.namePlaceholder")}
+          error={groupNameError && t(groupNameError)}
           testID="create-group-name-input"
         />
         <InputField
-          label="Description (optional)"
+          label={t("groups.field.descriptionOptional")}
           value={groupDescription}
           onChangeText={setGroupDescription}
-          placeholder="What are you planning together?"
+          placeholder={t("groups.create.descriptionPlaceholder")}
           testID="create-group-description-input"
         />
         {storeError ? (

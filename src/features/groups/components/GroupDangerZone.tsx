@@ -1,4 +1,5 @@
 import { CardList, ListRow } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface GroupDangerZoneProps {
   canLeave: boolean;
@@ -16,12 +17,13 @@ export function GroupDangerZone({
   onDelete,
   testID,
 }: GroupDangerZoneProps) {
+  const { t } = useI18n();
   return (
     <CardList testID={testID}>
       {canLeave ? (
         <ListRow
           icon="exit-outline"
-          label="Leave group"
+          label={t("groups.settings.leave")}
           destructive
           onPress={onLeave}
           testID="leave-group-button"
@@ -30,7 +32,7 @@ export function GroupDangerZone({
       {canDelete ? (
         <ListRow
           icon="trash-outline"
-          label="Delete group"
+          label={t("groups.settings.delete")}
           destructive
           onPress={onDelete}
           testID="delete-group-button"

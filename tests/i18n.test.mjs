@@ -21,14 +21,14 @@ test("resolveLanguage: saved wins, then device, then en", async () => {
 
 test("translate interpolates, pluralises and falls back", async () => {
   const { translate } = await loadI18n();
-  assert.equal(translate("en", "test.greeting", { name: "Ada" }), "Hello Ada");
-  assert.equal(translate("en", "test.items", { count: 1 }), "1 item");
-  assert.equal(translate("en", "test.items", { count: 3 }), "3 items");
-  assert.equal(translate("en", "test.items", { count: 0 }), "0 items");
+  assert.equal(translate("en", "home.highlights.open", { name: "Ada" }), "Open Ada");
+  assert.equal(translate("en", "home.invitations", { count: 1 }), "1 invitation");
+  assert.equal(translate("en", "home.invitations", { count: 3 }), "3 invitations");
+  assert.equal(translate("en", "home.invitations", { count: 0 }), "0 invitations");
   assert.equal(translate("nl", "common.cancel"), "Annuleren");
-  assert.equal(translate("nl", "test.greeting", { name: "Ada" }), "Hallo Ada");
+  assert.equal(translate("nl", "home.highlights.open", { name: "Ada" }), "Ada openen");
   // A missing param leaves the placeholder visible rather than "undefined".
-  assert.equal(translate("en", "test.greeting"), "Hello {name}");
+  assert.equal(translate("en", "home.highlights.open"), "Open {name}");
 });
 
 test("isTranslationKey only accepts dictionary keys", async () => {

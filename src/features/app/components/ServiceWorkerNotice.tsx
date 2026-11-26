@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { FeedbackBanner } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { makeStyles } from "../../../theme/ThemeProvider";
 
 interface ServiceWorkerNoticeProps {
@@ -13,14 +14,15 @@ export function ServiceWorkerNotice({
   onRetry,
   testID,
 }: ServiceWorkerNoticeProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <View style={styles.notice} testID={testID}>
       <FeedbackBanner
         tone="warning"
-        message="Offline support could not start. The app is still available online."
+        message={t("app.serviceWorker.failed")}
         onRetry={onRetry}
-        retryLabel="Retry offline support"
+        retryLabel={t("app.serviceWorker.retry")}
         testID="service-worker-error"
       />
     </View>

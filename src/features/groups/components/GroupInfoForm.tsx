@@ -4,6 +4,7 @@ import {
   InputField,
   StyledButton,
 } from "../../../components/primitives";
+import { useI18n, type TranslationKey } from "../../../i18n";
 import { validateGroupName } from "../groupValidation";
 import type { GroupDto } from "../../../types";
 
@@ -17,9 +18,10 @@ interface GroupInfoFormProps {
 
 /** "Group info": edit the group name and description (admins). */
 export function GroupInfoForm({ group, testID, ...props }: GroupInfoFormProps) {
+  const { t } = useI18n();
   // The fields remount, not the section, so it stays open after a save.
   return (
-    <CollapsibleSection title="Group info" testID={testID}>
+    <CollapsibleSection title={t("groups.info.title")} testID={testID}>
       <GroupInfoFields
         key={JSON.stringify([group.id, group.name, group.description ?? ""])}
         group={group}
@@ -36,9 +38,10 @@ function GroupInfoFields({
   isLoading,
   onSave,
 }: Omit<GroupInfoFormProps, "testID">) {
+  const { t } = useI18n();
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description ?? "");
-  const [nameError, setNameError] = useState<string>();
+  const [nameError, setNameError] = useState<TranslationKey>();
 
   const save = () => {
     const validationError = validateGroupName(name);
@@ -50,24 +53,24 @@ function GroupInfoFields({
   return (
     <>
       <InputField
-        label="Group name"
+        label={t("groups.field.name")}
         value={name}
         onChangeText={(value) => {
           setName(value);
           setNameError(undefined);
         }}
-        error={nameError}
+        error={nameError && t(nameError)}
         testID="group-name-input"
       />
       <InputField
-        label="Description"
+        label={t("groups.field.description")}
         value={description}
         onChangeText={setDescription}
-        placeholder="Add a short description"
+        placeholder={t("groups.field.descriptionPlaceholder")}
         testID="group-description-input"
       />
       <StyledButton
-        label="Save changes"
+        label={t("groups.info.save")}
         onPress={save}
         variant="secondary"
         isLoading={isLoading}

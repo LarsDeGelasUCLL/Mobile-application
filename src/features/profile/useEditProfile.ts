@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { ProfileUpdatePartialSuccessError } from "../../services/profiles/profileService";
 import { useAuthStore } from "../../state/useAuthStore";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 import {
   profileFormKey,
   profileFormValues,
@@ -53,21 +53,16 @@ export function useEditProfile() {
 
     try {
       await updateProfile(result.values);
-      setSavedMessage("Your profile was saved.");
+      setSavedMessage(t("feedback.profileSaved"));
       setSavedCount((count) => count + 1);
     } catch (saveError) {
       if (saveError instanceof ProfileUpdatePartialSuccessError) {
-        setSavedMessage("Your profile was saved to your account.");
-        setPartialSuccessWarning(
-          "The database profile updated, but Auth metadata did not. Your displayed name may not refresh until your next sign-in.",
-        );
+        setSavedMessage(t("feedback.profileSavedToAccount"));
+        setPartialSuccessWarning(t("feedback.profilePartialSuccess"));
         setSavedCount((count) => count + 1);
       } else {
         setProfileError(
-          getErrorMessage(
-            saveError,
-            "Could not save your profile. Please retry.",
-          ),
+          errorMessage(saveError, "errors.fallback.saveProfile"),
         );
       }
     }

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { getErrorMessage } from "../../../src/utils/errors";
 import { goBackOr } from "../../../src/features/navigation/goBackOr";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import {
@@ -12,13 +11,15 @@ import {
   Text,
 } from "../../../src/components/primitives";
 import { validateEmail } from "../../../src/features/auth/authValidation";
+import { errorMessage, useI18n, type TranslationKey } from "../../../src/i18n";
 
 export default function ChangeEmailScreen() {
+  const { t } = useI18n();
   const user = useAuthStore((state) => state.user);
   const changeEmail = useAuthStore((state) => state.changeEmail);
   const isLoading = useAuthStore((state) => state.isLoading);
   const [newEmail, setNewEmail] = useState("");
-  const [emailError, setEmailError] = useState<string>();
+  const [emailError, setEmailError] = useState<TranslationKey>();
   const [emailMessage, setEmailMessage] = useState("");
   const [emailRequestError, setEmailRequestError] = useState("");
 
@@ -31,16 +32,11 @@ export default function ChangeEmailScreen() {
 
     try {
       await changeEmail({ email: newEmail });
-      setEmailMessage(
-        "Confirmation was sent. Check both email addresses to finish the change.",
-      );
+      setEmailMessage(t("feedback.emailChangeSent"));
       setNewEmail("");
     } catch (emailError) {
       setEmailRequestError(
-        getErrorMessage(
-          emailError,
-          "Could not request the email change. Please retry.",
-        ),
+        errorMessage(emailError, "errors.fallback.requestEmailChange"),
       );
     }
   };
@@ -50,7 +46,7 @@ export default function ChangeEmailScreen() {
       padding="lg"
       footer={
         <StyledButton
-          label="Request email change"
+          label={t("settings.email.submit")}
           onPress={handleChangeEmail}
           isLoading={isLoading}
           testID="change-email-button"
@@ -59,23 +55,24 @@ export default function ChangeEmailScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Email"
-          subtitle={`Current: ${user?.emailAddress ?? "Not available"}`}
+          title={t("settings.email.title")}
+          subtitle={t("settings.email.current", {
+            email: user?.emailAddress ?? t("settings.email.notAvailable"),
+          })}
           onBack={() => goBackOr("/settings")}
           testID="change-email-header"
         />
         <InputField
-          label="New email"
+          label={t("settings.email.newLabel")}
           value={newEmail}
           onChangeText={setNewEmail}
-          placeholder="new@example.com"
+          placeholder={t("settings.email.placeholder")}
           keyboardType="email-address"
-          error={emailError}
+          error={emailError && t(emailError)}
           testID="profile-new-email-input"
         />
         <Text size="sm" tone="muted">
-          We send a confirmation link to both addresses. The change finishes
-          once you confirm.
+          {t("settings.email.hint")}
         </Text>
         {emailRequestError !== "" ? (
           <FeedbackBanner

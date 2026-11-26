@@ -5,7 +5,7 @@ import {
   StyledButton,
 } from "../../../components/primitives";
 import { useAuthStore } from "../../../state/useAuthStore";
-import { getErrorMessage } from "../../../utils/errors";
+import { errorMessage, useI18n } from "../../../i18n";
 import { validateNewPassword, type NewPasswordErrors } from "../authValidation";
 import type { AuthFieldProps } from "../types";
 import { BackToLoginLink } from "./BackToLoginLink";
@@ -27,6 +27,7 @@ export function SetPasswordForm({
   onBackToLogin,
   testID,
 }: SetPasswordFormProps) {
+  const { t } = useI18n();
   const setPassword = useAuthStore((state) => state.setPassword);
   const isLoading = useAuthStore((state) => state.isLoading);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -40,9 +41,7 @@ export function SetPasswordForm({
     // Unreachable today (the button only renders when signed in); kept so
     // submit never calls setPassword without the reset link's session.
     if (!isAuthenticated) {
-      setFormError(
-        "This reset link is no longer active. Request a new reset link and try again.",
-      );
+      setFormError(t("auth.setPassword.linkInactive"));
       return;
     }
     const nextErrors = validateNewPassword(password, confirmPassword);
@@ -53,12 +52,12 @@ export function SetPasswordForm({
 
     try {
       await setPassword({ password });
-      setSuccessMessage("Your password was updated.");
+      setSuccessMessage(t("feedback.passwordUpdated"));
       onChangeField("password", "");
       setConfirmPassword("");
     } catch (error) {
       setFormError(
-        getErrorMessage(error, "Could not update the password. Please retry."),
+        errorMessage(error, "errors.fallback.updatePassword"),
       );
     }
   };
@@ -71,7 +70,7 @@ export function SetPasswordForm({
         onChangePassword={(value) => onChangeField("password", value)}
         onChangeConfirmPassword={setConfirmPassword}
         errors={errors}
-        passwordLabel="Password"
+        passwordLabel={t("auth.field.password")}
         passwordTestID="password-input"
         confirmPasswordTestID="confirm-password-input"
       />
@@ -87,7 +86,7 @@ export function SetPasswordForm({
       ) : null}
       {isAuthenticated ? (
         <StyledButton
-          label="Update password"
+          label={t("auth.setPassword.submit")}
           onPress={submit}
           isLoading={isLoading}
           testID="set-password-button"
@@ -96,11 +95,11 @@ export function SetPasswordForm({
         <>
           <FeedbackBanner
             tone="error"
-            message="This reset link is no longer active. Request a new reset email to continue."
+            message={t("auth.setPassword.linkExpired")}
             testID="expired-auth-link"
           />
           <StyledButton
-            label="Request another reset email"
+            label={t("auth.setPassword.requestAnother")}
             onPress={onRequestReset}
             testID="expired-reset-button"
           />

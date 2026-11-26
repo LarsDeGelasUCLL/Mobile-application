@@ -6,6 +6,7 @@ import {
   Stack,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import {
   validateExpenseForm,
   type ValidExpenseForm,
@@ -46,6 +47,7 @@ export function ExpenseForm({
   onSubmit,
   ref,
 }: ExpenseFormProps) {
+  const { t } = useI18n();
   const [state, dispatch] = useReducer(
     expenseFormReducer,
     { currentUserId, initialExpense },
@@ -85,7 +87,7 @@ export function ExpenseForm({
       {error || validationError ? (
         <FeedbackBanner
           tone="error"
-          message={validationError ?? error ?? ""}
+          message={validationError ? t(validationError) : (error ?? "")}
           onRetry={error ? handleSubmit : undefined}
           isRetrying={isLoading}
           testID="expense-form-error"
@@ -95,14 +97,14 @@ export function ExpenseForm({
       <Card>
         <Stack gap="md">
           <InputField
-            label="Expense title"
+            label={t("expenses.form.title")}
             value={title}
             onChangeText={(value) => dispatch({ type: "setTitle", value })}
-            placeholder="Dinner"
+            placeholder={t("expenses.form.titlePlaceholder")}
             testID="expense-title-input"
           />
           <InputField
-            label="Amount"
+            label={t("expenses.form.amount")}
             value={amount}
             onChangeText={(value) => dispatch({ type: "setAmount", value })}
             placeholder="0.00"
@@ -110,12 +112,12 @@ export function ExpenseForm({
             testID="expense-amount-input"
           />
           <InputField
-            label="Receipt URL (optional)"
+            label={t("expenses.form.receipt")}
             value={receiptUrl}
             onChangeText={(value) =>
               dispatch({ type: "setReceiptUrl", value })
             }
-            placeholder="https://..."
+            placeholder={t("expenses.form.receiptPlaceholder")}
             testID="expense-receipt-input"
           />
         </Stack>
@@ -140,7 +142,7 @@ export function ExpenseForm({
       >
         {splits.length === 0 ? (
           <Text size="sm" tone="muted">
-            Select at least one participant.
+            {t("expenses.form.selectParticipant")}
           </Text>
         ) : (
           <Stack gap="sm">
@@ -149,7 +151,7 @@ export function ExpenseForm({
                 key={split.userId}
                 name={
                   participants.find((item) => item.id === split.userId)
-                    ?.displayName ?? "Group member"
+                    ?.displayName ?? t("groups.memberFallback")
                 }
                 amount={split.amount}
                 editable={splitMode === "custom"}

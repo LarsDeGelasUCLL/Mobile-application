@@ -9,11 +9,13 @@ import {
   Stack,
   StyledButton,
 } from "../../../../src/components/primitives";
+import { useI18n } from "../../../../src/i18n";
 import { ExpenseRow } from "../../../../src/features/expenses/components/ExpenseRow";
 import { openExpense } from "../../../../src/features/expenses/openExpense";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
 
 export default function GroupExpensesScreen() {
+  const { t } = useI18n();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const {
     group,
@@ -32,7 +34,7 @@ export default function GroupExpensesScreen() {
       footer={
         group ? (
           <StyledButton
-            label="Add expense"
+            label={t("common.addExpense")}
             onPress={() =>
               router.push({ pathname: "/expense/create", params: { groupId } })
             }
@@ -43,7 +45,7 @@ export default function GroupExpensesScreen() {
     >
       <Stack gap="lg" flex={1}>
         <ScreenHeader
-          title="Expenses"
+          title={t("groups.expenses.title")}
           subtitle={group?.name}
           onBack={() =>
             goBackOr({ pathname: "/group/[groupId]", params: { groupId } })
@@ -72,8 +74,8 @@ export default function GroupExpensesScreen() {
             expensesLoading || expensesError ? undefined : (
               <EmptyState
                 icon="receipt-outline"
-                title="No group expenses"
-                description="Add an expense to start tracking shared costs."
+                title={t("groups.expenses.emptyTitle")}
+                description={t("groups.expenses.emptyText")}
               />
             )
           }

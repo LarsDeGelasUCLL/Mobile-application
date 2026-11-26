@@ -1,3 +1,4 @@
+import type { I18n } from "../../i18n";
 import type { PublicUserProfileDto, User } from "../../types";
 
 function currentUserProfile(user: User): PublicUserProfileDto {
@@ -26,8 +27,9 @@ export function includeCurrentUser(
 export function participantLabel(
   participant: PublicUserProfileDto,
   currentUserId: string,
+  t: I18n["t"],
 ): string {
   return participant.id === currentUserId
-    ? `${participant.displayName} (you)`
+    ? t("common.nameYou", { name: participant.displayName })
     : participant.displayName;
 }

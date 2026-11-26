@@ -6,7 +6,7 @@ import {
   getIndividualExpenses,
   getUserExpenseParticipants,
 } from "../../services";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage } from "../../i18n";
 
 export const createExpenseLoadActions: ExpenseActionCreator<
   | "fetchGroupExpensesAndBalances"
@@ -30,7 +30,7 @@ export const createExpenseLoadActions: ExpenseActionCreator<
       });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load group expenses."),
+        error: errorMessage(error, "errors.fallback.loadGroupExpenses"),
         isLoading: false,
       });
       throw error;
@@ -44,7 +44,7 @@ export const createExpenseLoadActions: ExpenseActionCreator<
       set({ individualExpenses, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load individual expenses."),
+        error: errorMessage(error, "errors.fallback.loadIndividualExpenses"),
         isLoading: false,
       });
       throw error;
@@ -58,7 +58,7 @@ export const createExpenseLoadActions: ExpenseActionCreator<
       set({ selectedExpense, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load expense details."),
+        error: errorMessage(error, "errors.fallback.loadExpense"),
         isLoading: false,
       });
       throw error;

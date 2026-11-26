@@ -6,22 +6,17 @@ import {
   Text,
   type SelectOption,
 } from "../../../components/primitives";
+import { languages, useI18n } from "../../../i18n";
 import type {
   UiTheme,
   UpdateUserSettingsDto,
   UserSettingsDto,
 } from "../../../types";
 
-const themes: SelectOption<UiTheme>[] = [
-  { label: "System", value: "SYSTEM" },
-  { label: "Light", value: "LIGHT" },
-  { label: "Dark", value: "DARK" },
-];
-
-const languages: SelectOption<string>[] = [
-  { label: "English", value: "en" },
-  { label: "Nederlands", value: "nl" },
-];
+// Each language in its own name, so it reads the same in every language.
+const languageOptions: SelectOption<string>[] = Object.entries(languages).map(
+  ([value, { label }]) => ({ label, value }),
+);
 
 interface PreferenceSettingsProps {
   settings: Pick<UserSettingsDto, "uiTheme" | "languageCode">;
@@ -36,28 +31,33 @@ export function PreferenceSettings({
   onSave,
   testID,
 }: PreferenceSettingsProps) {
+  const { t } = useI18n();
+  const themes: SelectOption<UiTheme>[] = [
+    { label: t("settings.theme.system"), value: "SYSTEM" },
+    { label: t("settings.theme.light"), value: "LIGHT" },
+    { label: t("settings.theme.dark"), value: "DARK" },
+  ];
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="PREFERENCES" />
+      <SectionHeader title={t("settings.preferences.title")} />
       <Card>
         <Stack gap="md">
           <Select
-            label="Theme"
+            label={t("settings.preferences.theme")}
             value={settings.uiTheme}
             options={themes}
             onChange={(uiTheme) => onSave({ uiTheme })}
             testID="settings-theme-select"
           />
           <Select
-            label="Language"
+            label={t("settings.preferences.language")}
             value={settings.languageCode}
-            options={languages}
+            options={languageOptions}
             onChange={(languageCode) => onSave({ languageCode })}
             testID="settings-language-select"
           />
           <Text size="sm" tone="muted">
-            Both are saved to your account. Translations follow in a later
-            update.
+            {t("settings.preferences.savedNote")}
           </Text>
         </Stack>
       </Card>

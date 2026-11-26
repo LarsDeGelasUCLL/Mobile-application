@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { StyledButton } from "./StyledButton";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 type FeedbackTone = "error" | "success" | "warning";
 
@@ -20,11 +21,12 @@ export function FeedbackBanner({
   message,
   tone,
   onRetry,
-  retryLabel = "Retry",
+  retryLabel,
   isRetrying = false,
   retryTestID,
   testID,
 }: FeedbackBannerProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <View
@@ -37,7 +39,7 @@ export function FeedbackBanner({
       </Text>
       {onRetry !== undefined ? (
         <StyledButton
-          label={retryLabel}
+          label={retryLabel ?? t("common.retry")}
           onPress={onRetry}
           variant="secondary"
           isLoading={isRetrying}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useShallow } from "zustand/react/shallow";
+import { useI18n } from "../../i18n";
 import { useAuthStore } from "../../state/useAuthStore";
 import {
   AUTH_TITLES,
@@ -21,6 +22,7 @@ const EMPTY_FIELDS: AuthFields = {
 /** The login page: the mode, the values shared between its forms, session
  * restore and the redirect once signed in. Each form owns its own submit. */
 export function useLoginPage() {
+  const { t } = useI18n();
   const params = useLocalSearchParams<AuthLinkParams>();
   const [mode, setMode] = useState<AuthMode>(() => parseAuthMode(params));
   const [linkError, setLinkError] = useState(() =>
@@ -52,7 +54,7 @@ export function useLoginPage() {
   /** Each form keeps its own errors, so a new form starts without them. */
   const switchMode = (nextMode: AuthMode) => {
     setMode(nextMode);
-    setLinkError("");
+    setLinkError(undefined);
   };
 
   const changeField = (field: keyof AuthFields, value: string) =>
@@ -67,8 +69,8 @@ export function useLoginPage() {
 
   return {
     mode,
-    title: AUTH_TITLES[mode],
-    linkError,
+    title: t(AUTH_TITLES[mode]),
+    linkError: linkError ? t(linkError) : "",
     fieldProps,
     confirmationEmail,
     switchMode,

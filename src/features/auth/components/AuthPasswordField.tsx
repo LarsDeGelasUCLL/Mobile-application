@@ -1,4 +1,5 @@
 import { InputField } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface AuthPasswordFieldProps {
   value: string;
@@ -12,12 +13,13 @@ export function AuthPasswordField({
   onChangeText,
   error,
 }: AuthPasswordFieldProps) {
+  const { t } = useI18n();
   return (
     <InputField
-      label="Password"
+      label={t("auth.field.password")}
       value={value}
       onChangeText={onChangeText}
-      placeholder="At least 8 characters"
+      placeholder={t("auth.field.passwordPlaceholder")}
       secureTextEntry
       error={error}
       testID="password-input"

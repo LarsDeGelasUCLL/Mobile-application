@@ -7,6 +7,7 @@ import {
   StyledButton,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { GroupInviteDto } from "../../../types";
 import { makeStyles } from "../../../theme/ThemeProvider";
 
@@ -24,12 +25,13 @@ export function InvitationList({
   onRespond,
   testID,
 }: InvitationListProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   if (invites.length === 0) return null;
   // Not `CardList`: each invite keeps a gap above and below its divider.
   return (
     <CollapsibleSection
-      title="Invitations"
+      title={t("groups.invitations.title")}
       count={invites.length}
       testID={testID}
     >
@@ -39,13 +41,15 @@ export function InvitationList({
           <Text weight="bold">{invite.group.name}</Text>
           <Text size="sm" tone="muted">
             {invite.invitedByProfile
-              ? `Invited by ${invite.invitedByProfile.displayName}`
-              : "You have been invited to this group."}
+              ? t("groups.invitations.invitedBy", {
+                  name: invite.invitedByProfile.displayName,
+                })
+              : t("groups.invitations.invited")}
           </Text>
           <Row gap="sm">
             <View style={styles.buttonColumn}>
               <StyledButton
-                label="Accept"
+                label={t("groups.invitations.accept")}
                 onPress={() => onRespond(invite.membershipId, true)}
                 variant="secondary"
                 isLoading={isLoading}
@@ -54,7 +58,7 @@ export function InvitationList({
             </View>
             <View style={styles.buttonColumn}>
               <StyledButton
-                label="Decline"
+                label={t("groups.invitations.decline")}
                 onPress={() => onRespond(invite.membershipId, false)}
                 variant="secondary"
                 isLoading={isLoading}

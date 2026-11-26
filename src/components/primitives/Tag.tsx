@@ -2,6 +2,7 @@ import { View, Pressable } from "react-native";
 import { Icon } from "./Icon";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 interface TagProps {
   label: string;
@@ -10,6 +11,7 @@ interface TagProps {
 }
 
 export function Tag({ label, onRemove, testID }: TagProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <View style={styles.base} testID={testID}>
@@ -21,7 +23,7 @@ export function Tag({ label, onRemove, testID }: TagProps) {
           onPress={onRemove}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel={`Remove ${label}`}
+          accessibilityLabel={t("common.removeItem", { label })}
         >
           <Icon name="close" size={16} tone="primary" />
         </Pressable>

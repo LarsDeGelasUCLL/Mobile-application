@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useSettingsStore } from "../../state/useSettingsStore";
 import type { UpdateUserSettingsDto } from "../../types";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 import { canRetrySettingsLoad } from "./settingsLoadRetry";
 
 /** The settings page's saved preferences: load on open, save each change,
@@ -33,7 +33,7 @@ export function useSettingsSaver() {
       await fetchSettings(userId);
     } catch (loadError) {
       setSettingsActionError(
-        getErrorMessage(loadError, "Could not load settings."),
+        errorMessage(loadError, "errors.fallback.loadSettings"),
       );
     }
   }, [userId, fetchSettings]);
@@ -51,10 +51,10 @@ export function useSettingsSaver() {
     try {
       await updateSettings(userId, payload);
       setPendingSettings(null);
-      setSettingsMessage("Settings saved.");
+      setSettingsMessage(t("feedback.settingsSaved"));
     } catch (updateError) {
       setSettingsActionError(
-        getErrorMessage(updateError, "Could not save settings. Please retry."),
+        errorMessage(updateError, "errors.fallback.saveSettings"),
       );
     } finally {
       setIsSavingSettings(false);

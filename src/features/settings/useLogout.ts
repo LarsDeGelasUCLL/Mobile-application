@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router } from "expo-router";
 import { useAuthStore } from "../../state/useAuthStore";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage } from "../../i18n";
 
 /** The settings page's log out: the confirm dialog, the logout itself and
  * its error. Returns the props `LogoutRow` takes. */
@@ -20,7 +20,7 @@ export function useLogout() {
     } catch (logoutError) {
       setConfirmVisible(false);
       setError(
-        getErrorMessage(logoutError, "Could not log out. Please retry."),
+        errorMessage(logoutError, "errors.fallback.logout"),
       );
     } finally {
       setIsLoggingOut(false);

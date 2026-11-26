@@ -4,6 +4,7 @@ import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 import { Text } from "./Text";
 import { makeStyles, useTheme } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 export interface SelectOption<T extends string> {
   label: string;
@@ -26,6 +27,7 @@ export function Select<T extends string>({
   onChange,
   testID,
 }: SelectProps<T>) {
+  const { t } = useI18n();
   const styles = useStyles();
   const { iconSize } = useTheme();
   const [open, setOpen] = useState(false);
@@ -40,12 +42,12 @@ export function Select<T extends string>({
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${current?.label ?? "not set"}`}
-        accessibilityHint="Opens a list of options"
+        accessibilityHint={t("common.opensOptions")}
         style={({ pressed }) => [styles.field, pressed && styles.pressed]}
         testID={testID}
       >
         <View style={styles.fieldValue}>
-          <Text numberOfLines={1}>{current?.label ?? "Choose…"}</Text>
+          <Text numberOfLines={1}>{current?.label ?? t("common.choose")}</Text>
         </View>
         <Icon name="chevron-down" size={iconSize.md} tone="muted" />
       </Pressable>

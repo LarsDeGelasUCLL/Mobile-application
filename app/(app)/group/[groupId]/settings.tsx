@@ -8,6 +8,7 @@ import {
   SkeletonCard,
   Stack,
 } from "../../../../src/components/primitives";
+import { useI18n } from "../../../../src/i18n";
 import { GroupDangerZone } from "../../../../src/features/groups/components/GroupDangerZone";
 import { GroupInfoForm } from "../../../../src/features/groups/components/GroupInfoForm";
 import { GroupUnavailableState } from "../../../../src/features/groups/components/GroupUnavailableState";
@@ -19,6 +20,7 @@ import { memberName } from "../../../../src/features/groups/memberName";
 import { useGroupSettings } from "../../../../src/features/groups/useGroupSettings";
 
 export default function GroupSettingsScreen() {
+  const { t } = useI18n();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const page = useGroupSettings(groupId);
   const { group, isAdmin, isLoading, joinRequests, selectedMember } = page;
@@ -32,7 +34,7 @@ export default function GroupSettingsScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Group settings"
+          title={t("groups.settings.title")}
           subtitle={group?.name}
           onBack={() =>
             goBackOr({ pathname: "/group/[groupId]", params: { groupId } })
@@ -111,9 +113,15 @@ export default function GroupSettingsScreen() {
       />
       <ConfirmDialog
         visible={page.confirm === "remove"}
-        title={`Remove ${selectedMember ? memberName(selectedMember) : "member"}?`}
-        message={`They lose access to '${group?.name ?? "this group"}'.`}
-        confirmLabel="Remove"
+        title={t("groups.settings.removeTitle", {
+          name: selectedMember
+            ? memberName(selectedMember, t)
+            : t("groups.settings.memberFallback"),
+        })}
+        message={t("groups.settings.removeMessage", {
+          group: group?.name ?? t("groups.settings.thisGroup"),
+        })}
+        confirmLabel={t("groups.settings.removeConfirm")}
         onConfirm={() => void page.confirmRemove()}
         onCancel={page.closeConfirm}
         isLoading={isLoading}
@@ -121,9 +129,11 @@ export default function GroupSettingsScreen() {
       />
       <ConfirmDialog
         visible={page.confirm === "leave"}
-        title={`Leave '${group?.name ?? "group"}'?`}
-        message="You need a new invite or an approved request to come back."
-        confirmLabel="Leave group"
+        title={t("groups.settings.leaveTitle", {
+          group: group?.name ?? t("groups.settings.groupFallback"),
+        })}
+        message={t("groups.settings.leaveMessage")}
+        confirmLabel={t("groups.settings.leave")}
         onConfirm={() => void page.confirmLeave()}
         onCancel={page.closeConfirm}
         isLoading={isLoading}
@@ -131,9 +141,11 @@ export default function GroupSettingsScreen() {
       />
       <ConfirmDialog
         visible={page.confirm === "delete"}
-        title={`Delete '${group?.name ?? "group"}'?`}
-        message="This deletes the group, its members and its expenses for everyone."
-        confirmLabel="Delete group"
+        title={t("groups.settings.deleteTitle", {
+          group: group?.name ?? t("groups.settings.groupFallback"),
+        })}
+        message={t("groups.settings.deleteMessage")}
+        confirmLabel={t("groups.settings.delete")}
         onConfirm={() => void page.confirmDelete()}
         onCancel={page.closeConfirm}
         isLoading={isLoading}

@@ -1,4 +1,5 @@
 import { EmptyState, StyledButton } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface ExpenseMissingStateProps {
   /** The page deleted it, but the group balances did not refresh. */
@@ -14,17 +15,22 @@ export function ExpenseMissingState({
   onBack,
   testID,
 }: ExpenseMissingStateProps) {
+  const { t } = useI18n();
   return (
     <EmptyState
-      title={deleted ? "Expense deleted" : "Expense unavailable"}
-      description={
+      title={t(
         deleted
-          ? "The expense was deleted, but group balances still need to be refreshed."
-          : "This expense could not be found or you do not have access to it."
-      }
+          ? "expenses.missing.deletedTitle"
+          : "expenses.missing.unavailableTitle",
+      )}
+      description={t(
+        deleted
+          ? "expenses.missing.deletedText"
+          : "expenses.missing.unavailableText",
+      )}
       action={
         onBack ? (
-          <StyledButton label="Go back" onPress={onBack} variant="secondary" />
+          <StyledButton label={t("common.goBack")} onPress={onBack} variant="secondary" />
         ) : undefined
       }
       testID={testID}

@@ -10,11 +10,13 @@ import {
   Stack,
   Text,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 
 const editProfile = () => router.push("/settings/profile");
 
 // Display only (design §6.5): every change happens in Settings.
 export default function ProfileScreen() {
+  const { t } = useI18n();
   const user = useAuthStore((state) => state.user);
 
   return (
@@ -27,7 +29,7 @@ export default function ProfileScreen() {
             size="lg"
           />
           <Text size="xl" weight="bold" align="center">
-            {user?.displayName ?? "User"}
+            {user?.displayName ?? t("profile.defaultName")}
           </Text>
           {user?.customBio ? (
             <Text tone="muted" align="center">
@@ -39,7 +41,7 @@ export default function ProfileScreen() {
         <Card flush>
           <ListRow
             icon="mail-outline"
-            label="Email"
+            label={t("auth.field.email")}
             description={user?.emailAddress ?? ""}
             testID="profile-email"
           />
@@ -47,15 +49,15 @@ export default function ProfileScreen() {
           {user?.phoneNumber ? (
             <ListRow
               icon="call-outline"
-              label="Phone"
+              label={t("profile.phone")}
               description={user.phoneNumber}
               testID="profile-phone"
             />
           ) : (
             <ListRow
               icon="call-outline"
-              label="Phone"
-              description="Add phone in Settings"
+              label={t("profile.phone")}
+              description={t("profile.addPhone")}
               onPress={editProfile}
               testID="profile-add-phone"
             />
@@ -65,7 +67,7 @@ export default function ProfileScreen() {
         {user?.iban ? (
           <Card>
             <MaskedValue
-              label="IBAN for reimbursements"
+              label={t("profile.ibanLong")}
               value={user.iban}
               testID="profile-iban"
             />
@@ -74,8 +76,8 @@ export default function ProfileScreen() {
           <Card flush>
             <ListRow
               icon="card-outline"
-              label="IBAN"
-              description="Add IBAN in Settings"
+              label={t("profile.iban")}
+              description={t("profile.addIban")}
               onPress={editProfile}
               testID="profile-add-iban"
             />

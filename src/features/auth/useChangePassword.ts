@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "../../state/useAuthStore";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 import { validateNewPassword, type NewPasswordErrors } from "./authValidation";
 
 /** The settings password page: the two fields, their errors, and the
@@ -25,10 +25,10 @@ export function useChangePassword() {
       await setPassword({ password });
       setPasswordValue("");
       setConfirmPassword("");
-      setMessage("Your password was updated.");
+      setMessage(t("feedback.passwordUpdated"));
     } catch (error) {
       setRequestError(
-        getErrorMessage(error, "Could not update the password. Please retry."),
+        errorMessage(error, "errors.fallback.updatePassword"),
       );
     }
   };

@@ -5,8 +5,8 @@ import {
   Stack,
   StyledButton,
 } from "../../../components/primitives";
+import { errorMessage, useI18n, type TranslationKey } from "../../../i18n";
 import { useAuthStore } from "../../../state/useAuthStore";
-import { getErrorMessage } from "../../../utils/errors";
 import { validateEmail, validatePassword } from "../authValidation";
 import type { AuthFieldProps } from "../types";
 import { AuthEmailField } from "./AuthEmailField";
@@ -26,10 +26,11 @@ export function LoginForm({
   onForgotPassword,
   testID,
 }: LoginFormProps) {
+  const { t } = useI18n();
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const [emailError, setEmailError] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
+  const [emailError, setEmailError] = useState<TranslationKey>();
+  const [passwordError, setPasswordError] = useState<TranslationKey>();
   const [formError, setFormError] = useState("");
   const { email, password } = fields;
 
@@ -45,7 +46,7 @@ export function LoginForm({
       await login({ email, password });
       onLoggedIn();
     } catch (error) {
-      setFormError(getErrorMessage(error, "Login failed. Please retry."));
+      setFormError(errorMessage(error, "errors.fallback.login"));
     }
   };
 
@@ -54,16 +55,16 @@ export function LoginForm({
       <AuthEmailField
         value={email}
         onChangeText={(value) => onChangeField("email", value)}
-        error={emailError}
+        error={emailError && t(emailError)}
       />
       <AuthPasswordField
         value={password}
         onChangeText={(value) => onChangeField("password", value)}
-        error={passwordError}
+        error={passwordError && t(passwordError)}
       />
       <Row justify="flex-end">
         <StyledButton
-          label="Forgot password?"
+          label={t("auth.login.forgotPassword")}
           onPress={onForgotPassword}
           variant="link"
         />
@@ -72,7 +73,7 @@ export function LoginForm({
         <FeedbackBanner tone="error" message={formError} testID="auth-error" />
       ) : null}
       <StyledButton
-        label="Log in"
+        label={t("auth.login.submit")}
         onPress={submit}
         isLoading={isLoading}
         testID="login-button"

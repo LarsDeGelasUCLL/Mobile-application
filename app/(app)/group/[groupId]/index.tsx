@@ -9,6 +9,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../../src/components/primitives";
+import { useI18n } from "../../../../src/i18n";
 import { GroupBalancesSection } from "../../../../src/features/groups/components/GroupBalancesSection";
 import { GroupUnavailableState } from "../../../../src/features/groups/components/GroupUnavailableState";
 import { InviteCodeSheet } from "../../../../src/features/groups/components/InviteCodeSheet";
@@ -16,6 +17,7 @@ import { RecentExpensesSection } from "../../../../src/features/groups/component
 import { useGroupDetailPage } from "../../../../src/features/groups/useGroupDetailPage";
 
 export default function GroupDetailScreen() {
+  const { t } = useI18n();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const page = useGroupDetailPage(groupId);
   const { group, isLoading, expensesLoading, expensesError } = page;
@@ -28,7 +30,7 @@ export default function GroupDetailScreen() {
       footer={
         group ? (
           <StyledButton
-            label="Add expense"
+            label={t("common.addExpense")}
             onPress={page.addExpense}
             testID="create-group-expense-button"
           />
@@ -38,20 +40,20 @@ export default function GroupDetailScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title={group?.name ?? "Group"}
+          title={group?.name ?? t("groups.detail.fallbackTitle")}
           onBack={() => goBackOr("/groups")}
           actions={
             group ? (
               <>
                 <IconButton
                   icon="key-outline"
-                  accessibilityLabel="Show invite code"
+                  accessibilityLabel={t("groups.detail.showInviteCode")}
                   onPress={page.openCode}
                   testID="group-invite-code-button"
                 />
                 <IconButton
                   icon="settings-outline"
-                  accessibilityLabel="Group settings"
+                  accessibilityLabel={t("groups.settings.title")}
                   onPress={page.openSettings}
                   testID="group-settings-button"
                 />
@@ -75,7 +77,7 @@ export default function GroupDetailScreen() {
             tone="error"
             message={expensesError}
             onRetry={page.retryExpenses}
-            retryLabel="Retry expenses"
+            retryLabel={t("common.retryExpenses")}
             isRetrying={expensesLoading}
             retryTestID="group-expenses-retry-button"
             testID="group-expenses-error"

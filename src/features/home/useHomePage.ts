@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import { router } from "expo-router";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthStore } from "../../state/useAuthStore";
+import { useI18n } from "../../i18n";
 import { useExpenseStore } from "../../state/useExpenseStore";
 import { useGroupStore } from "../../state/useGroupStore";
 import { openExpense } from "../expenses/openExpense";
@@ -11,6 +12,7 @@ import { summarizeBalances } from "../../utils/money";
 /** Home: the user's groups, invitations and personal expenses, loaded on
  * open, with a retry per section and the balance summary. */
 export function useHomePage() {
+  const { t } = useI18n();
   const user = useAuthStore((state) => state.user);
   const userId = user?.id;
   const groupState = useGroupStore(
@@ -69,10 +71,10 @@ export function useHomePage() {
   const pendingInviteCount = groupState.pendingInvites.length;
 
   return {
-    userName: user?.displayName ?? "User",
+    userName: user?.displayName ?? t("home.defaultUserName"),
     groupHighlights,
     pendingInviteCount,
-    invitationLabel: `${pendingInviteCount} ${pendingInviteCount === 1 ? "invitation" : "invitations"}`,
+    invitationLabel: t("home.invitations", { count: pendingInviteCount }),
     groupLoading: groupState.isLoading,
     groupError: groupState.error,
     expenses: expenseState.expenses,

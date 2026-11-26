@@ -7,6 +7,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { groupSummary } from "../groupSummary";
 import type { UserGroupDto } from "../../../types";
 
@@ -24,9 +25,10 @@ interface GroupListProps {
 
 /** "YOUR GROUPS": skeleton, empty state with create / join, or one row per group. */
 export function GroupList({ testID, ...props }: GroupListProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="YOUR GROUPS" />
+      <SectionHeader title={t("groups.list.title")} />
       <GroupListBody {...props} />
     </Stack>
   );
@@ -41,6 +43,7 @@ function GroupListBody({
   onCreate,
   onJoin,
 }: Omit<GroupListProps, "testID">) {
+  const { t } = useI18n();
   if (hasError && groups.length === 0) return null;
   if (isLoading && groups.length === 0) {
     return (
@@ -56,17 +59,17 @@ function GroupListBody({
     return (
       <EmptyState
         icon="people-outline"
-        title="No groups yet"
-        description="Create a group, or join friends with an invite code."
+        title={t("groups.list.emptyTitle")}
+        description={t("groups.list.emptyText")}
         action={
           <Stack gap="sm">
             <StyledButton
-              label="Create group"
+              label={t("groups.create.title")}
               onPress={onCreate}
               testID="groups-empty-create"
             />
             <StyledButton
-              label="Join with code"
+              label={t("groups.join.title")}
               onPress={onJoin}
               variant="link"
               testID="groups-empty-join"
@@ -87,6 +90,7 @@ function GroupListBody({
             group.id,
             groupRole === "ADMIN",
             joinRequestCounts,
+            t,
           )}
           onPress={() => onOpenGroup(group.id)}
           testID={`group-row-${group.id}`}

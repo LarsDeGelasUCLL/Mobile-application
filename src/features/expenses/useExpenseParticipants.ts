@@ -4,9 +4,11 @@ import { useLoadState } from "../shared/useLoadState";
 import { useAuthStore } from "../../state/useAuthStore";
 import { useExpenseStore } from "../../state/useExpenseStore";
 import { useGroupStore } from "../../state/useGroupStore";
+import type { TranslationKey } from "../../i18n";
 import type { PublicUserProfileDto } from "../../types";
 
-export const participantsErrorFallback = "Could not load participants.";
+export const participantsErrorFallback: TranslationKey =
+  "errors.fallback.loadParticipants";
 
 /**
  * Who can take part in an expense, always including the current user: the

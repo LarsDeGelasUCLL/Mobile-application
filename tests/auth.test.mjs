@@ -8,8 +8,7 @@ const { validateNewPassword } = await loadModule(
   "src/features/auth/authValidation.ts",
 );
 
-const LINK_ERROR =
-  "That reset link could not be completed. Request a new reset email and try again.";
+const LINK_ERROR = "auth.reset.linkFailed";
 
 test("parseAuthMode opens the mode named in the link", () => {
   assert.equal(parseAuthMode({}), "login");
@@ -40,9 +39,9 @@ test("parseAuthMode sends any failed auth link to reset", () => {
 });
 
 test("authLinkErrorMessage explains a failed auth link and is empty otherwise", () => {
-  assert.equal(authLinkErrorMessage({}), "");
-  assert.equal(authLinkErrorMessage({ mode: "set-password" }), "");
-  assert.equal(authLinkErrorMessage({ error_code: "" }), "");
+  assert.equal(authLinkErrorMessage({}), undefined);
+  assert.equal(authLinkErrorMessage({ mode: "set-password" }), undefined);
+  assert.equal(authLinkErrorMessage({ error_code: "" }), undefined);
   for (const key of ["authLinkError", "error", "error_code"]) {
     assert.equal(authLinkErrorMessage({ [key]: "x" }), LINK_ERROR, key);
   }
@@ -52,11 +51,11 @@ test("AUTH_TITLES names every auth mode", () => {
   assert.deepEqual(
     { ...AUTH_TITLES },
     {
-      login: "Welcome back",
-      signup: "Create your account",
-      reset: "Reset your password",
-      "set-password": "Choose a new password",
-      confirmation: "Confirm your email",
+      login: "auth.title.login",
+      signup: "auth.title.signup",
+      reset: "auth.title.reset",
+      "set-password": "auth.title.setPassword",
+      confirmation: "auth.title.confirmation",
     },
   );
 });
@@ -64,13 +63,13 @@ test("AUTH_TITLES names every auth mode", () => {
 test("validateNewPassword checks the password and its confirmation", () => {
   assert.deepEqual(
     { ...validateNewPassword("", "") },
-    { passwordError: "Password is required.", confirmPasswordError: undefined },
+    { passwordError: "validation.passwordRequired", confirmPasswordError: undefined },
   );
   assert.deepEqual(
     { ...validateNewPassword("short", "other") },
     {
-      passwordError: "Password must be at least 8 characters.",
-      confirmPasswordError: "Passwords must match.",
+      passwordError: "validation.passwordTooShort",
+      confirmPasswordError: "validation.passwordsMustMatch",
     },
   );
   assert.deepEqual(
@@ -83,18 +82,18 @@ test("auth field validation returns specific required and format errors", async 
   const { validateEmail, validatePassword, validateDisplayName } =
     await loadModule("src/features/auth/authValidation.ts");
 
-  assert.equal(validateEmail(""), "Email is required.");
-  assert.equal(validateEmail("not-an-email"), "Enter a valid email address.");
+  assert.equal(validateEmail(""), "validation.emailRequired");
+  assert.equal(validateEmail("not-an-email"), "validation.emailInvalid");
   assert.equal(validateEmail("ada@example.com"), undefined);
 
-  assert.equal(validatePassword(""), "Password is required.");
+  assert.equal(validatePassword(""), "validation.passwordRequired");
   assert.equal(
     validatePassword("short"),
-    "Password must be at least 8 characters.",
+    "validation.passwordTooShort",
   );
   assert.equal(validatePassword("long-enough"), undefined);
 
-  assert.equal(validateDisplayName(""), "Display name is required.");
+  assert.equal(validateDisplayName(""), "validation.displayNameRequired");
   assert.equal(validateDisplayName("Ada"), undefined);
 });
 
@@ -105,11 +104,11 @@ test("password confirmation must match the password", async () => {
 
   assert.equal(
     validatePasswordConfirmation("long-enough", "long-enoug"),
-    "Passwords must match.",
+    "validation.passwordsMustMatch",
   );
   assert.equal(
     validatePasswordConfirmation("long-enough", ""),
-    "Passwords must match.",
+    "validation.passwordsMustMatch",
   );
   assert.equal(
     validatePasswordConfirmation("long-enough", "long-enough"),

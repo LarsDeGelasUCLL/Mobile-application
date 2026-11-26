@@ -6,8 +6,8 @@ import {
   StyledButton,
 } from "../../../components/primitives";
 import { EmailConfirmationRequiredError } from "../../../services";
+import { errorMessage, useI18n, type TranslationKey } from "../../../i18n";
 import { useAuthStore } from "../../../state/useAuthStore";
-import { getErrorMessage } from "../../../utils/errors";
 import {
   validateDisplayName,
   validateEmail,
@@ -35,11 +35,12 @@ export function SignupForm({
   onBackToLogin,
   testID,
 }: SignupFormProps) {
+  const { t } = useI18n();
   const register = useAuthStore((state) => state.register);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const [nameError, setNameError] = useState<string>();
-  const [emailError, setEmailError] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
+  const [nameError, setNameError] = useState<TranslationKey>();
+  const [emailError, setEmailError] = useState<TranslationKey>();
+  const [passwordError, setPasswordError] = useState<TranslationKey>();
   const [formError, setFormError] = useState("");
   const { email, password, displayName, phoneNumber } = fields;
 
@@ -67,7 +68,7 @@ export function SignupForm({
         return;
       }
       setFormError(
-        getErrorMessage(error, "Registration failed. Please retry."),
+        errorMessage(error, "errors.fallback.register"),
       );
     }
   };
@@ -75,25 +76,25 @@ export function SignupForm({
   return (
     <Stack gap="lg" testID={testID}>
       <InputField
-        label="Display name"
+        label={t("auth.field.displayName")}
         value={displayName}
         onChangeText={(value) => onChangeField("displayName", value)}
-        placeholder="Your name"
-        error={nameError}
+        placeholder={t("auth.field.displayNamePlaceholder")}
+        error={nameError && t(nameError)}
         testID="display-name-input"
       />
       <AuthEmailField
         value={email}
         onChangeText={(value) => onChangeField("email", value)}
-        error={emailError}
+        error={emailError && t(emailError)}
       />
       <AuthPasswordField
         value={password}
         onChangeText={(value) => onChangeField("password", value)}
-        error={passwordError}
+        error={passwordError && t(passwordError)}
       />
       <InputField
-        label="Phone number (optional)"
+        label={t("auth.field.phoneOptional")}
         value={phoneNumber}
         onChangeText={(value) => onChangeField("phoneNumber", value)}
         placeholder="+32..."
@@ -103,7 +104,7 @@ export function SignupForm({
         <FeedbackBanner tone="error" message={formError} testID="auth-error" />
       ) : null}
       <StyledButton
-        label="Create account"
+        label={t("auth.signup.submit")}
         onPress={submit}
         isLoading={isLoading}
         testID="signup-submit-button"

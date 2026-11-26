@@ -1,4 +1,5 @@
 import { InputField } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface AuthEmailFieldProps {
   value: string;
@@ -12,12 +13,13 @@ export function AuthEmailField({
   onChangeText,
   error,
 }: AuthEmailFieldProps) {
+  const { t } = useI18n();
   return (
     <InputField
-      label="Email"
+      label={t("auth.field.email")}
       value={value}
       onChangeText={onChangeText}
-      placeholder="you@example.com"
+      placeholder={t("auth.field.emailPlaceholder")}
       keyboardType="email-address"
       error={error}
       testID="email-input"

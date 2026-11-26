@@ -10,6 +10,7 @@ import {
   ScreenHeader,
   Stack,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import { ExpenseDetailSkeleton } from "../../../src/features/expenses/components/ExpenseDetailSkeleton";
 import { ExpenseMissingState } from "../../../src/features/expenses/components/ExpenseMissingState";
 import { ExpenseSummaryCard } from "../../../src/features/expenses/components/ExpenseSummaryCard";
@@ -17,6 +18,7 @@ import { SplitBreakdown } from "../../../src/features/expenses/components/SplitB
 import { useExpenseDetail } from "../../../src/features/expenses/useExpenseDetail";
 
 export default function ExpenseDetailScreen() {
+  const { t } = useI18n();
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
   const page = useExpenseDetail(expenseId);
   const { expense } = page;
@@ -37,13 +39,13 @@ export default function ExpenseDetailScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Expense details"
+          title={t("expenses.detail.title")}
           onBack={navigateBack}
           actions={
             expense && page.canManage ? (
               <IconButton
                 icon="create-outline"
-                accessibilityLabel="Edit expense"
+                accessibilityLabel={t("expenses.detail.edit")}
                 onPress={() =>
                   router.push({
                     pathname: "/expense/edit/[expenseId]",
@@ -92,7 +94,7 @@ export default function ExpenseDetailScreen() {
               <Card flush>
                 <ListRow
                   icon="trash-outline"
-                  label="Delete expense"
+                  label={t("expenses.detail.delete")}
                   onPress={() => page.setConfirmDelete(true)}
                   destructive
                   testID="delete-expense-row"
@@ -101,9 +103,9 @@ export default function ExpenseDetailScreen() {
             ) : null}
             <ConfirmDialog
               visible={page.confirmDelete}
-              title={`Delete '${expense.title}'?`}
-              message="This cannot be undone."
-              confirmLabel="Delete expense"
+              title={t("expenses.detail.deleteTitle", { title: expense.title })}
+              message={t("expenses.detail.deleteMessage")}
+              confirmLabel={t("expenses.detail.delete")}
               onConfirm={() => void page.deleteExpense()}
               onCancel={() => page.setConfirmDelete(false)}
               isLoading={page.expenseLoading}

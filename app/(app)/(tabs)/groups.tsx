@@ -5,6 +5,7 @@ import {
   Screen,
   Stack,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import { AddGroupSheet } from "../../../src/features/groups/components/AddGroupSheet";
 import { GroupList } from "../../../src/features/groups/components/GroupList";
 import { InvitationList } from "../../../src/features/groups/components/InvitationList";
@@ -12,6 +13,7 @@ import { SentRequestList } from "../../../src/features/groups/components/SentReq
 import { useGroupsTab } from "../../../src/features/groups/useGroupsTab";
 
 export default function GroupsScreen() {
+  const { t } = useI18n();
   const page = useGroupsTab();
   const { isLoading, storeError } = page;
   const openCreate = () => page.openPage("/group/create");
@@ -29,7 +31,7 @@ export default function GroupsScreen() {
           headerRight: () => (
             <IconButton
               icon="add"
-              accessibilityLabel="Create or join a group"
+              accessibilityLabel={t("groups.tab.add")}
               onPress={page.openMenu}
               testID="groups-add-button"
             />

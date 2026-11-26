@@ -1,4 +1,5 @@
 import { Card, Divider, ListRow, Sheet } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 interface AddGroupSheetProps {
   visible: boolean;
@@ -16,26 +17,27 @@ export function AddGroupSheet({
   onJoin,
   testID,
 }: AddGroupSheetProps) {
+  const { t } = useI18n();
   return (
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Add a group"
+      title={t("groups.addSheet.title")}
       testID={testID}
     >
       <Card flush>
         <ListRow
           icon="add-circle-outline"
-          label="Create group"
-          description="Start a new group and invite people."
+          label={t("groups.create.title")}
+          description={t("groups.addSheet.createText")}
           onPress={onCreate}
           testID="groups-menu-create"
         />
         <Divider />
         <ListRow
           icon="enter-outline"
-          label="Join with code"
-          description="Use an invite code from a group admin."
+          label={t("groups.join.title")}
+          description={t("groups.addSheet.joinText")}
           onPress={onJoin}
           testID="groups-menu-join"
         />

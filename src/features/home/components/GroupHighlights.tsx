@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, View } from "react-native";
 import { Icon, Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { GroupAvatar } from "../../groups/components/GroupAvatar";
 import { makeStyles } from "../../../theme/ThemeProvider";
 import type { GroupHighlight } from "../../../types";
@@ -16,6 +17,7 @@ export function GroupHighlights({
   onSeeAllPress,
   onGroupPress,
 }: GroupHighlightsProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <ScrollView
@@ -28,7 +30,7 @@ export function GroupHighlights({
         <Pressable
           key={group.id}
           accessibilityRole="button"
-          accessibilityLabel={`Open ${group.name}`}
+          accessibilityLabel={t("home.highlights.open", { name: group.name })}
           onPress={() => onGroupPress(group)}
           style={({ pressed }) => [styles.groupItem, pressed && styles.pressed]}
         >
@@ -40,7 +42,7 @@ export function GroupHighlights({
       ))}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Find groups"
+        accessibilityLabel={t("home.highlights.findGroups")}
         onPress={onSeeAllPress}
         style={({ pressed }) => [styles.groupItem, pressed && styles.pressed]}
       >
@@ -48,7 +50,7 @@ export function GroupHighlights({
           <Icon name="add" size={24} tone="primary" />
         </View>
         <Text size="sm" align="center" tone="primary">
-          Find groups
+          {t("home.highlights.findGroups")}
         </Text>
       </Pressable>
     </ScrollView>

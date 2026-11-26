@@ -7,6 +7,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import {
   ProfileForm,
   type ProfileFormHandle,
@@ -14,6 +15,7 @@ import {
 import { useEditProfile } from "../../../src/features/profile/useEditProfile";
 
 export default function EditProfileScreen() {
+  const { t } = useI18n();
   const formRef = useRef<ProfileFormHandle>(null);
   const page = useEditProfile();
 
@@ -22,7 +24,9 @@ export default function EditProfileScreen() {
       padding="lg"
       footer={
         <StyledButton
-          label={page.profileError ? "Retry save" : "Save changes"}
+          label={t(
+            page.profileError ? "profile.edit.retrySave" : "common.saveChanges",
+          )}
           onPress={() => formRef.current?.submit()}
           isLoading={page.isLoading}
           testID="save-profile-button"
@@ -31,7 +35,7 @@ export default function EditProfileScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Edit profile"
+          title={t("profile.edit.title")}
           onBack={() => goBackOr("/settings")}
           testID="edit-profile-header"
         />

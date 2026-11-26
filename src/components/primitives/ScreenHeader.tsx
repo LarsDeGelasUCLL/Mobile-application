@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { IconButton } from "./IconButton";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 interface ScreenHeaderProps {
   title: string;
@@ -20,13 +21,14 @@ export function ScreenHeader({
   actions,
   testID,
 }: ScreenHeaderProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <View style={styles.base} testID={testID}>
       {onBack !== undefined && (
         <IconButton
           icon="arrow-back"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t("common.goBack")}
           onPress={onBack}
           testID={testID !== undefined ? `${testID}-back` : undefined}
         />

@@ -5,8 +5,8 @@ import {
   Stack,
   StyledButton,
 } from "../../../components/primitives";
+import { errorMessage, useI18n, type TranslationKey } from "../../../i18n";
 import { useAuthStore } from "../../../state/useAuthStore";
-import { getErrorMessage } from "../../../utils/errors";
 import { validateEmail } from "../authValidation";
 import type { AuthFieldProps } from "../types";
 import { AuthEmailField } from "./AuthEmailField";
@@ -35,11 +35,12 @@ export function ResetForm({
   onBackToLogin,
   testID,
 }: ResetFormProps) {
+  const { t } = useI18n();
   const requestPasswordReset = useAuthStore(
     (state) => state.requestPasswordReset,
   );
   const isLoading = useAuthStore((state) => state.isLoading);
-  const [emailError, setEmailError] = useState<string>();
+  const [emailError, setEmailError] = useState<TranslationKey>();
   const [formError, setFormError] = useState(initialError);
   const [successMessage, setSuccessMessage] = useState("");
   const { email } = fields;
@@ -56,15 +57,10 @@ export function ResetForm({
         email,
         redirectTo: setPasswordRedirectUrl(),
       });
-      setSuccessMessage(
-        "Reset instructions were sent. Open the email link to choose a new password.",
-      );
+      setSuccessMessage(t("feedback.resetSent"));
     } catch (error) {
       setFormError(
-        getErrorMessage(
-          error,
-          "Could not send reset instructions. Please retry.",
-        ),
+        errorMessage(error, "errors.fallback.sendReset"),
       );
     }
   };
@@ -74,7 +70,7 @@ export function ResetForm({
       <AuthEmailField
         value={email}
         onChangeText={(value) => onChangeField("email", value)}
-        error={emailError}
+        error={emailError && t(emailError)}
       />
       {formError !== "" ? (
         <FeedbackBanner tone="error" message={formError} testID="auth-error" />
@@ -87,7 +83,7 @@ export function ResetForm({
         />
       ) : null}
       <StyledButton
-        label="Send reset instructions"
+        label={t("auth.reset.submit")}
         onPress={submit}
         isLoading={isLoading}
         testID="password-reset-button"

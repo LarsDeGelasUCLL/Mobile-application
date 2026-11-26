@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule, plain, serviceDeps } from "./support/loadModule.mjs";
+import { i18nStub } from "./support/i18n.mjs";
+
+const i18nEn = await i18nStub("en");
 
 const permissions = await loadModule(
   "src/features/expenses/expensePermissions.ts",
@@ -107,10 +110,12 @@ test("includeCurrentUser appends the current user once and keeps order", () => {
   assert.deepEqual(plain(includeCurrentUser([], user)), [profile("me", "Ada")]);
 });
 
-test("participantLabel marks the current user with (you)", () => {
+test("participantLabel marks the current user with (you)", async () => {
   const { participantLabel } = participantsHelpers;
-  assert.equal(participantLabel(profile("me", "Ada"), "me"), "Ada (you)");
-  assert.equal(participantLabel(profile("ann", "Ann"), "me"), "Ann");
+  const nl = await i18nStub("nl");
+  assert.equal(participantLabel(profile("me", "Ada"), "me", i18nEn.t), "Ada (you)");
+  assert.equal(participantLabel(profile("me", "Ada"), "me", nl.t), "Ada (jij)");
+  assert.equal(participantLabel(profile("ann", "Ann"), "me", i18nEn.t), "Ann");
 });
 
 const createState = () =>
@@ -336,9 +341,9 @@ test("edits clear the validation error, choosing a payer does not", () => {
   const { expenseFormReducer } = formState;
   const failed = expenseFormReducer(createState(), {
     type: "setValidationError",
-    error: "Expense title is required.",
+    error: "validation.expense.titleRequired",
   });
-  assert.equal(failed.validationError, "Expense title is required.");
+  assert.equal(failed.validationError, "validation.expense.titleRequired");
   for (const action of [
     { type: "setTitle", value: "Lunch" },
     { type: "setAmount", value: "5" },
@@ -356,7 +361,7 @@ test("edits clear the validation error, choosing a payer does not", () => {
   assert.equal(
     expenseFormReducer(failed, { type: "setPaidBy", userId: "ann" })
       .validationError,
-    "Expense title is required.",
+    "validation.expense.titleRequired",
   );
 });
 
@@ -373,7 +378,7 @@ test("fetchExpenseParticipants loads the personal history, then its participants
           return participants;
         },
       },
-      "../../utils/errors": { getErrorMessage: (error) => String(error) },
+      "../../i18n": i18nEn,
     },
   );
   const state = {};
@@ -434,9 +439,7 @@ test("loading group expenses calculates balances from the same fetch", async () 
         getExpenseById: async () => null,
         getIndividualExpenses: async () => [],
       },
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = {};
@@ -512,8 +515,7 @@ test("expense form validation normalizes receipt URLs and enforces personal part
       allowedParticipantIds: participants,
     },
   );
-  assert.equal(typeof payerOutsideSplit, "string");
-  assert.match(payerOutsideSplit, /payer must be included/i);
+  assert.equal(payerOutsideSplit, "validation.expense.payerMustBeIncluded");
 
   const callerOutsideSplit = validateExpenseForm(
     {
@@ -529,8 +531,7 @@ test("expense form validation normalizes receipt URLs and enforces personal part
       allowedParticipantIds: participants,
     },
   );
-  assert.equal(typeof callerOutsideSplit, "string");
-  assert.match(callerOutsideSplit, /you must be involved/i);
+  assert.equal(callerOutsideSplit, "validation.expense.youMustBeInvolved");
 });
 
 test("expense form validation rejects invalid amounts and split rows", async () => {
@@ -553,44 +554,46 @@ test("expense form validation rejects invalid amounts and split rows", async () 
       },
     );
 
-  assert.match(validate("0", [{ userId: "user-1", amount: "0" }]), /positive/i);
-  assert.match(
-    validate("1.234", [{ userId: "user-1", amount: "1.234" }]),
-    /two decimal/i,
+  assert.equal(
+    validate("0", [{ userId: "user-1", amount: "0" }]),
+    "validation.expense.amountInvalid",
   );
-  assert.match(
+  assert.equal(
+    validate("1.234", [{ userId: "user-1", amount: "1.234" }]),
+    "validation.expense.amountInvalid",
+  );
+  assert.equal(
     validate("2.00", [
       { userId: "user-1", amount: "1.00" },
       { userId: "user-1", amount: "1.00" },
     ]),
-    /duplicate/i,
+    "validation.expense.duplicateSplitUsers",
   );
-  assert.match(
+  assert.equal(
     validate("2.00", [{ userId: "user-1", amount: "-1.00" }]),
-    /nonnegative/i,
+    "validation.expense.splitAmountsInvalid",
   );
-  assert.match(
+  assert.equal(
     validate("2.00", [{ userId: "user-1", amount: "-0.01" }]),
-    /nonnegative/i,
+    "validation.expense.splitAmountsInvalid",
   );
-  assert.match(
+  assert.equal(
     validate("2.00", [
       { userId: "user-1", amount: "1.00" },
       { userId: "user-2", amount: "0.99" },
     ]),
-    /equal the expense amount/i,
+    "validation.expense.splitsMustEqualAmount",
   );
-  assert.match(
+  assert.equal(
     validate("2.00", [{ userId: "outsider", amount: "2.00" }]),
-    /available participants/i,
+    "validation.expense.participantNotAvailable",
   );
   const longTitle = validate(
     "2.00",
     [{ userId: "user-1", amount: "2.00" }],
     "x".repeat(151),
   );
-  assert.equal(typeof longTitle, "string");
-  assert.match(longTitle, /150 characters/i);
+  assert.equal(longTitle, "validation.expense.titleTooLong");
   const maximumUnicodeTitle = validate(
     "2.00",
     [{ userId: "user-1", amount: "2.00" }],
@@ -734,12 +737,12 @@ test("expense service validation requires the creator and payer in personal spli
         { ...payload, splits: [{ userId: "user-2", amountOwed: 10 }] },
         "user-1",
       ),
-    /you must be involved/i,
+    { message: "validation.expense.youMustBeInvolved" },
   );
   assert.throws(
     () =>
       validateExpensePayload({ ...payload, paidByUserId: "user-3" }, "user-1"),
-    /payer must be included/i,
+    { message: "validation.expense.payerMustBeIncluded" },
   );
 });
 
@@ -764,9 +767,7 @@ test("expense creation remains locally successful when balance refresh fails", a
           throw new Error("Balance refresh failed");
         },
       },
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = {
@@ -824,9 +825,7 @@ test("expense store refuses to settle or unsettle the payer's own split", async 
           settleCalls += 1;
         },
       },
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = {
@@ -844,7 +843,7 @@ test("expense store refuses to settle or unsettle the payer's own split", async 
 
   await assert.rejects(
     actions.toggleSettleSplit("payer-split", false, "group-1"),
-    /payer's own split/i,
+    { message: "errors.store.payerOwnSplit" },
   );
   assert.equal(settleCalls, 0);
   assert.equal(state.isLoading, false);
@@ -884,9 +883,7 @@ test("settling and unsettling a split updates cached expenses and group balances
         },
         settleExpenseSplit: async (...args) => settleCalls.push(args),
       },
-      "../../utils/errors": {
-        getErrorMessage: (error) => String(error),
-      },
+      "../../i18n": i18nEn,
     },
   );
   const state = {

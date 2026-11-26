@@ -6,6 +6,7 @@ import {
   StyledButton,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { AuthScreen } from "./AuthScreen";
 
 interface SessionRestoreBaseProps {
@@ -34,6 +35,7 @@ type SessionRestoreProps = SessionRestoreBaseProps &
 
 /** Shown until the auth store has restored (or failed to restore) the session. */
 export function SessionRestore(props: SessionRestoreProps) {
+  const { t } = useI18n();
   const { isLoading, onRetry, testID } = props;
   if (props.variant === "banner") {
     return (
@@ -43,15 +45,15 @@ export function SessionRestore(props: SessionRestoreProps) {
             <>
               <Spinner />
               <Text align="center" tone="muted">
-                Restoring your session...
+                {t("app.session.restoring")}
               </Text>
             </>
           ) : (
             <FeedbackBanner
               tone="error"
-              message={props.failedMessage ?? "Could not restore your session."}
+              message={props.failedMessage ?? t("app.session.restoreFailed")}
               onRetry={onRetry}
-              retryLabel="Try again"
+              retryLabel={t("common.tryAgain")}
               testID="session-recovery-error"
             />
           )}
@@ -67,19 +69,19 @@ export function SessionRestore(props: SessionRestoreProps) {
           <>
             <Spinner size="large" />
             <Text align="center" tone="muted">
-              Restoring your session...
+              {t("app.session.restoring")}
             </Text>
           </>
         ) : (
           <>
             <Text align="center" weight="bold">
-              Could not restore your session
+              {t("app.session.restoreFailedTitle")}
             </Text>
             <Text size="sm" align="center" tone="muted">
-              Check your connection and try again.
+              {t("app.session.checkConnection")}
             </Text>
             <StyledButton
-              label="Try again"
+              label={t("common.tryAgain")}
               onPress={onRetry}
               variant="secondary"
               testID="auth-bootstrap-retry"

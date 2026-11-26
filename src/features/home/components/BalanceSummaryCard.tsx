@@ -22,16 +22,16 @@ export function BalanceSummaryCard({
   testID,
 }: BalanceSummaryCardProps) {
   const styles = useStyles();
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const balances = [
-    { label: "You get back", balance: describeBalance(youAreOwed, locale) },
-    { label: "You owe", balance: describeBalance(-youOwe, locale) },
+    { label: t("home.balance.youGetBack"), balance: describeBalance(youAreOwed, locale) },
+    { label: t("home.balance.youOwe"), balance: describeBalance(-youOwe, locale) },
   ];
   return (
     <Card>
       <View style={styles.summary} testID={testID}>
         <Text size="sm" tone="muted">
-          Personal expenses
+          {t("home.balance.title")}
         </Text>
         {isLoading ? (
           <Skeleton height={28} width="70%" />

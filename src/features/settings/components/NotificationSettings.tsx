@@ -4,6 +4,7 @@ import {
   SectionHeader,
   Stack,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { UpdateUserSettingsDto, UserSettingsDto } from "../../../types";
 
 interface NotificationSettingsProps {
@@ -22,22 +23,23 @@ export function NotificationSettings({
   onSave,
   testID,
 }: NotificationSettingsProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="NOTIFICATIONS" />
+      <SectionHeader title={t("settings.notifications.title")} />
       <Card>
         <Checkbox
-          label="New group expenses"
+          label={t("settings.notifications.newExpenses")}
           checked={settings.notifyNewExpense}
           onChange={(notifyNewExpense) => onSave({ notifyNewExpense })}
         />
         <Checkbox
-          label="Payment reminders"
+          label={t("settings.notifications.reminders")}
           checked={settings.notifyReminders}
           onChange={(notifyReminders) => onSave({ notifyReminders })}
         />
         <Checkbox
-          label="New members and group updates"
+          label={t("settings.notifications.groupUpdates")}
           checked={settings.notifyGroupUpdates}
           onChange={(notifyGroupUpdates) => onSave({ notifyGroupUpdates })}
         />

@@ -6,6 +6,7 @@ import {
   SkeletonCard,
   Stack,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { memberName } from "../memberName";
 import type { MembershipDto } from "../../../types";
 
@@ -26,9 +27,10 @@ export function MemberList({
   onSelect,
   testID,
 }: MemberListProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="MEMBERS" count={members.length} />
+      <SectionHeader title={t("groups.members.title")} count={members.length} />
       {isLoading && members.length === 0 ? (
         <SkeletonCard lines={2} />
       ) : (
@@ -40,13 +42,21 @@ export function MemberList({
                 key={member.id}
                 leading={
                   <Avatar
-                    name={memberName(member)}
+                    name={memberName(member, t)}
                     uri={member.userProfile?.profilePictureUrl ?? undefined}
                     size="sm"
                   />
                 }
-                label={`${memberName(member)}${isCurrentUser ? " (you)" : ""}`}
-                description={member.groupRole === "ADMIN" ? "Admin" : "Member"}
+                label={
+                  isCurrentUser
+                    ? t("common.nameYou", { name: memberName(member, t) })
+                    : memberName(member, t)
+                }
+                description={t(
+                  member.groupRole === "ADMIN"
+                    ? "groups.role.admin"
+                    : "groups.role.member",
+                )}
                 onPress={
                   onSelect && !isCurrentUser
                     ? () => onSelect(member)

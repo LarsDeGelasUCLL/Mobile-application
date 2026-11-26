@@ -5,6 +5,7 @@ import {
   SectionHeader,
   Stack,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 
 /** The pages the rows open. */
 export type AccountHref =
@@ -20,20 +21,21 @@ interface AccountLinksProps {
 
 /** "ACCOUNT": rows to the profile, email and password pages. */
 export function AccountLinks({ email, onOpen, testID }: AccountLinksProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="ACCOUNT" />
+      <SectionHeader title={t("settings.account.title")} />
       <Card flush>
         <ListRow
           icon="person-outline"
-          label="Edit profile"
+          label={t("profile.edit.title")}
           onPress={() => onOpen("/settings/profile")}
           testID="settings-edit-profile"
         />
         <Divider />
         <ListRow
           icon="mail-outline"
-          label="Email"
+          label={t("auth.field.email")}
           description={email}
           onPress={() => onOpen("/settings/email")}
           testID="settings-email"
@@ -41,7 +43,7 @@ export function AccountLinks({ email, onOpen, testID }: AccountLinksProps) {
         <Divider />
         <ListRow
           icon="lock-closed-outline"
-          label="Password"
+          label={t("auth.field.password")}
           onPress={() => onOpen("/settings/password")}
           testID="settings-password"
         />

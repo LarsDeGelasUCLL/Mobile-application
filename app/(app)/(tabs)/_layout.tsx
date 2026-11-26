@@ -2,10 +2,12 @@ import { router, Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, IconButton } from "../../../src/components/primitives";
 import type { IconName } from "../../../src/components/primitives/Icon";
+import { useI18n } from "../../../src/i18n";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import { useTheme } from "../../../src/theme/ThemeProvider";
 
 export default function TabsLayout() {
+  const { t } = useI18n();
   const { colors, fontFamily } = useTheme();
   const inviteCount = useGroupStore((state) => state.pendingInvites.length);
   const tabBarBottom = Math.max(useSafeAreaInsets().bottom, 8);
@@ -47,7 +49,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t("tabs.home"),
           tabBarButtonTestID: "tab-home",
           tabBarIcon: tabIcon("home", "home-outline"),
         }}
@@ -55,7 +57,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="groups"
         options={{
-          title: "Groups",
+          title: t("tabs.groups"),
           tabBarButtonTestID: "tab-groups",
           tabBarIcon: tabIcon("people", "people-outline"),
           tabBarBadge: inviteCount > 0 ? inviteCount : undefined,
@@ -65,14 +67,14 @@ export default function TabsLayout() {
           },
           tabBarAccessibilityLabel:
             inviteCount > 0
-              ? `Groups, ${inviteCount} pending invitation${inviteCount === 1 ? "" : "s"}`
-              : "Groups",
+              ? t("tabs.groupsWithInvites", { count: inviteCount })
+              : t("tabs.groups"),
         }}
       />
       <Tabs.Screen
         name="expenses"
         options={{
-          title: "Expenses",
+          title: t("tabs.expenses"),
           tabBarButtonTestID: "tab-expenses",
           tabBarIcon: tabIcon("wallet", "wallet-outline"),
         }}
@@ -80,13 +82,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: t("tabs.profile"),
           tabBarButtonTestID: "tab-profile",
           tabBarIcon: tabIcon("person", "person-outline"),
           headerRight: () => (
             <IconButton
               icon="settings-outline"
-              accessibilityLabel="Open settings"
+              accessibilityLabel={t("tabs.openSettings")}
               onPress={() => router.push("/settings")}
               testID="open-settings-button"
             />

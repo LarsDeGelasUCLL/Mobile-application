@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { StyledButton } from "./StyledButton";
 import { Text } from "./Text";
 import { makeStyles } from "../../theme/ThemeProvider";
+import { useI18n } from "../../i18n";
 
 interface SectionHeaderProps {
   title: string;
@@ -23,11 +24,12 @@ export function SectionHeader({
   title,
   count,
   variant = "label",
-  actionLabel = "See all",
+  actionLabel,
   onAction,
   actionTestID,
   testID,
 }: SectionHeaderProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   const heading = count !== undefined ? `${title} (${count})` : title;
   return (
@@ -45,7 +47,7 @@ export function SectionHeader({
       </View>
       {onAction !== undefined ? (
         <StyledButton
-          label={actionLabel}
+          label={actionLabel ?? t("common.seeAll")}
           onPress={onAction}
           variant="link"
           testID={actionTestID}

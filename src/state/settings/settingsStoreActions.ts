@@ -1,6 +1,6 @@
 import { getUserSettings, updateUserSettings } from "../../services";
 import type { SettingsActionCreator } from "./settingsStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage } from "../../i18n";
 
 export const createSettingsActions: SettingsActionCreator = (set) => ({
   fetchSettings: async (userId) => {
@@ -10,7 +10,7 @@ export const createSettingsActions: SettingsActionCreator = (set) => ({
       set({ settings, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load settings."),
+        error: errorMessage(error, "errors.fallback.loadSettings"),
         isLoading: false,
       });
       throw error;
@@ -25,7 +25,7 @@ export const createSettingsActions: SettingsActionCreator = (set) => ({
       return settings;
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update settings."),
+        error: errorMessage(error, "errors.fallback.updateSettings"),
         isLoading: false,
       });
       throw error;

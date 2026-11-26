@@ -1,3 +1,5 @@
+import type { TranslationKey } from "../../i18n";
+
 export type AuthMode =
   "login" | "signup" | "reset" | "set-password" | "confirmation";
 
@@ -10,12 +12,12 @@ export type AuthLinkParams = {
   error_code?: string;
 };
 
-export const AUTH_TITLES: Record<AuthMode, string> = {
-  login: "Welcome back",
-  signup: "Create your account",
-  reset: "Reset your password",
-  "set-password": "Choose a new password",
-  confirmation: "Confirm your email",
+export const AUTH_TITLES: Record<AuthMode, TranslationKey> = {
+  login: "auth.title.login",
+  signup: "auth.title.signup",
+  reset: "auth.title.reset",
+  "set-password": "auth.title.setPassword",
+  confirmation: "auth.title.confirmation",
 };
 
 function hasAuthLinkError(params: AuthLinkParams): boolean {
@@ -36,9 +38,9 @@ export function parseAuthMode(params: AuthLinkParams): AuthMode {
   }
 }
 
-/** The reset form's opening error after a failed auth link, else "". */
-export function authLinkErrorMessage(params: AuthLinkParams): string {
-  return hasAuthLinkError(params)
-    ? "That reset link could not be completed. Request a new reset email and try again."
-    : "";
+/** The reset form's opening error after a failed auth link, else undefined. */
+export function authLinkErrorMessage(
+  params: AuthLinkParams,
+): TranslationKey | undefined {
+  return hasAuthLinkError(params) ? "auth.reset.linkFailed" : undefined;
 }

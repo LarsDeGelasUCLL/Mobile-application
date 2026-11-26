@@ -16,8 +16,10 @@ import {
   StyledButton,
   Text,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 
 export default function SettingsScreen() {
+  const { t } = useI18n();
   const email = useAuthStore((state) => state.user?.emailAddress);
   const saver = useSettingsSaver();
   const logout = useLogout();
@@ -29,7 +31,7 @@ export default function SettingsScreen() {
     <Screen padding="lg" testID="settings-screen">
       <Stack gap="lg">
         <ScreenHeader
-          title="Settings"
+          title={t("settings.title")}
           onBack={() => goBackOr("/profile")}
           testID="settings-header"
         />
@@ -43,8 +45,8 @@ export default function SettingsScreen() {
         ) : (
           <Text size="sm" tone="muted">
             {saver.isLoading
-              ? "Loading your saved preferences..."
-              : saver.errorMessage || "Settings are unavailable."}
+              ? t("settings.loading")
+              : saver.errorMessage || t("settings.unavailable")}
           </Text>
         )}
 
@@ -64,7 +66,7 @@ export default function SettingsScreen() {
         ) : null}
         {pendingSettings ? (
           <StyledButton
-            label="Retry saving"
+            label={t("settings.retrySaving")}
             onPress={() => void saver.saveSettings(pendingSettings)}
             isLoading={saver.isSavingSettings}
             variant="secondary"
@@ -73,7 +75,7 @@ export default function SettingsScreen() {
         ) : null}
         {saver.showLoadRetry ? (
           <StyledButton
-            label="Retry loading settings"
+            label={t("settings.retryLoading")}
             onPress={() => void saver.loadSettings()}
             variant="secondary"
             testID="retry-load-settings"

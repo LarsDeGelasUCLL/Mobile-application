@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { InputField, Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { makeStyles } from "../../../theme/ThemeProvider";
 
 interface SplitAmountRowProps {
@@ -20,6 +21,7 @@ export function SplitAmountRow({
   onChangeAmount,
   testID,
 }: SplitAmountRowProps) {
+  const { t } = useI18n();
   const styles = useStyles();
   return (
     <View style={styles.row}>
@@ -28,7 +30,7 @@ export function SplitAmountRow({
       </Text>
       <View style={styles.amount}>
         <InputField
-          label="Share"
+          label={t("expenses.form.share")}
           value={amount}
           onChangeText={onChangeAmount}
           placeholder="0.00"

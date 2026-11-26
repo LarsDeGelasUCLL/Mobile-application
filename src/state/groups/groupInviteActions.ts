@@ -8,7 +8,7 @@ import {
 } from "../../services";
 import { withoutJoinRequest } from "./groupJoinRequestActions";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 
 export const createGroupInviteActions: GroupActionCreator<
   "inviteMemberByEmail" | "joinByCode" | "respondToInvite"
@@ -35,7 +35,7 @@ export const createGroupInviteActions: GroupActionCreator<
       set({ isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Failed to send invitation."),
+        error: errorMessage(error, "errors.fallback.sendInvitation"),
         isLoading: false,
       });
       throw error;
@@ -49,7 +49,7 @@ export const createGroupInviteActions: GroupActionCreator<
       group = await joinGroupByInviteCode(userId, inviteCode);
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Failed to join group with invite code."),
+        error: errorMessage(error, "errors.fallback.joinByCode"),
         isLoading: false,
       });
       throw error;
@@ -72,7 +72,9 @@ export const createGroupInviteActions: GroupActionCreator<
     } catch (error) {
       // The join or request exists on the server; only the reload failed.
       set({
-        error: `Invite code accepted, but group data could not be refreshed: ${getErrorMessage(error, "Please retry.")}`,
+        error: t("errors.partial.inviteCodeAccepted", {
+          reason: errorMessage(error, "errors.fallback.pleaseRetry"),
+        }),
         isLoading: false,
       });
       throw error;
@@ -85,7 +87,7 @@ export const createGroupInviteActions: GroupActionCreator<
       await respondToGroupInvite(membershipId, accept);
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not process invitation."),
+        error: errorMessage(error, "errors.fallback.processInvitation"),
         isLoading: false,
       });
       throw error;
@@ -123,7 +125,12 @@ export const createGroupInviteActions: GroupActionCreator<
       set({ groups, pendingInvites, isLoading: false });
     } catch (error) {
       set({
-        error: `Invitation ${accept ? "accepted" : "declined"}, but group data could not be refreshed: ${getErrorMessage(error, "Please retry.")}`,
+        error: t(
+          accept
+            ? "errors.partial.invitationAccepted"
+            : "errors.partial.invitationDeclined",
+          { reason: errorMessage(error, "errors.fallback.pleaseRetry") },
+        ),
         isLoading: false,
       });
       throw error;

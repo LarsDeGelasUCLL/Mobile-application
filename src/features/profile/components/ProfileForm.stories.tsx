@@ -34,10 +34,10 @@ export const WithErrors: Story = {
       customBio: "",
     },
     fieldErrors: {
-      displayName: "Display name is required.",
-      phoneNumber: "Enter a valid phone number.",
-      iban: "Enter a valid IBAN.",
-      profilePictureUrl: "Enter a valid HTTPS URL.",
+      displayName: "validation.displayNameRequired",
+      phoneNumber: "validation.phoneInvalid",
+      iban: "validation.ibanInvalid",
+      profilePictureUrl: "validation.httpsUrlInvalid",
     },
   },
 };

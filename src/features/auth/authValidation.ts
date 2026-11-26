@@ -1,27 +1,33 @@
-export function validateEmail(email: string): string | undefined {
+import type { TranslationKey } from "../../i18n";
+
+export function validateEmail(email: string): TranslationKey | undefined {
   const value = email.trim();
   if (!value) {
-    return "Email is required.";
+    return "validation.emailRequired";
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    return "Enter a valid email address.";
+    return "validation.emailInvalid";
   }
   return undefined;
 }
 
-export function validatePassword(password: string): string | undefined {
+export function validatePassword(
+  password: string,
+): TranslationKey | undefined {
   if (!password) {
-    return "Password is required.";
+    return "validation.passwordRequired";
   }
   if (password.length < 8) {
-    return "Password must be at least 8 characters.";
+    return "validation.passwordTooShort";
   }
   return undefined;
 }
 
-export function validateDisplayName(displayName: string): string | undefined {
+export function validateDisplayName(
+  displayName: string,
+): TranslationKey | undefined {
   if (!displayName.trim()) {
-    return "Display name is required.";
+    return "validation.displayNameRequired";
   }
   return undefined;
 }
@@ -29,13 +35,15 @@ export function validateDisplayName(displayName: string): string | undefined {
 export function validatePasswordConfirmation(
   password: string,
   confirmPassword: string,
-): string | undefined {
-  return confirmPassword === password ? undefined : "Passwords must match.";
+): TranslationKey | undefined {
+  return confirmPassword === password
+    ? undefined
+    : "validation.passwordsMustMatch";
 }
 
 export interface NewPasswordErrors {
-  passwordError?: string;
-  confirmPasswordError?: string;
+  passwordError?: TranslationKey;
+  confirmPasswordError?: TranslationKey;
 }
 
 /** Both checks of a new password + confirm pair. */

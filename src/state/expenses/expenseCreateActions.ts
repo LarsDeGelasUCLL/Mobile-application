@@ -5,7 +5,7 @@ import {
 } from "../../services";
 import type { ExpenseDto } from "../../types";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 
 export const createExpenseCreateActions: ExpenseActionCreator<
   "addExpense" | "updateExpense"
@@ -17,7 +17,7 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       created = await createExpense(payload);
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not add expense."),
+        error: errorMessage(error, "errors.fallback.addExpense"),
         isLoading: false,
       });
       throw error;
@@ -41,7 +41,9 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       });
     } catch (error) {
       set({
-        error: `Expense created, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+        error: t("errors.partial.expenseCreated", {
+          reason: errorMessage(error, "errors.fallback.tryAgain"),
+        }),
         isLoading: false,
       });
     }
@@ -55,7 +57,7 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       updated = await updateExpense(expenseId, payload);
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update expense."),
+        error: errorMessage(error, "errors.fallback.updateExpense"),
         isLoading: false,
       });
       throw error;
@@ -88,7 +90,9 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       });
     } catch (error) {
       set({
-        error: `Expense updated, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+        error: t("errors.partial.expenseUpdated", {
+          reason: errorMessage(error, "errors.fallback.tryAgain"),
+        }),
         isLoading: false,
       });
     }

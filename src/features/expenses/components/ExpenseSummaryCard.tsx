@@ -12,7 +12,7 @@ export function ExpenseSummaryCard({
   expense: ExpenseDto;
   testID?: string;
 }) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   return (
     <Card testID={testID}>
       <Stack gap="sm">
@@ -20,26 +20,38 @@ export function ExpenseSummaryCard({
           <Text size="lg" weight="bold">
             {expense.title}
           </Text>
-          <Badge label={expense.groupId ? "Group expense" : "Personal"} />
+          <Badge
+            label={t(
+              expense.groupId
+                ? "expenses.badge.group"
+                : "expenses.badge.personal",
+            )}
+          />
         </Row>
         <Text size="xxl" weight="bold">
           {formatCurrency(expense.amount, locale)}
         </Text>
         <Text size="sm" tone="muted">
-          Paid by {expense.paidByProfile?.displayName ?? "A participant"}
+          {t("expenses.paidBy", {
+            name:
+              expense.paidByProfile?.displayName ??
+              t("expenses.participantFallback"),
+          })}
         </Text>
         <Text size="sm" tone="muted">
-          Created by{" "}
-          {expense.createdByProfile?.displayName ??
-            expense.paidByProfile?.displayName ??
-            "A participant"}
+          {t("expenses.createdBy", {
+            name:
+              expense.createdByProfile?.displayName ??
+              expense.paidByProfile?.displayName ??
+              t("expenses.participantFallback"),
+          })}
         </Text>
         <Text size="sm" tone="muted">
           {formatDateTime(expense.recordCreated, locale)}
         </Text>
         {expense.receiptUrl ? (
           <Text size="sm" tone="muted">
-            Receipt: {expense.receiptUrl}
+            {t("expenses.receipt", { url: expense.receiptUrl })}
           </Text>
         ) : null}
       </Stack>

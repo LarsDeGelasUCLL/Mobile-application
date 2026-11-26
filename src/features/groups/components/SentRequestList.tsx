@@ -23,12 +23,12 @@ export function SentRequestList({
   onCancel,
   testID,
 }: SentRequestListProps) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   if (requests.length === 0) return null;
   // Not `CardList`: each request keeps a gap above and below its divider.
   return (
     <CollapsibleSection
-      title="Sent join requests"
+      title={t("groups.sentRequests.title")}
       count={requests.length}
       testID={testID}
     >
@@ -37,10 +37,12 @@ export function SentRequestList({
           {index > 0 && <Divider />}
           <Text weight="bold">{request.group.name}</Text>
           <Text size="sm" tone="muted">
-            Requested {formatDate(request.requestedAt, locale)}
+            {t("groups.requests.requestedOn", {
+              date: formatDate(request.requestedAt, locale),
+            })}
           </Text>
           <StyledButton
-            label="Cancel request"
+            label={t("groups.sentRequests.cancel")}
             onPress={() => onCancel(request.membershipId)}
             variant="secondary"
             isLoading={isLoading}

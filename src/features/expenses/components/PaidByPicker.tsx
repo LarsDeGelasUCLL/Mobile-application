@@ -1,4 +1,5 @@
 import { Card, Radio, Stack, Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { participantLabel } from "../expenseParticipants";
 import type { PublicUserProfileDto } from "../../../types";
 
@@ -18,16 +19,17 @@ export function PaidByPicker({
   onSelect,
   testID,
 }: PaidByPickerProps) {
+  const { t } = useI18n();
   return (
     <Card testID={testID}>
       <Stack gap="sm">
         <Text size="md" weight="bold">
-          Paid by
+          {t("expenses.form.paidBy")}
         </Text>
         {participants.map((participant) => (
           <Radio
             key={participant.id}
-            label={participantLabel(participant, currentUserId)}
+            label={participantLabel(participant, currentUserId, t)}
             value={participant.id}
             selected={paidByUserId === participant.id}
             onSelect={onSelect}

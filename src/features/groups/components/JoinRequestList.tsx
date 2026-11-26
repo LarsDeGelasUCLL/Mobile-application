@@ -31,12 +31,12 @@ export function JoinRequestList({
   testID,
 }: JoinRequestListProps) {
   const styles = useStyles();
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   if (requests.length === 0) return null;
   // Not `CardList`: each request keeps a gap above and below its divider.
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="JOIN REQUESTS" count={requests.length} />
+      <SectionHeader title={t("groups.requests.title")} count={requests.length} />
       <Card>
         <Stack gap="md">
           {requests.map((request, index) => (
@@ -44,21 +44,23 @@ export function JoinRequestList({
               {index > 0 && <Divider />}
               <Row gap="sm" align="center">
                 <Avatar
-                  name={memberName(request)}
+                  name={memberName(request, t)}
                   uri={request.userProfile?.profilePictureUrl ?? undefined}
                   size="sm"
                 />
                 <Stack gap="none" flex={1}>
-                  <Text weight="medium">{memberName(request)}</Text>
+                  <Text weight="medium">{memberName(request, t)}</Text>
                   <Text size="sm" tone="muted">
-                    Requested {formatDate(request.joinedAt, locale)}
+                    {t("groups.requests.requestedOn", {
+                      date: formatDate(request.joinedAt, locale),
+                    })}
                   </Text>
                 </Stack>
               </Row>
               <Row gap="sm">
                 <View style={styles.buttonColumn}>
                   <StyledButton
-                    label="Approve"
+                    label={t("groups.requests.approve")}
                     onPress={() => onRespond(request.id, true)}
                     variant="secondary"
                     isLoading={isLoading}
@@ -67,7 +69,7 @@ export function JoinRequestList({
                 </View>
                 <View style={styles.buttonColumn}>
                   <StyledButton
-                    label="Reject"
+                    label={t("groups.requests.reject")}
                     onPress={() => onRespond(request.id, false)}
                     variant="secondary"
                     isLoading={isLoading}

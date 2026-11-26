@@ -1,4 +1,5 @@
 import { Card, Divider, ListRow, Sheet } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { memberName } from "../memberName";
 import type { GroupRole, MembershipDto } from "../../../types";
 
@@ -20,18 +21,23 @@ export function MemberActionsSheet({
   onRemove,
   testID,
 }: MemberActionsSheetProps) {
+  const { t } = useI18n();
   return (
     <Sheet
       visible={visible}
       onClose={onClose}
-      title={member ? memberName(member) : undefined}
+      title={member ? memberName(member, t) : undefined}
       testID={testID}
     >
       {member ? (
         <Card flush>
           <ListRow
             icon="shield-outline"
-            label={member.groupRole === "ADMIN" ? "Make member" : "Make admin"}
+            label={t(
+              member.groupRole === "ADMIN"
+                ? "groups.members.makeMember"
+                : "groups.members.makeAdmin",
+            )}
             onPress={() =>
               onChangeRole(
                 member.id,
@@ -43,7 +49,7 @@ export function MemberActionsSheet({
           <Divider />
           <ListRow
             icon="person-remove-outline"
-            label="Remove from group"
+            label={t("groups.members.remove")}
             destructive
             onPress={onRemove}
             testID="group-member-remove-button"

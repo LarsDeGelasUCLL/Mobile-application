@@ -4,6 +4,7 @@ import {
   Screen,
   Stack,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import { BalanceSummaryCard } from "../../../src/features/home/components/BalanceSummaryCard";
 import { HomeGroupsSection } from "../../../src/features/home/components/HomeGroupsSection";
 import { HomeHeader } from "../../../src/features/home/components/HomeHeader";
@@ -11,6 +12,7 @@ import { HomeRecentExpenses } from "../../../src/features/home/components/HomeRe
 import { useHomePage } from "../../../src/features/home/useHomePage";
 
 export default function HomeScreen() {
+  const { t } = useI18n();
   const page = useHomePage();
 
   return (
@@ -37,7 +39,7 @@ export default function HomeScreen() {
             <ListRow
               icon="mail-outline"
               label={page.invitationLabel}
-              description="Waiting for your answer"
+              description={t("home.invitations.waiting")}
               onPress={page.openGroups}
               testID="home-invitations-row"
             />

@@ -4,7 +4,7 @@ import {
   removeMembership,
 } from "../../services";
 import type { GroupActionCreator, GroupState } from "./groupStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, type TranslationKey } from "../../i18n";
 
 // Drops a handled request from the admin list and lowers that group's badge count.
 export function withoutJoinRequest(
@@ -34,20 +34,20 @@ export const createGroupJoinRequestActions: GroupActionCreator<
   | "cancelJoinRequest"
 > = (set, get) => {
   // Shared isLoading/error/re-throw wrapper for every join request action.
-  const run = async (fallback: string, action: () => Promise<void>) => {
+  const run = async (fallback: TranslationKey, action: () => Promise<void>) => {
     set({ isLoading: true, error: null });
     try {
       await action();
       set({ isLoading: false });
     } catch (error) {
-      set({ error: getErrorMessage(error, fallback), isLoading: false });
+      set({ error: errorMessage(error, fallback), isLoading: false });
       throw error;
     }
   };
 
   return {
     fetchJoinRequestsForGroup: (groupId) =>
-      run("Could not load join requests.", async () => {
+      run("errors.fallback.loadJoinRequests", async () => {
         const joinRequests = await getGroupJoinRequests(groupId);
         set({
           joinRequests,
@@ -59,7 +59,7 @@ export const createGroupJoinRequestActions: GroupActionCreator<
       }),
 
     approveJoinRequest: (membershipId) =>
-      run("Could not approve join request.", async () => {
+      run("errors.fallback.approveJoinRequest", async () => {
         const member = await approveJoinRequest(membershipId);
         set(withoutJoinRequest(get(), membershipId, member.groupId));
         if (get().selectedGroupId === member.groupId) {
@@ -68,7 +68,7 @@ export const createGroupJoinRequestActions: GroupActionCreator<
       }),
 
     rejectJoinRequest: (membershipId) =>
-      run("Could not reject join request.", async () => {
+      run("errors.fallback.rejectJoinRequest", async () => {
         const request = get().joinRequests.find(
           (item) => item.id === membershipId,
         );
@@ -79,7 +79,7 @@ export const createGroupJoinRequestActions: GroupActionCreator<
       }),
 
     cancelJoinRequest: (membershipId) =>
-      run("Could not cancel join request.", async () => {
+      run("errors.fallback.cancelJoinRequest", async () => {
         await removeMembership(membershipId);
         set({
           sentJoinRequests: get().sentJoinRequests.filter(

@@ -1,4 +1,5 @@
 import { SectionHeader, Stack } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { SplitRow } from "./SplitRow";
 import type { ExpenseDto, ExpenseSplitDto } from "../../../types";
 
@@ -18,9 +19,10 @@ export function SplitBreakdown({
   onToggleSettled,
   testID,
 }: SplitBreakdownProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="Split breakdown" variant="title" />
+      <SectionHeader title={t("expenses.split.title")} variant="title" />
       {expense.splits.map((split) => (
         <SplitRow
           key={split.id}

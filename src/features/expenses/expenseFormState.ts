@@ -2,6 +2,7 @@ import {
   createEqualExpenseSplits,
   type ExpenseFormDraft,
 } from "../../services/expenses/expenseValidation";
+import type { TranslationKey } from "../../i18n";
 import type { ExpenseDto } from "../../types";
 
 export type ExpenseSplitDraft = ExpenseFormDraft["splits"][number];
@@ -14,7 +15,7 @@ export interface ExpenseFormState {
   paidByUserId: string;
   splitMode: SplitMode;
   splits: ExpenseSplitDraft[];
-  validationError?: string;
+  validationError?: TranslationKey;
 }
 
 export type ExpenseFormAction =
@@ -31,7 +32,7 @@ export type ExpenseFormAction =
     }
   | { type: "setSplitMode"; mode: SplitMode }
   | { type: "setSplitAmount"; userId: string; value: string }
-  | { type: "setValidationError"; error: string | undefined };
+  | { type: "setValidationError"; error: TranslationKey | undefined };
 
 type InitialExpense = Pick<
   ExpenseDto,

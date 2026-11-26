@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { participantLabel } from "../expenseParticipants";
 import type { SplitMode } from "../expenseFormState";
 import type { PublicUserProfileDto } from "../../../types";
@@ -35,23 +36,24 @@ export function SplitBetween({
   children,
   testID,
 }: SplitBetweenProps) {
+  const { t } = useI18n();
   return (
     <Card testID={testID}>
       <Stack gap="md">
         <Text size="md" weight="bold">
-          Split between
+          {t("expenses.form.splitBetween")}
         </Text>
         {participants.length === 0 ? (
           <EmptyState
-            title="No participants available"
-            description="Add an active group member or use someone from your personal expense history."
+            title={t("expenses.noParticipants.title")}
+            description={t("expenses.noParticipants.split")}
           />
         ) : (
           <Stack gap="sm">
             {participants.map((participant) => (
               <Checkbox
                 key={participant.id}
-                label={participantLabel(participant, currentUserId)}
+                label={participantLabel(participant, currentUserId, t)}
                 checked={selectedUserIds.includes(participant.id)}
                 onChange={(selected) => onToggle(participant.id, selected)}
               />
@@ -60,13 +62,13 @@ export function SplitBetween({
         )}
         <Row gap="md" wrap>
           <Radio
-            label="Split equally"
+            label={t("expenses.form.splitEqually")}
             value="equal"
             selected={splitMode === "equal"}
             onSelect={onSplitModeChange}
           />
           <Radio
-            label="Custom amounts"
+            label={t("expenses.form.customAmounts")}
             value="custom"
             selected={splitMode === "custom"}
             onSelect={onSplitModeChange}

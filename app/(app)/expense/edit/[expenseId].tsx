@@ -9,6 +9,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../../src/components/primitives";
+import { useI18n } from "../../../../src/i18n";
 import {
   ExpenseForm,
   type ExpenseFormHandle,
@@ -18,6 +19,7 @@ import { ExpenseMissingState } from "../../../../src/features/expenses/component
 import { useEditExpense } from "../../../../src/features/expenses/useEditExpense";
 
 export default function EditExpenseScreen() {
+  const { t } = useI18n();
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
   const formRef = useRef<ExpenseFormHandle>(null);
   const page = useEditExpense(expenseId);
@@ -41,7 +43,7 @@ export default function EditExpenseScreen() {
       footer={
         page.showForm ? (
           <StyledButton
-            label="Save changes"
+            label={t("expenses.edit.save")}
             onPress={() => formRef.current?.submit()}
             isLoading={isSaving}
             testID="save-expense-button"
@@ -51,7 +53,7 @@ export default function EditExpenseScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Edit expense"
+          title={t("expenses.edit.title")}
           subtitle={expense?.title}
           onBack={navigateBack}
           testID="edit-expense-header"
@@ -72,11 +74,11 @@ export default function EditExpenseScreen() {
           <ExpenseMissingState />
         ) : !page.canManage ? (
           <EmptyState
-            title="Editing not allowed"
-            description="Only the payer, creator, or a group admin can edit this expense."
+            title={t("expenses.edit.notAllowedTitle")}
+            description={t("expenses.edit.notAllowedText")}
             action={
               <StyledButton
-                label="Back to expense"
+                label={t("expenses.edit.back")}
                 onPress={() =>
                   router.replace({
                     pathname: "/expense/[expenseId]",
@@ -91,8 +93,8 @@ export default function EditExpenseScreen() {
           <ExpenseFormSkeleton />
         ) : page.loadError ? null : page.participants.length === 0 ? (
           <EmptyState
-            title="No participants available"
-            description="The expense cannot be edited until its participants are available."
+            title={t("expenses.noParticipants.title")}
+            description={t("expenses.noParticipants.edit")}
           />
         ) : (
           <ExpenseForm

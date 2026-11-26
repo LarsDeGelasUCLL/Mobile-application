@@ -6,10 +6,12 @@ import {
   Stack,
   StyledButton,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import { NewPasswordFields } from "../../../src/features/auth/components/NewPasswordFields";
 import { useChangePassword } from "../../../src/features/auth/useChangePassword";
 
 export default function ChangePasswordScreen() {
+  const { t } = useI18n();
   const page = useChangePassword();
 
   return (
@@ -17,7 +19,7 @@ export default function ChangePasswordScreen() {
       padding="lg"
       footer={
         <StyledButton
-          label="Update password"
+          label={t("auth.setPassword.submit")}
           onPress={page.submit}
           isLoading={page.isLoading}
           testID="change-password-button"
@@ -26,7 +28,7 @@ export default function ChangePasswordScreen() {
     >
       <Stack gap="lg">
         <ScreenHeader
-          title="Password"
+          title={t("settings.password.title")}
           onBack={() => goBackOr("/settings")}
           testID="change-password-header"
         />

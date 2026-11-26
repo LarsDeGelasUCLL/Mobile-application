@@ -160,7 +160,8 @@ export const createAuthActions: AuthActionCreator = (set, get) => {
     updateProfile: async (payload) => {
       const currentUser = get().user;
       if (!currentUser) {
-        throw new Error("Not logged in.");
+        // A translation key: errorMessage() shows its text.
+        throw new Error("errors.store.notLoggedIn");
       }
 
       set({ isLoading: true });

@@ -6,7 +6,7 @@ import {
   Text,
 } from "../../../components/primitives";
 import { useAuthStore } from "../../../state/useAuthStore";
-import { getErrorMessage } from "../../../utils/errors";
+import { errorMessage, useI18n } from "../../../i18n";
 import { BackToLoginLink } from "./BackToLoginLink";
 
 interface ConfirmationPanelProps {
@@ -22,6 +22,7 @@ export function ConfirmationPanel({
   onBackToLogin,
   testID,
 }: ConfirmationPanelProps) {
+  const { t } = useI18n();
   const resendConfirmation = useAuthStore((state) => state.resendConfirmation);
   const isLoading = useAuthStore((state) => state.isLoading);
   const [formError, setFormError] = useState("");
@@ -32,10 +33,10 @@ export function ConfirmationPanel({
     setSuccessMessage("");
     try {
       await resendConfirmation({ email });
-      setSuccessMessage("A new confirmation email was sent.");
+      setSuccessMessage(t("feedback.confirmationResent"));
     } catch (error) {
       setFormError(
-        getErrorMessage(error, "Could not resend confirmation. Please retry."),
+        errorMessage(error, "errors.fallback.resendConfirmation"),
       );
     }
   };
@@ -43,7 +44,9 @@ export function ConfirmationPanel({
   return (
     <Stack gap="md" testID={testID}>
       <Text align="center" tone="muted">
-        Check {email || "your inbox"} and confirm your email before logging in.
+        {email
+          ? t("auth.confirmation.checkEmail", { email })
+          : t("auth.confirmation.checkInbox")}
       </Text>
       {successMessage !== "" ? (
         <FeedbackBanner
@@ -60,7 +63,7 @@ export function ConfirmationPanel({
         />
       ) : null}
       <StyledButton
-        label="Resend confirmation"
+        label={t("auth.confirmation.resend")}
         onPress={resend}
         isLoading={isLoading}
         testID="resend-confirmation-button"

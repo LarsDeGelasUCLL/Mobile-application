@@ -6,6 +6,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { GroupHighlight } from "../../../types";
 import { GroupHighlights } from "./GroupHighlights";
 
@@ -30,10 +31,11 @@ export function HomeGroupsSection({
   onOpenGroup,
   testID,
 }: HomeGroupsSectionProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
       <SectionHeader
-        title="Groups"
+        title={t("home.groups.title")}
         variant="title"
         onAction={onBrowse}
         actionTestID="home-groups-see-all"
@@ -43,7 +45,7 @@ export function HomeGroupsSection({
           tone="error"
           message={error}
           onRetry={onRetry}
-          retryLabel="Retry groups"
+          retryLabel={t("home.groups.retry")}
           isRetrying={isLoading}
           retryTestID="home-groups-retry-button"
           testID="home-groups-error"
@@ -71,6 +73,7 @@ function HomeGroupsBody({
   HomeGroupsSectionProps,
   "groups" | "isLoading" | "onBrowse" | "onOpenGroup"
 > & { hasError: boolean }) {
+  const { t } = useI18n();
   if (hasError && groups.length === 0) return null;
   if (isLoading && groups.length === 0) {
     return (
@@ -86,11 +89,11 @@ function HomeGroupsBody({
     return (
       <EmptyState
         icon="people-outline"
-        title="No groups yet"
-        description="Create a group or join friends to see it here."
+        title={t("groups.list.emptyTitle")}
+        description={t("home.groups.emptyText")}
         action={
           <StyledButton
-            label="Browse groups"
+            label={t("home.groups.browse")}
             onPress={onBrowse}
             variant="secondary"
           />

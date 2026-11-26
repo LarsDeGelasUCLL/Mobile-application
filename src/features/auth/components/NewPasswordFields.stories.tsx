@@ -23,8 +23,8 @@ export const WithErrors: Story = {
     password: "short",
     confirmPassword: "other",
     errors: {
-      passwordError: "Password must be at least 8 characters.",
-      confirmPasswordError: "Passwords must match.",
+      passwordError: "validation.passwordTooShort",
+      confirmPasswordError: "validation.passwordsMustMatch",
     },
   },
 };

@@ -7,7 +7,7 @@ import {
   updateMembershipRole,
 } from "../../services";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage } from "../../i18n";
 
 export const createGroupManagementActions: GroupActionCreator<
   | "createNewGroup"
@@ -28,7 +28,7 @@ export const createGroupManagementActions: GroupActionCreator<
       return createdGroup;
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Failed to create group."),
+        error: errorMessage(error, "errors.fallback.createGroup"),
         isLoading: false,
       });
       throw error;
@@ -48,7 +48,7 @@ export const createGroupManagementActions: GroupActionCreator<
       return updatedGroup;
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update group."),
+        error: errorMessage(error, "errors.fallback.updateGroup"),
         isLoading: false,
       });
       throw error;
@@ -71,7 +71,7 @@ export const createGroupManagementActions: GroupActionCreator<
       });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not delete group."),
+        error: errorMessage(error, "errors.fallback.deleteGroup"),
         isLoading: false,
       });
       throw error;
@@ -100,7 +100,7 @@ export const createGroupManagementActions: GroupActionCreator<
       });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not change member role."),
+        error: errorMessage(error, "errors.fallback.changeRole"),
         isLoading: false,
       });
       throw error;
@@ -121,7 +121,7 @@ export const createGroupManagementActions: GroupActionCreator<
       set({ groups, activeGroupMembers, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not remove membership."),
+        error: errorMessage(error, "errors.fallback.removeMembership"),
         isLoading: false,
       });
       throw error;

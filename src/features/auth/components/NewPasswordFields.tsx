@@ -1,4 +1,5 @@
 import { InputField, Stack } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { NewPasswordErrors } from "../authValidation";
 
 interface NewPasswordFieldsProps {
@@ -21,29 +22,32 @@ export function NewPasswordFields({
   onChangePassword,
   onChangeConfirmPassword,
   errors,
-  passwordLabel = "New password",
+  passwordLabel,
   passwordTestID,
   confirmPasswordTestID,
   testID,
 }: NewPasswordFieldsProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="lg" testID={testID}>
       <InputField
-        label={passwordLabel}
+        label={passwordLabel ?? t("auth.field.newPassword")}
         value={password}
         onChangeText={onChangePassword}
-        placeholder="At least 8 characters"
+        placeholder={t("auth.field.passwordPlaceholder")}
         secureTextEntry
-        error={errors.passwordError}
+        error={errors.passwordError && t(errors.passwordError)}
         testID={passwordTestID}
       />
       <InputField
-        label="Confirm password"
+        label={t("auth.field.confirmPassword")}
         value={confirmPassword}
         onChangeText={onChangeConfirmPassword}
-        placeholder="Repeat your password"
+        placeholder={t("auth.field.confirmPasswordPlaceholder")}
         secureTextEntry
-        error={errors.confirmPasswordError}
+        error={
+          errors.confirmPasswordError && t(errors.confirmPasswordError)
+        }
         testID={confirmPasswordTestID}
       />
     </Stack>

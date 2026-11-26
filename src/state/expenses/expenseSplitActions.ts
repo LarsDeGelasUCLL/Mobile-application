@@ -1,7 +1,7 @@
 import type { ExpenseDto } from "../../types";
 import { calculateGroupBalances, settleExpenseSplit } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, t } from "../../i18n";
 
 function updateSplitStatus(
   expenses: ExpenseDto[],
@@ -30,10 +30,10 @@ export const createExpenseSplitActions: ExpenseActionCreator<
     );
     const split = expense?.splits.find((item) => item.id === splitId);
     if (!expense || !split) {
-      throw new Error("Expense split is not available in the store.");
+      throw new Error("errors.store.splitNotLoaded");
     }
     if (split.userId === expense.paidByUserId) {
-      throw new Error("Cannot change settlement for the payer's own split.");
+      throw new Error("errors.store.payerOwnSplit");
     }
 
     set({ isLoading: true, error: null });
@@ -70,13 +70,15 @@ export const createExpenseSplitActions: ExpenseActionCreator<
         });
       } catch (error) {
         set({
-          error: `Payment status updated, but group balances could not be refreshed. ${getErrorMessage(error, "Try again.")}`,
+          error: t("errors.partial.paymentStatusUpdated", {
+          reason: errorMessage(error, "errors.fallback.tryAgain"),
+        }),
           isLoading: false,
         });
       }
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update payment status."),
+        error: errorMessage(error, "errors.fallback.updatePaymentStatus"),
         isLoading: false,
       });
       throw error;

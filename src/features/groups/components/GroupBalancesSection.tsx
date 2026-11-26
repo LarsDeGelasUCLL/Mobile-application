@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { UserBalanceDto } from "../../../types";
 
 interface GroupBalancesSectionProps {
@@ -27,9 +28,10 @@ export function GroupBalancesSection({
   testID,
   ...props
 }: GroupBalancesSectionProps) {
+  const { t } = useI18n();
   return (
     <Stack gap="sm" testID={testID}>
-      <SectionHeader title="BALANCES" />
+      <SectionHeader title={t("groups.balances.title")} />
       <BalancesBody {...props} />
     </Stack>
   );
@@ -42,6 +44,7 @@ function BalancesBody({
   isLoading,
   hasError,
 }: Omit<GroupBalancesSectionProps, "testID">) {
+  const { t } = useI18n();
   if (hasError && balances.length === 0) return null;
   if (isLoading && balances.length === 0) {
     return (
@@ -57,7 +60,7 @@ function BalancesBody({
     return (
       <Card>
         <Text size="sm" tone="muted">
-          Balances are loading.
+          {t("groups.balances.loading")}
         </Text>
       </Card>
     );
@@ -66,8 +69,8 @@ function BalancesBody({
     return (
       <EmptyState
         icon="wallet-outline"
-        title="No balances yet"
-        description="Balances appear after your group records its first expense."
+        title={t("groups.balances.emptyTitle")}
+        description={t("groups.balances.emptyText")}
       />
     );
   }
@@ -76,7 +79,11 @@ function BalancesBody({
       {balances.map((balance) => (
         <BalanceRow
           key={balance.userId}
-          name={balance.userId === currentUserId ? "You" : balance.displayName}
+          name={
+            balance.userId === currentUserId
+              ? t("common.you")
+              : balance.displayName
+          }
           amount={balance.netBalance}
           testID={`group-balance-${balance.userId}`}
         />

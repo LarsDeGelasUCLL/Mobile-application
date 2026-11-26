@@ -1,4 +1,5 @@
 import { MaskedValue, Sheet, Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { GroupDto } from "../../../types";
 
 interface InviteCodeSheetProps {
@@ -15,21 +16,24 @@ export function InviteCodeSheet({
   onClose,
   testID,
 }: InviteCodeSheetProps) {
+  const { t } = useI18n();
   return (
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Invite code"
+      title={t("groups.inviteCode.title")}
       testID={testID}
     >
       <Text size="sm" tone="muted">
-        Share this code with people you want to add. An admin approves each
-        request.
+        {t("groups.inviteCode.hint")}
       </Text>
       <MaskedValue
-        label="Code"
+        label={t("groups.inviteCode.label")}
         value={group.inviteCode}
-        shareMessage={`Join "${group.name}" on Laruna with invite code ${group.inviteCode}`}
+        shareMessage={t("groups.inviteCode.shareMessage", {
+          name: group.name,
+          code: group.inviteCode,
+        })}
         testID="group-invite-code"
       />
     </Sheet>

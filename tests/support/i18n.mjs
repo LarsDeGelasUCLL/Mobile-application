@@ -51,3 +51,12 @@ export async function i18nFileDeps(device = "en") {
     "../../i18n/deviceLanguage": await fakeDeviceLanguage(device),
   };
 }
+
+/** Fake `../../i18n` for store / hook tests: `t` and `errorMessage` in a fixed language. */
+export async function i18nStub(language = "en") {
+  const { translate, translateError } = await loadI18n();
+  return {
+    t: (key, params) => translate(language, key, params),
+    errorMessage: (error, fallbackKey) => translateError(error, fallbackKey, language),
+  };
+}

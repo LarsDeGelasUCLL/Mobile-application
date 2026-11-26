@@ -1,12 +1,12 @@
 import { useCallback, useState } from "react";
-import { getErrorMessage } from "../../utils/errors";
+import { errorMessage, type TranslationKey } from "../../i18n";
 
 /**
  * Loading state for a page load made of several steps. `run` sets
- * `isLoading`, awaits the steps, turns a failure into `error` (with
- * `fallback` when the error has no message) and then sets `isLoaded`.
+ * `isLoading`, awaits the steps, turns a failure into `error` (see
+ * `errorMessage`, with the `fallback` key) and then sets `isLoaded`.
  */
-export function useLoadState(fallback: string) {
+export function useLoadState(fallback: TranslationKey) {
   const [isLoading, setIsLoading] = useState(false);
   // Set after the first run, whatever its outcome.
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,7 +19,7 @@ export function useLoadState(fallback: string) {
       try {
         await load();
       } catch (loadError) {
-        setError(getErrorMessage(loadError, fallback));
+        setError(errorMessage(loadError, fallback));
       } finally {
         setIsLoading(false);
         setIsLoaded(true);

@@ -4,6 +4,7 @@ import {
   InputField,
   StyledButton,
 } from "../../../components/primitives";
+import { useI18n, type TranslationKey } from "../../../i18n";
 import { validateInviteEmail } from "../groupValidation";
 
 interface InviteByEmailFormProps {
@@ -19,8 +20,9 @@ export function InviteByEmailForm({
   onInvite,
   testID,
 }: InviteByEmailFormProps) {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState<string>();
+  const [emailError, setEmailError] = useState<TranslationKey>();
 
   const invite = async () => {
     const validationError = validateInviteEmail(email);
@@ -30,21 +32,21 @@ export function InviteByEmailForm({
   };
 
   return (
-    <CollapsibleSection title="Invite by email" testID={testID}>
+    <CollapsibleSection title={t("groups.inviteEmail.title")} testID={testID}>
       <InputField
-        label="Email address"
+        label={t("groups.inviteEmail.label")}
         value={email}
         onChangeText={(value) => {
           setEmail(value);
           setEmailError(undefined);
         }}
-        placeholder="friend@example.com"
+        placeholder={t("groups.inviteEmail.placeholder")}
         keyboardType="email-address"
-        error={emailError}
+        error={emailError && t(emailError)}
         testID="group-invite-email-input"
       />
       <StyledButton
-        label="Send invitation"
+        label={t("groups.inviteEmail.submit")}
         onPress={() => void invite()}
         variant="secondary"
         isLoading={isLoading}

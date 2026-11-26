@@ -28,24 +28,35 @@ export function SplitRow({
   onToggleSettled,
   testID,
 }: SplitRowProps) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
+  const participantName =
+    split.userProfile?.displayName ?? t("expenses.split.participant");
   return (
     <Card testID={testID}>
       <Row justify="space-between" align="center">
         <Stack gap="none" flex={1}>
           <Text weight="medium">
-            {split.userProfile?.displayName ?? "Participant"}
-            {isPayer ? " (payer)" : ""}
+            {isPayer
+              ? t("expenses.split.payer", { name: participantName })
+              : participantName}
           </Text>
           <Text size="sm" tone="muted">
-            {split.isSettled ? "Settled" : "Not settled"}
+            {t(
+              split.isSettled
+                ? "expenses.split.settled"
+                : "expenses.split.notSettled",
+            )}
           </Text>
         </Stack>
         <Stack gap="sm" align="flex-end">
           <Text weight="bold">{formatCurrency(split.amountOwed, locale)}</Text>
           {canSettle ? (
             <StyledButton
-              label={split.isSettled ? "Unsettle" : "Settle"}
+              label={t(
+                split.isSettled
+                  ? "expenses.split.unsettle"
+                  : "expenses.split.settle",
+              )}
               onPress={onToggleSettled}
               variant="secondary"
               isLoading={isLoading}

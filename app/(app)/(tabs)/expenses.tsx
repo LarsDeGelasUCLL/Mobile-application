@@ -11,12 +11,14 @@ import {
   StyledButton,
   Text,
 } from "../../../src/components/primitives";
+import { useI18n } from "../../../src/i18n";
 import { ExpenseRow } from "../../../src/features/expenses/components/ExpenseRow";
 import { openExpense } from "../../../src/features/expenses/openExpense";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
 export default function ExpensesScreen() {
+  const { t } = useI18n();
   const userId = useAuthStore((state) => state.user?.id);
   const { expenses, isLoading, error, fetchIndividualExpenses, clearError } =
     useExpenseStore(
@@ -50,7 +52,7 @@ export default function ExpensesScreen() {
       onRefresh={() => void loadExpenses()}
       footer={
         <StyledButton
-          label="Add expense"
+          label={t("common.addExpense")}
           onPress={() => router.push("/expense/create")}
           testID="create-personal-expense-button"
         />
@@ -60,10 +62,10 @@ export default function ExpensesScreen() {
       <Stack gap="md">
         <Stack gap="none">
           <Text size="lg" weight="bold">
-            Personal expenses
+            {t("expenses.tab.title")}
           </Text>
           <Text size="sm" tone="muted">
-            Costs outside a group, shared with anyone you know.
+            {t("expenses.tab.subtitle")}
           </Text>
         </Stack>
 
@@ -90,8 +92,8 @@ export default function ExpensesScreen() {
         ) : expenses.length === 0 ? (
           <EmptyState
             icon="receipt-outline"
-            title="No personal expenses yet"
-            description="Add an expense to start tracking a cost or a shared split."
+            title={t("expenses.tab.emptyTitle")}
+            description={t("expenses.tab.emptyText")}
           />
         ) : (
           <CardList>

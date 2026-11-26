@@ -1,3 +1,4 @@
+import type { TranslationKey } from "../../i18n";
 import type { CreateExpenseSplitInput } from "../../types";
 
 export interface ExpenseFormDraft {
@@ -57,21 +58,20 @@ function validateValues(
     splits: { userId: string; amount: string | number }[];
   },
   context: ExpenseValidationContext,
-): ValidExpenseForm | string {
+): ValidExpenseForm | TranslationKey {
   const title = draft.title.trim();
-  if (!title) return "Expense title is required.";
+  if (!title) return "validation.expense.titleRequired";
   if ([...title].length > 150) {
-    return "Expense title must be 150 characters or fewer.";
+    return "validation.expense.titleTooLong";
   }
   const paidByUserId = draft.paidByUserId.trim();
-  if (!paidByUserId) return "Payer is required.";
+  if (!paidByUserId) return "validation.expense.payerRequired";
 
   const amountCents = parseCents(draft.amount);
   if (amountCents === undefined || amountCents <= 0) {
-    return "Expense amount must be positive and have at most two decimal places.";
+    return "validation.expense.amountInvalid";
   }
-  if (draft.splits.length === 0)
-    return "At least one expense split is required.";
+  if (draft.splits.length === 0) return "validation.expense.splitRequired";
 
   const allowedParticipants = context.allowedParticipantIds
     ? new Set(context.allowedParticipantIds)
@@ -83,13 +83,13 @@ function validateValues(
     const userId = split.userId.trim();
     const amountOwedCents = parseCents(split.amount);
     if (!userId || amountOwedCents === undefined || amountOwedCents < 0) {
-      return "Split amounts must be nonnegative and have at most two decimal places.";
+      return "validation.expense.splitAmountsInvalid";
     }
     if (splitUsers.has(userId)) {
-      return "An expense cannot contain duplicate users in its splits.";
+      return "validation.expense.duplicateSplitUsers";
     }
     if (allowedParticipants && !allowedParticipants.has(userId)) {
-      return "Split participants must be selected from available participants.";
+      return "validation.expense.participantNotAvailable";
     }
 
     splitUsers.add(userId);
@@ -98,20 +98,20 @@ function validateValues(
   }
 
   if (allowedParticipants && !allowedParticipants.has(paidByUserId)) {
-    return "Payer must be selected from available participants.";
+    return "validation.expense.payerNotAvailable";
   }
   if (totalSplitCents !== amountCents) {
-    return "Split amounts must equal the expense amount.";
+    return "validation.expense.splitsMustEqualAmount";
   }
   if (context.groupId === null && !splitUsers.has(paidByUserId)) {
-    return "The payer must be included in the expense split.";
+    return "validation.expense.payerMustBeIncluded";
   }
   if (
     context.groupId === null &&
     paidByUserId !== context.currentUserId &&
     !splitUsers.has(context.currentUserId)
   ) {
-    return "You must be involved in a personal expense.";
+    return "validation.expense.youMustBeInvolved";
   }
 
   return {
@@ -126,7 +126,7 @@ function validateValues(
 export function validateExpenseForm(
   draft: ExpenseFormDraft,
   context: ExpenseValidationContext,
-): ValidExpenseForm | string {
+): ValidExpenseForm | TranslationKey {
   return validateValues(draft, context);
 }
 
