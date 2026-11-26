@@ -29,7 +29,7 @@ describe('Navigation', () => {
 
   it('opens settings from the profile header', () => {
     cy.getBySel('tab-profile').click();
-    cy.getBySel('open-settings-button').click();
+    cy.getBySel('open-settings-button', firstRender).click();
     cy.getBySel('settings-screen', firstRender).should('be.visible');
     cy.location('pathname').should('eq', '/settings');
   });

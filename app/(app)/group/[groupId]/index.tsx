@@ -106,6 +106,7 @@ export default function GroupDetailScreen() {
               hasError={!!expensesError}
               onSeeAll={page.openAllExpenses}
               onOpenExpense={page.openExpense}
+              testID="group-recent-expenses"
             />
           </>
         )}

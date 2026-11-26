@@ -20,11 +20,24 @@ module.exports = defineConfig([
     ],
   },
   {
+    // Inline `eslint-disable` (or other config) comments are ignored, with a
+    // warning, so a rule cannot be switched off in a file.
+    linterOptions: { noInlineConfig: true },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/ban-ts-comment': 'error',
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        {
+          'ts-expect-error': true,
+          'ts-ignore': true,
+          'ts-nocheck': true,
+          'ts-check': false,
+        },
+      ],
       'react-hooks/exhaustive-deps': 'error',
     },
   },

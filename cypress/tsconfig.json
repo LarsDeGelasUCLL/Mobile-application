@@ -3,6 +3,7 @@
     "target": "es2015",
     "lib": ["es2015", "dom"],
     "types": ["cypress"],
+    "noEmit": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

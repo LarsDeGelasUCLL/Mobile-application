@@ -82,6 +82,8 @@ export default function CreateExpenseScreen() {
           />
         ) : (
           <ExpenseForm
+            // A new key resets the form when the signed-in user changes.
+            key={page.currentUserId}
             ref={formRef}
             groupId={groupId}
             currentUserId={page.currentUserId}
