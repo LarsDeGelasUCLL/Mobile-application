@@ -4,7 +4,6 @@
 export const en = {
   "common.cancel": "Cancel",
   "common.retry": "Retry",
-  "common.save": "Save",
   "common.close": "Close",
   "common.goBack": "Go back",
   "common.seeAll": "See all",

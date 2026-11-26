@@ -59,7 +59,7 @@ test("registry: every language has a dictionary and an Intl locale", async () =>
 
 test("translateError: key, known server message, then fallback", async () => {
   const { translateError } = await loadI18n();
-  assert.equal(translateError(new Error("common.retry"), "common.save", "nl"), "Opnieuw proberen");
+  assert.equal(translateError(new Error("common.retry"), "common.close", "nl"), "Opnieuw proberen");
   assert.equal(
     translateError(new Error("Invalid invite code"), "common.retry", "en"),
     "Invalid invite code",

@@ -34,7 +34,7 @@ export async function loadI18n() {
 }
 
 /** `src/i18n/deviceLanguage` dependency reporting `device` as the device language. */
-export async function fakeDeviceLanguage(device) {
+async function fakeDeviceLanguage(device) {
   return loadModule("src/i18n/deviceLanguage.ts", {
     "expo-localization": { getLocales: () => [{ languageCode: device }] },
   });

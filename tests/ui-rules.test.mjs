@@ -133,7 +133,8 @@ test("text controls grow with font scale and the tab bar keeps the home-indicato
 });
 
 // Folders (or single files) whose UI text must come from `t(…)`, not literals.
-const uiTextGuardDirs = ["app", "src/components/primitives", "src/features"];
+// `.ts` and `.tsx`: hooks and store actions set banner and feedback text too.
+const uiTextGuardDirs = ["app", "src/components/primitives", "src/features", "src/state"];
 
 const uiTextPatterns = [
   // JSX text: `<Text>Hello</Text>`.
@@ -152,6 +153,10 @@ const uiTextPatterns = [
   /`[A-Z][a-z]+ [^`]*`/g,
   // Words after a leading placeholder: `${name} group picture`.
   /`\$\{[^}`]*\}[^`]*?\s[A-Za-z]{2,}[^`]*`/g,
+  // A sentence anywhere: `"Member removed."`.
+  /"[A-Z][a-z]+ [^"]*[.?!…]"/g,
+  // Words as a later argument, after `||` or as a store error: `, "Member removed"`.
+  /(?:,|\|\||error:)\s*"[A-Z][a-z]+ [^"]*"/g,
 ];
 
 async function uiTextFiles() {
@@ -163,7 +168,7 @@ async function uiTextFiles() {
     }
     for (const file of await fs.readdir(entry, { recursive: true })) {
       const path = `${entry}/${file.replaceAll("\\", "/")}`;
-      if (path.endsWith(".tsx") && !path.endsWith(".stories.tsx") && !path.includes("storyData")) {
+      if (/\.tsx?$/.test(path) && !path.endsWith(".stories.tsx") && !path.includes("storyData")) {
         files.push(path);
       }
     }
@@ -174,10 +179,11 @@ async function uiTextFiles() {
 test("UI text comes from the dictionaries, not string literals", async () => {
   const hits = [];
   for (const file of await uiTextFiles()) {
-    // Comments may quote UI text.
+    // Comments may quote UI text; console messages are for developers.
     const text = (await read(file))
       .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/^\s*\/\/.*$/gm, "");
+      .replace(/^\s*\/\/.*$/gm, "")
+      .replace(/console\.\w+\(\s*"[^"]*"/g, "");
     for (const pattern of uiTextPatterns) {
       for (const match of text.matchAll(pattern)) {
         hits.push(`${file}: ${match[0].trim().replace(/\s+/g, " ")}`);
