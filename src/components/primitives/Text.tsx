@@ -1,34 +1,51 @@
-import { Text as RNText, StyleSheet } from "react-native";
-import { colors } from "../../theme/colors";
+import { Text as RNText } from "react-native";
+import { useTheme } from "../../theme/ThemeProvider";
+import { toneColor, type Tone } from "../../theme/tone";
+import { fontFamily, typeScale } from "../../theme/tokens";
 
 interface TextProps {
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: keyof typeof typeScale;
   weight?: "normal" | "medium" | "bold";
   align?: "left" | "center" | "right";
-  color?: string;
+  tone?: Tone;
+  numberOfLines?: number;
+  testID?: string;
 }
 
+// Only 400/600/700 font files are loaded; "medium" renders as 600.
+// as const: a readonly map of literal weights; it narrows, it asserts no type.
+const familyByWeight = {
+  normal: fontFamily.regular,
+  medium: fontFamily.semibold,
+  bold: fontFamily.bold,
+} as const;
+
+/** The app's text: type scale, font weight and a theme tone. Use it instead of React Native's `Text`. */
 export function Text({
   children,
   size = "md",
   weight = "normal",
   align = "left",
-  color = colors.text,
+  tone = "default",
+  numberOfLines,
+  testID,
 }: TextProps) {
+  const { colors } = useTheme();
   return (
-    <RNText style={[styles[size], styles[weight], { textAlign: align, color }]}>
+    <RNText
+      numberOfLines={numberOfLines}
+      testID={testID}
+      style={[
+        typeScale[size],
+        {
+          fontFamily: familyByWeight[weight],
+          textAlign: align,
+          color: toneColor(colors, tone),
+        },
+      ]}
+    >
       {children}
     </RNText>
   );
 }
-
-const styles = StyleSheet.create({
-  sm: { fontSize: 13, lineHeight: 18 },
-  md: { fontSize: 16, lineHeight: 22 },
-  lg: { fontSize: 20, lineHeight: 28 },
-  xl: { fontSize: 26, lineHeight: 34 },
-  normal: { fontWeight: "400" },
-  medium: { fontWeight: "500" },
-  bold: { fontWeight: "700" },
-});

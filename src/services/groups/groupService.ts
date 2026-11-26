@@ -1,15 +1,22 @@
 import type { CreateGroupDto, GroupDto, UpdateGroupDto } from "../../types";
 import type { Database } from "../../types/database.types";
 import { mapRowToGroupDto } from "./groupMappers";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+// Group CRUD. Also the entry point of the groups service: the queries and
+// membership functions are re-exported from here.
 export { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 export {
+  getAdminJoinRequestCounts,
+  getGroupJoinRequests,
   getGroupMembers,
   getUserActiveGroups,
+  getUserJoinRequests,
   getUserPendingInvites,
 } from "./groupQueries";
 export {
+  approveJoinRequest,
   inviteUserByEmail,
   joinGroupByInviteCode,
   removeMembership,
@@ -17,6 +24,7 @@ export {
   updateMembershipRole,
 } from "./groupMembershipService";
 
+/** Creates a group with the caller as its ADMIN (one RPC, so both rows or neither). */
 export async function createGroup(
   userId: string,
   payload: CreateGroupDto,
@@ -26,10 +34,7 @@ export async function createGroup(
     throw new Error("Group name is required.");
   }
 
-  const { data: currentUser, error: authError } = await supabase.auth.getUser();
-  if (authError || !currentUser.user || currentUser.user.id !== userId) {
-    throw new Error(authError?.message ?? "Not logged in as this user.");
-  }
+  await assertCurrentUser(userId);
   const { data: group, error } = await supabase.rpc(
     "create_group_with_membership",
     {
@@ -46,6 +51,7 @@ export async function createGroup(
   return mapRowToGroupDto(group);
 }
 
+/** One group; fails when it does not exist or the user may not see it. */
 export async function getGroupById(groupId: string): Promise<GroupDto> {
   const { data, error } = await supabase
     .from("groups")
@@ -60,6 +66,7 @@ export async function getGroupById(groupId: string): Promise<GroupDto> {
   return mapRowToGroupDto(data);
 }
 
+/** Admin updates the fields present in `payload`; an empty description becomes `null`. */
 export async function updateGroup(
   groupId: string,
   payload: UpdateGroupDto,
@@ -95,6 +102,7 @@ export async function updateGroup(
   return mapRowToGroupDto(data);
 }
 
+/** Admin deletes the group. `.select().single()` makes a blocked delete fail instead of silently doing nothing. */
 export async function deleteGroup(groupId: string): Promise<void> {
   const { error } = await supabase
     .from("groups")

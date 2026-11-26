@@ -7,8 +7,10 @@ import {
   updateMembershipRole,
 } from "../../services";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { errorMessage } from "../../i18n";
 
+// Create, edit and delete groups, member roles and leaving, plus store housekeeping.
+// Each async action sets a translated `error` and rethrows on failure.
 export const createGroupManagementActions: GroupActionCreator<
   | "createNewGroup"
   | "updateGroup"
@@ -23,12 +25,13 @@ export const createGroupManagementActions: GroupActionCreator<
     set({ isLoading: true, error: null });
     try {
       const createdGroup = await createGroup(userId, payload);
+      // Reload so the list has the new membership row too.
       const groups = await getUserActiveGroups(userId);
       set({ groups, isLoading: false });
       return createdGroup;
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Failed to create group."),
+        error: errorMessage(error, "errors.fallback.createGroup"),
         isLoading: false,
       });
       throw error;
@@ -48,7 +51,7 @@ export const createGroupManagementActions: GroupActionCreator<
       return updatedGroup;
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update group."),
+        error: errorMessage(error, "errors.fallback.updateGroup"),
         isLoading: false,
       });
       throw error;
@@ -60,6 +63,7 @@ export const createGroupManagementActions: GroupActionCreator<
     try {
       await deleteGroup(groupId);
       const groups = await getUserActiveGroups(userId);
+      // Forget the deleted group if it was the open one.
       const selectedGroupId =
         get().selectedGroupId === groupId ? null : get().selectedGroupId;
       set({
@@ -71,7 +75,7 @@ export const createGroupManagementActions: GroupActionCreator<
       });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not delete group."),
+        error: errorMessage(error, "errors.fallback.deleteGroup"),
         isLoading: false,
       });
       throw error;
@@ -85,6 +89,7 @@ export const createGroupManagementActions: GroupActionCreator<
         membershipId,
         groupRole,
       );
+      // Update the role in the member list and, if it is the user's own, in their groups.
       set({
         activeGroupMembers: get().activeGroupMembers.map((membership) =>
           membership.id === membershipId
@@ -100,13 +105,15 @@ export const createGroupManagementActions: GroupActionCreator<
       });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not change member role."),
+        error: errorMessage(error, "errors.fallback.changeRole"),
         isLoading: false,
       });
       throw error;
     }
   },
 
+  // Leave a group or remove a member. With `groupId`, the membership is also
+  // dropped from the loaded member list.
   leaveOrRemoveMember: async (userId, membershipId, groupId) => {
     set({ isLoading: true, error: null });
     try {
@@ -121,7 +128,7 @@ export const createGroupManagementActions: GroupActionCreator<
       set({ groups, activeGroupMembers, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not remove membership."),
+        error: errorMessage(error, "errors.fallback.removeMembership"),
         isLoading: false,
       });
       throw error;
@@ -132,11 +139,15 @@ export const createGroupManagementActions: GroupActionCreator<
 
   clearError: () => set({ error: null }),
 
+  // On logout.
   resetGroupStore: () =>
     set({
       groups: [],
       pendingInvites: [],
       activeGroupMembers: [],
+      joinRequests: [],
+      sentJoinRequests: [],
+      joinRequestCounts: {},
       selectedGroupId: null,
       isLoading: false,
       error: null,

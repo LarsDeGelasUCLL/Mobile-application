@@ -1,14 +1,15 @@
-import type {
-  UpdateUserSettingsDto,
-  UserSettingsDto,
-} from "../../types";
+import type { UpdateUserSettingsDto, UserSettingsDto } from "../../types";
 import type { Database } from "../../types/database.types";
 import { mapRowToUserSettingsDto } from "./profileMappers";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+/** The signed-in user's settings row. */
 export async function getUserSettings(
   userId: string,
 ): Promise<UserSettingsDto> {
+  await assertCurrentUser(userId);
+
   const { data, error } = await supabase
     .from("user_settings")
     .select("*")
@@ -22,10 +23,13 @@ export async function getUserSettings(
   return mapRowToUserSettingsDto(data);
 }
 
+/** Updates only the settings present in `payload` and returns the saved row. */
 export async function updateUserSettings(
   userId: string,
   payload: UpdateUserSettingsDto,
 ): Promise<UserSettingsDto> {
+  await assertCurrentUser(userId);
+
   const updatePayload: Database["public"]["Tables"]["user_settings"]["Update"] =
     {};
 

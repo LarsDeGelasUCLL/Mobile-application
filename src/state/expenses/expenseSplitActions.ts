@@ -1,8 +1,9 @@
 import type { ExpenseDto } from "../../types";
 import { calculateGroupBalances, settleExpenseSplit } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { errorMessage, t } from "../../i18n";
 
+/** Copies `expenses` with the split's `isSettled` changed. */
 function updateSplitStatus(
   expenses: ExpenseDto[],
   splitId: string,
@@ -16,10 +17,28 @@ function updateSplitStatus(
   }));
 }
 
+// Mark a split paid or unpaid. Same error pattern as the create actions.
 export const createExpenseSplitActions: ExpenseActionCreator<
   "toggleSettleSplit"
 > = (set, get) => ({
   toggleSettleSplit: async (splitId, isSettled, groupId) => {
+    // Check locally first, so an obviously invalid toggle never reaches the server.
+    const state = get();
+    const expense = [
+      state.selectedExpense,
+      ...state.groupExpenses,
+      ...state.individualExpenses,
+    ].find((candidate) =>
+      candidate?.splits.some((split) => split.id === splitId),
+    );
+    const split = expense?.splits.find((item) => item.id === splitId);
+    if (!expense || !split) {
+      throw new Error("errors.store.splitNotLoaded");
+    }
+    if (split.userId === expense.paidByUserId) {
+      throw new Error("errors.store.payerOwnSplit");
+    }
+
     set({ isLoading: true, error: null });
     try {
       await settleExpenseSplit(splitId, isSettled);
@@ -38,26 +57,31 @@ export const createExpenseSplitActions: ExpenseActionCreator<
         ? updateSplitStatus([currentSelectedExpense], splitId, isSettled)[0]
         : null;
 
-      if (typeof groupId === "string") {
+      set({ groupExpenses, individualExpenses, selectedExpense });
+
+      if (typeof groupId !== "string") {
+        set({ isLoading: false });
+        return;
+      }
+
+      try {
         const groupBalances = await calculateGroupBalances(groupId);
         set({
-          groupExpenses,
-          individualExpenses,
-          selectedExpense,
           groupBalances,
+          groupBalancesGroupId: groupId,
           isLoading: false,
         });
-      } else {
+      } catch (error) {
         set({
-          groupExpenses,
-          individualExpenses,
-          selectedExpense,
+          error: t("errors.partial.paymentStatusUpdated", {
+            reason: errorMessage(error, "errors.fallback.tryAgain"),
+          }),
           isLoading: false,
         });
       }
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update payment status."),
+        error: errorMessage(error, "errors.fallback.updatePaymentStatus"),
         isLoading: false,
       });
       throw error;

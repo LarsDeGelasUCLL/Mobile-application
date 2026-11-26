@@ -1,33 +1,53 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
 import { Text } from "./Text";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface NavItemProps {
   label: string;
   onPress: () => void;
   active?: boolean;
+  /** Accepted but not rendered. */
   icon?: string;
+  testID?: string;
 }
 
-export function NavItem({ label, onPress, active = false }: NavItemProps) {
+/** One text tab in a `Nav`; the active tab is underlined. */
+export function NavItem({
+  label,
+  onPress,
+  active = false,
+  testID,
+}: NavItemProps) {
+  const styles = useStyles();
   return (
-    <Pressable onPress={onPress} style={[styles.base, active && styles.active]}>
-      <Text size="md" weight={active ? "bold" : "normal"}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      style={[styles.base, active && styles.active]}
+      testID={testID}
+    >
+      <Text
+        size="md"
+        weight={active ? "bold" : "normal"}
+        tone={active ? "primary" : "muted"}
+      >
         {label}
       </Text>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: t.spacing.md,
+    paddingHorizontal: t.spacing.lg,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
   },
   active: {
-    borderBottomColor: "#2563EB",
+    borderBottomColor: t.colors.primary,
   },
-});
+}));

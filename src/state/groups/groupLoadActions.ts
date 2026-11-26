@@ -1,14 +1,17 @@
 import {
+  getAdminJoinRequestCounts,
   getGroupMembers,
   getUserActiveGroups,
+  getUserJoinRequests,
   getUserPendingInvites,
 } from "../../services";
 import type { GroupActionCreator } from "./groupStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { errorMessage, t } from "../../i18n";
 
+// Loaders for the groups tab and a group's member list.
 export const createGroupLoadActions: GroupActionCreator<
   "fetchGroupsAndInvites" | "fetchMembersForGroup"
-> = (set) => ({
+> = (set, get) => ({
   fetchGroupsAndInvites: async (userId) => {
     set({ isLoading: true, error: null });
     try {
@@ -16,13 +19,33 @@ export const createGroupLoadActions: GroupActionCreator<
         getUserActiveGroups(userId),
         getUserPendingInvites(userId),
       ]);
-      set({ groups, pendingInvites, isLoading: false });
+      set({ groups, pendingInvites });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load groups and inbox."),
+        error: errorMessage(error, "errors.fallback.loadGroups"),
         isLoading: false,
       });
       throw error;
+    }
+
+    // Join request data is secondary: a failure keeps the old values and must not hide the groups.
+    try {
+      const [sentJoinRequests, joinRequestCounts] = await Promise.all([
+        getUserJoinRequests(userId),
+        getAdminJoinRequestCounts(
+          get()
+            .groups.filter((item) => item.groupRole === "ADMIN")
+            .map((item) => item.group.id),
+        ),
+      ]);
+      set({ sentJoinRequests, joinRequestCounts, isLoading: false });
+    } catch (error) {
+      set({
+        error: t("errors.partial.joinRequestsNotLoaded", {
+          reason: errorMessage(error, "errors.fallback.pleaseRetry"),
+        }),
+        isLoading: false,
+      });
     }
   },
 
@@ -33,7 +56,7 @@ export const createGroupLoadActions: GroupActionCreator<
       set({ activeGroupMembers, selectedGroupId: groupId, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load group members."),
+        error: errorMessage(error, "errors.fallback.loadMembers"),
         isLoading: false,
       });
       throw error;

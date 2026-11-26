@@ -1,8 +1,6 @@
-export type FeedFilter = "for-you" | "recent" | "by-group";
-
+/** One tile in the home screen's group highlights strip. */
 export interface GroupHighlight {
   id: string;
   name: string;
   imageUri?: string;
-  fallbackColor?: string;
 }

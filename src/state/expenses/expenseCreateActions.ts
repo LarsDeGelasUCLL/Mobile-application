@@ -3,68 +3,104 @@ import {
   createExpense,
   updateExpense,
 } from "../../services";
+import type { ExpenseDto } from "../../types";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { errorMessage, t } from "../../i18n";
 
+// Create and update. A failed save sets `error` and rethrows. Once saved, a
+// failed balance refresh only sets a partial-success `error` and still
+// returns the expense, because the save itself worked.
 export const createExpenseCreateActions: ExpenseActionCreator<
   "addExpense" | "updateExpense"
 > = (set, get) => ({
   addExpense: async (payload) => {
     set({ isLoading: true, error: null });
+    let created: ExpenseDto;
     try {
-      const created = await createExpense(payload);
-      if (payload.groupId !== null) {
-        const groupBalances = await calculateGroupBalances(payload.groupId);
-        set({
-          groupExpenses: [created, ...get().groupExpenses],
-          groupBalances,
-          isLoading: false,
-        });
-      } else {
-        set({
-          individualExpenses: [created, ...get().individualExpenses],
-          isLoading: false,
-        });
-      }
-      return created;
+      created = await createExpense(payload);
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not add expense."),
+        error: errorMessage(error, "errors.fallback.addExpense"),
         isLoading: false,
       });
       throw error;
     }
+
+    // Personal expense: no group balances to refresh.
+    if (payload.groupId === null) {
+      set({
+        individualExpenses: [created, ...get().individualExpenses],
+        isLoading: false,
+      });
+      return created;
+    }
+
+    set({ groupExpenses: [created, ...get().groupExpenses] });
+    try {
+      const groupBalances = await calculateGroupBalances(payload.groupId);
+      set({
+        groupBalances,
+        groupBalancesGroupId: payload.groupId,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: t("errors.partial.expenseCreated", {
+          reason: errorMessage(error, "errors.fallback.tryAgain"),
+        }),
+        isLoading: false,
+      });
+    }
+    return created;
   },
 
   updateExpense: async (expenseId, payload) => {
     set({ isLoading: true, error: null });
+    let updated: ExpenseDto;
     try {
-      const updated = await updateExpense(expenseId, payload);
-      const groupBalances =
-        updated.groupId !== null
-          ? await calculateGroupBalances(updated.groupId)
-          : get().groupBalances;
-      set({
-        groupExpenses: get().groupExpenses.map((expense) =>
-          expense.id === expenseId ? updated : expense,
-        ),
-        individualExpenses: get().individualExpenses.map((expense) =>
-          expense.id === expenseId ? updated : expense,
-        ),
-        selectedExpense:
-          get().selectedExpense?.id === expenseId
-            ? updated
-            : get().selectedExpense,
-        groupBalances,
-        isLoading: false,
-      });
-      return updated;
+      updated = await updateExpense(expenseId, payload);
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not update expense."),
+        error: errorMessage(error, "errors.fallback.updateExpense"),
         isLoading: false,
       });
       throw error;
     }
+
+    // Replace the old copy wherever the store holds it.
+    set({
+      groupExpenses: get().groupExpenses.map((expense) =>
+        expense.id === expenseId ? updated : expense,
+      ),
+      individualExpenses: get().individualExpenses.map((expense) =>
+        expense.id === expenseId ? updated : expense,
+      ),
+      selectedExpense:
+        get().selectedExpense?.id === expenseId
+          ? updated
+          : get().selectedExpense,
+    });
+
+    if (updated.groupId === null) {
+      set({ isLoading: false });
+      return updated;
+    }
+
+    try {
+      const groupBalances = await calculateGroupBalances(updated.groupId);
+      set({
+        groupBalances,
+        groupBalancesGroupId: updated.groupId,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: t("errors.partial.expenseUpdated", {
+          reason: errorMessage(error, "errors.fallback.tryAgain"),
+        }),
+        isLoading: false,
+      });
+    }
+    return updated;
   },
 });

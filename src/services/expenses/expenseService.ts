@@ -7,68 +7,43 @@ import type {
 import type { Json } from "../../types/database.types";
 import { enrichExpenses } from "./expenseEnrichment";
 import { mapRowToExpenseSplitDto } from "./expenseMappers";
+import {
+  normalizeReceiptUrl,
+  validateExpensePayload,
+} from "./expenseValidation";
 import { supabase } from "../supabase";
 
+// Expense writes. Also the entry point of the expenses service: the queries,
+// mappers and balance calculation are re-exported from here.
+export { mapRowToExpenseDto, mapRowToExpenseSplitDto } from "./expenseMappers";
 export {
-  mapRowToExpenseDto,
-  mapRowToExpenseSplitDto,
-} from "./expenseMappers";
-export {
+  getUserExpenseParticipants,
   getExpenseById,
   getGroupExpenses,
   getIndividualExpenses,
 } from "./expenseQueries";
 export { calculateGroupBalances } from "./expenseBalanceService";
 
-function validateExpenseInput(
-  amount: number,
-  title: string,
-  splits: { userId: string; amountOwed: number }[],
-): void {
-  const amountCents = Math.round(amount * 100);
-  if (
-    !title.trim() ||
-    !Number.isFinite(amount) ||
-    amount <= 0 ||
-    Math.abs(amount * 100 - amountCents) > 1e-8
-  ) {
-    throw new Error("Expense title and a positive amount with cents are required.");
-  }
-  const splitUsers = new Set<string>();
-  let totalCents = 0;
-  for (const split of splits) {
-    if (
-      !split.userId ||
-      !Number.isFinite(split.amountOwed) ||
-      split.amountOwed < 0 ||
-      Math.abs(split.amountOwed * 100 - Math.round(split.amountOwed * 100)) >
-        1e-8
-    ) {
-      throw new Error("Split amounts must be nonnegative and have at most two decimals.");
-    }
-    if (splitUsers.has(split.userId)) {
-      throw new Error("An expense cannot contain duplicate users in its splits.");
-    }
-    splitUsers.add(split.userId);
-    totalCents += Math.round(split.amountOwed * 100);
-  }
-  if (totalCents !== amountCents) {
-    throw new Error("Split amounts must equal the expense amount.");
-  }
-}
-
-async function assertCurrentUser(userId: string): Promise<void> {
+/** The signed-in user's id; throws when signed out. */
+async function getCurrentUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user || data.user.id !== userId) {
-    throw new Error(error?.message ?? "The payer must be the current user.");
+  if (error || !data.user) {
+    throw new Error(
+      error?.message ?? "You must be signed in to manage expenses.",
+    );
   }
+  return data.user.id;
 }
 
+/**
+ * Validates the payload (same rules as the form) and creates the expense
+ * and its splits in one RPC, so both are saved or neither.
+ */
 export async function createExpense(
   payload: CreateExpenseDto,
 ): Promise<ExpenseDto> {
-  validateExpenseInput(payload.amount, payload.title, payload.splits);
-  await assertCurrentUser(payload.paidByUserId);
+  const currentUserId = await getCurrentUserId();
+  validateExpensePayload(payload, currentUserId);
   const splits: Json = payload.splits.map((split) => ({
     userId: split.userId,
     amountOwed: split.amountOwed,
@@ -77,9 +52,10 @@ export async function createExpense(
     "create_expense_with_splits",
     {
       _group_id: payload.groupId,
+      _paid_by_user_id: payload.paidByUserId,
       _title: payload.title.trim(),
       _amount: payload.amount,
-      _receipt_url: payload.receiptUrl ?? null,
+      _receipt_url: normalizeReceiptUrl(payload.receiptUrl),
       _splits: splits,
     },
   );
@@ -91,11 +67,13 @@ export async function createExpense(
   return expense;
 }
 
+/** Validates the payload and replaces the expense and its splits in one RPC. */
 export async function updateExpense(
   expenseId: string,
   payload: UpdateExpenseDto,
 ): Promise<ExpenseDto> {
-  validateExpenseInput(payload.amount, payload.title, payload.splits);
+  const currentUserId = await getCurrentUserId();
+  validateExpensePayload(payload, currentUserId);
   const splits: Json = payload.splits.map((split) => ({
     userId: split.userId,
     amountOwed: split.amountOwed,
@@ -104,9 +82,10 @@ export async function updateExpense(
     "update_expense_with_splits",
     {
       _expense_id: expenseId,
+      _paid_by_user_id: payload.paidByUserId,
       _title: payload.title.trim(),
       _amount: payload.amount,
-      _receipt_url: payload.receiptUrl ?? null,
+      _receipt_url: normalizeReceiptUrl(payload.receiptUrl),
       _splits: splits,
     },
   );
@@ -118,6 +97,10 @@ export async function updateExpense(
   return expense;
 }
 
+/**
+ * Marks a split paid or unpaid. Only `is_settled` may change; the split user
+ * or the payer may do it, but not on the payer's own split.
+ */
 export async function settleExpenseSplit(
   splitId: string,
   isSettled: boolean,
@@ -136,6 +119,7 @@ export async function settleExpenseSplit(
   return mapRowToExpenseSplitDto(data);
 }
 
+/** Deletes an expense (payer, creator or group admin). `.select().single()` makes a blocked delete fail. */
 export async function deleteExpense(expenseId: string): Promise<void> {
   const { error } = await supabase
     .from("expenses")

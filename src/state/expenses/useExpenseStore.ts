@@ -5,11 +5,13 @@ import { createExpenseLoadActions } from "./expenseLoadActions";
 import { createExpenseSplitActions } from "./expenseSplitActions";
 import type { ExpenseState } from "./expenseStoreTypes";
 
+/** Group and personal expenses, the open expense and group balances. Actions live in the slice files. */
 export const useExpenseStore = create<ExpenseState>()((set, get, api) => ({
   groupExpenses: [],
   individualExpenses: [],
   selectedExpense: null,
   groupBalances: [],
+  groupBalancesGroupId: null,
   isLoading: false,
   error: null,
   ...createExpenseLoadActions(set, get, api),
@@ -23,6 +25,7 @@ export const useExpenseStore = create<ExpenseState>()((set, get, api) => ({
       individualExpenses: [],
       selectedExpense: null,
       groupBalances: [],
+      groupBalancesGroupId: null,
       isLoading: false,
       error: null,
     }),

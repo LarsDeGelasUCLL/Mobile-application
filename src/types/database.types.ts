@@ -13,6 +13,10 @@ type Table<Row, Insert, Update = Partial<Insert>> = {
   Relationships: [];
 };
 
+export type GroupRole = "ADMIN" | "MEMBER";
+export type MembershipStatus = "PENDING" | "ACTIVE" | "REQUESTED";
+export type UiTheme = "SYSTEM" | "LIGHT" | "DARK";
+
 export interface Database {
   public: {
     Tables: {
@@ -42,7 +46,7 @@ export interface Database {
         {
           user_id: string;
           push_notification_token: string | null;
-          ui_theme: string;
+          ui_theme: UiTheme;
           language_code: string;
           notify_new_expense: boolean;
           notify_reminders: boolean;
@@ -51,7 +55,7 @@ export interface Database {
         {
           user_id: string;
           push_notification_token?: string | null;
-          ui_theme?: string;
+          ui_theme?: UiTheme;
           language_code?: string;
           notify_new_expense?: boolean;
           notify_reminders?: boolean;
@@ -83,8 +87,8 @@ export interface Database {
           id: string;
           user_id: string;
           group_id: string;
-          group_role: string;
-          status: string;
+          group_role: GroupRole;
+          status: MembershipStatus;
           invited_by: string | null;
           joined_at: string;
         },
@@ -92,8 +96,8 @@ export interface Database {
           id?: string;
           user_id: string;
           group_id: string;
-          group_role?: string;
-          status?: string;
+          group_role?: GroupRole;
+          status?: MembershipStatus;
           invited_by?: string | null;
           joined_at?: string;
         }
@@ -103,6 +107,7 @@ export interface Database {
           id: string;
           group_id: string | null;
           paid_by_user_id: string;
+          created_by_user_id: string;
           title: string;
           amount: number;
           receipt_url: string | null;
@@ -112,6 +117,7 @@ export interface Database {
           id?: string;
           group_id?: string | null;
           paid_by_user_id: string;
+          created_by_user_id: string;
           title: string;
           amount: number;
           receipt_url?: string | null;
@@ -161,9 +167,14 @@ export interface Database {
         Args: { _invite_code: string };
         Returns: Database["public"]["Tables"]["groups"]["Row"];
       };
+      approve_join_request: {
+        Args: { _membership_id: string };
+        Returns: Database["public"]["Tables"]["memberships"]["Row"];
+      };
       create_expense_with_splits: {
         Args: {
           _group_id: string | null;
+          _paid_by_user_id: string;
           _title: string;
           _amount: number;
           _receipt_url: string | null;
@@ -174,6 +185,7 @@ export interface Database {
       update_expense_with_splits: {
         Args: {
           _expense_id: string;
+          _paid_by_user_id: string;
           _title: string;
           _amount: number;
           _receipt_url: string | null;

@@ -1,15 +1,23 @@
+// Read queries for groups and memberships. Each loads the memberships first,
+// then the groups or profiles they point to in one `in (...)` query.
 import type {
   GroupInviteDto,
+  GroupJoinRequestDto,
   MembershipDto,
+  MembershipStatus,
   UserGroupDto,
 } from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
+import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+/** The groups the user is an active member of, with their role in each. */
 export async function getUserActiveGroups(
   userId: string,
 ): Promise<UserGroupDto[]> {
+  await assertCurrentUser(userId);
+
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
     .select("*")
@@ -21,9 +29,7 @@ export async function getUserActiveGroups(
   }
   if (!memberships?.length) return [];
 
-  const groupIds = memberships.map((membership) =>
-    String(membership.group_id),
-  );
+  const groupIds = memberships.map((membership) => String(membership.group_id));
   const { data: groups, error: groupsError } = await supabase
     .from("groups")
     .select("*")
@@ -33,27 +39,44 @@ export async function getUserActiveGroups(
     throw new Error(groupsError?.message ?? "Could not load groups.");
   }
 
+  // flatMap skips a membership whose group could not be read.
   return memberships.flatMap((membership) => {
     const group = groups.find((item) => item.id === membership.group_id);
     return group
-      ? [{
-          membershipId: String(membership.id),
-          groupRole:
-            membership.group_role === "ADMIN" ? "ADMIN" : "MEMBER",
-          joinedAt: String(membership.joined_at ?? ""),
-          group: mapRowToGroupDto(group),
-        }]
+      ? [
+          {
+            membershipId: String(membership.id),
+            groupRole: mapRowToMembershipDto(membership).groupRole,
+            joinedAt: String(membership.joined_at ?? ""),
+            group: mapRowToGroupDto(group),
+          },
+        ]
       : [];
   });
 }
 
-export async function getGroupMembers(
+/** A group's active members with their public profiles (pending invites excluded). */
+export function getGroupMembers(groupId: string): Promise<MembershipDto[]> {
+  return getGroupMembershipsByStatus(groupId, "ACTIVE");
+}
+
+/** Open join requests for a group. RLS lets every active member read these rows; only admins can act on them. */
+export function getGroupJoinRequests(
   groupId: string,
+): Promise<MembershipDto[]> {
+  return getGroupMembershipsByStatus(groupId, "REQUESTED");
+}
+
+/** Memberships of a group with one status, each with the member's public profile if readable. */
+async function getGroupMembershipsByStatus(
+  groupId: string,
+  status: MembershipStatus,
 ): Promise<MembershipDto[]> {
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
     .select("*")
-    .eq("group_id", groupId);
+    .eq("group_id", groupId)
+    .eq("status", status);
 
   if (membershipError) {
     throw new Error(membershipError.message);
@@ -81,9 +104,12 @@ export async function getGroupMembers(
   });
 }
 
+/** Invites the user has not answered yet, with the group and who invited them. */
 export async function getUserPendingInvites(
   userId: string,
 ): Promise<GroupInviteDto[]> {
+  await assertCurrentUser(userId);
+
   const { data: pendingRows, error } = await supabase
     .from("memberships")
     .select("*")
@@ -106,11 +132,14 @@ export async function getUserPendingInvites(
   if (groupsError) {
     throw new Error(groupsError.message);
   }
+  // Skip the query when no invite has a known inviter.
   const { data: inviters, error: invitersError } =
     inviterIds.length > 0
       ? await supabase
           .from("user_profiles")
-          .select("id, display_name, profile_picture_url, custom_bio, record_created")
+          .select(
+            "id, display_name, profile_picture_url, custom_bio, record_created",
+          )
           .in("id", inviterIds)
       : { data: [], error: null };
   if (invitersError) {
@@ -122,13 +151,80 @@ export async function getUserPendingInvites(
     if (!group) return [];
 
     const inviter = inviters?.find((profile) => profile.id === row.invited_by);
-    return [{
-      membershipId: String(row.id),
-      joinedAt: String(row.joined_at ?? ""),
-      group: mapRowToGroupDto(group),
-      invitedByProfile: inviter
-        ? mapRowToPublicUserProfileDto(inviter)
-        : null,
-    }];
+    return [
+      {
+        membershipId: String(row.id),
+        joinedAt: String(row.joined_at ?? ""),
+        group: mapRowToGroupDto(group),
+        invitedByProfile: inviter
+          ? mapRowToPublicUserProfileDto(inviter)
+          : null,
+      },
+    ];
   });
+}
+
+/** Join requests the user sent that no admin has handled yet. */
+export async function getUserJoinRequests(
+  userId: string,
+): Promise<GroupJoinRequestDto[]> {
+  await assertCurrentUser(userId);
+
+  const { data: requestRows, error } = await supabase
+    .from("memberships")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "REQUESTED");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  if (!requestRows?.length) return [];
+
+  const groupIds = requestRows.map((row) => String(row.group_id));
+  const { data: groups, error: groupsError } = await supabase
+    .from("groups")
+    .select("*")
+    .in("id", groupIds);
+  if (groupsError) {
+    throw new Error(groupsError.message);
+  }
+
+  return requestRows.flatMap((row) => {
+    const group = groups?.find((item) => item.id === row.group_id);
+    return group
+      ? [
+          {
+            membershipId: String(row.id),
+            // joined_at holds the request time until an admin approves it.
+            requestedAt: String(row.joined_at ?? ""),
+            group: mapRowToGroupDto(group),
+          },
+        ]
+      : [];
+  });
+}
+
+/** Number of open join requests per group id, for the groups the user administers. */
+export async function getAdminJoinRequestCounts(
+  adminGroupIds: string[],
+): Promise<Record<string, number>> {
+  if (adminGroupIds.length === 0) return {};
+
+  const { data: requestRows, error } = await supabase
+    .from("memberships")
+    .select("group_id")
+    .eq("status", "REQUESTED")
+    .in("group_id", adminGroupIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const counts: Record<string, number> = {};
+  for (const row of requestRows ?? []) {
+    const groupId = String(row.group_id);
+    counts[groupId] = (counts[groupId] ?? 0) + 1;
+  }
+  return counts;
 }

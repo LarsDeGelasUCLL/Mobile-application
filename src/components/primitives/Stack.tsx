@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface StackProps {
   children: React.ReactNode;
@@ -7,8 +8,10 @@ interface StackProps {
   justify?: "flex-start" | "center" | "flex-end" | "space-between";
   padding?: "none" | "sm" | "md" | "lg";
   flex?: number;
+  testID?: string;
 }
 
+/** Lays out children vertically with a token gap and padding. */
 export function Stack({
   children,
   gap = "none",
@@ -16,30 +19,33 @@ export function Stack({
   justify = "flex-start",
   padding = "none",
   flex,
+  testID,
 }: StackProps) {
+  const styles = useStyles();
   return (
     <View
       style={[
         styles.base,
-        styles[`gap_${gap}` as keyof typeof styles],
-        styles[`padding_${padding}` as keyof typeof styles],
+        styles[`gap_${gap}`],
+        styles[`padding_${padding}`],
         { alignItems: align, justifyContent: justify },
         flex !== undefined && { flex },
       ]}
+      testID={testID}
     >
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: { flexDirection: "column" },
   gap_none: { gap: 0 },
-  gap_sm: { gap: 8 },
-  gap_md: { gap: 16 },
-  gap_lg: { gap: 24 },
+  gap_sm: { gap: t.spacing.sm },
+  gap_md: { gap: t.spacing.lg },
+  gap_lg: { gap: t.spacing.xl },
   padding_none: { padding: 0 },
-  padding_sm: { padding: 8 },
-  padding_md: { padding: 16 },
-  padding_lg: { padding: 24 },
-});
+  padding_sm: { padding: t.spacing.sm },
+  padding_md: { padding: t.spacing.lg },
+  padding_lg: { padding: t.spacing.xl },
+}));

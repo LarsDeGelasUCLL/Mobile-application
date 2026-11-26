@@ -21,5 +21,13 @@
   ],
   "exclude": [
     "cypress"
-  ]
+  ],
+  // Read only by ts-node, which Cypress uses to load cypress.config.js: it
+  // cannot run with the expo base's bundler-only options under TS 6.
+  "ts-node": {
+    "compilerOptions": {
+      "customConditions": null,
+      "ignoreDeprecations": "6.0"
+    }
+  }
 }

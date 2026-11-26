@@ -1,29 +1,35 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface ContainerProps {
   children: React.ReactNode;
   flex?: number;
   padding?: "none" | "sm" | "md" | "lg";
+  testID?: string;
 }
 
+/** A full-width box with optional flex and token padding. */
 export function Container({
   children,
   flex,
   padding = "none",
+  testID,
 }: ContainerProps) {
+  const styles = useStyles();
   return (
     <View
       style={[styles.base, flex !== undefined && { flex }, styles[padding]]}
+      testID={testID}
     >
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: { width: "100%" },
   none: { padding: 0 },
-  sm: { padding: 8 },
-  md: { padding: 16 },
-  lg: { padding: 24 },
-});
+  sm: { padding: t.spacing.sm },
+  md: { padding: t.spacing.lg },
+  lg: { padding: t.spacing.xl },
+}));

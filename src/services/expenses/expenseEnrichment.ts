@@ -1,12 +1,14 @@
 import type { ExpenseDto, PublicUserProfileDto } from "../../types";
 import type { Database } from "../../types/database.types";
 import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
-import {
-  mapRowToExpenseDto,
-  mapRowToExpenseSplitDto,
-} from "./expenseMappers";
+import { mapRowToExpenseDto, mapRowToExpenseSplitDto } from "./expenseMappers";
 import { supabase } from "../supabase";
 
+/**
+ * Turns expense rows into `ExpenseDto`s with their splits and the public
+ * profiles of the payer, creator and split users. Uses two extra queries in
+ * total (splits, then profiles), not one per expense.
+ */
 export async function enrichExpenses(
   expenseRows: Database["public"]["Tables"]["expenses"]["Row"][],
 ): Promise<ExpenseDto[]> {
@@ -22,10 +24,14 @@ export async function enrichExpenses(
     throw new Error(splitError.message);
   }
 
+  // Everyone the expenses mention, each once.
   const userIds = new Set<string>();
   for (const expense of expenseRows) {
     if (typeof expense.paid_by_user_id === "string") {
       userIds.add(expense.paid_by_user_id);
+    }
+    if (typeof expense.created_by_user_id === "string") {
+      userIds.add(expense.created_by_user_id);
     }
   }
   for (const split of splitRows ?? []) {
@@ -38,7 +44,9 @@ export async function enrichExpenses(
     userIds.size > 0
       ? await supabase
           .from("user_profiles")
-          .select("id, display_name, profile_picture_url, custom_bio, record_created")
+          .select(
+            "id, display_name, profile_picture_url, custom_bio, record_created",
+          )
           .in("id", [...userIds])
       : { data: [], error: null };
   if (profilesError) {
@@ -56,16 +64,14 @@ export async function enrichExpenses(
     const splits = (splitRows ?? [])
       .filter((split) => String(split.expense_id) === expenseId)
       .map((split) =>
-        mapRowToExpenseSplitDto(
-          split,
-          profileMap.get(String(split.user_id)),
-        ),
+        mapRowToExpenseSplitDto(split, profileMap.get(String(split.user_id))),
       );
 
     return mapRowToExpenseDto(
       expenseRow,
       profileMap.get(String(expenseRow.paid_by_user_id)),
       splits,
+      profileMap.get(String(expenseRow.created_by_user_id)),
     );
   });
 }

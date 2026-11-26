@@ -1,7 +1,9 @@
 import { calculateGroupBalances, deleteExpense } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
-import { getErrorMessage } from "../shared/storeUtils";
+import { errorMessage, t } from "../../i18n";
 
+// Delete. Same error pattern as the create actions: a failed delete rethrows,
+// a failed balance refresh after it only sets a partial-success `error`.
 export const createExpenseDeleteActions: ExpenseActionCreator<
   "removeExpense"
 > = (set, get) => ({
@@ -15,21 +17,38 @@ export const createExpenseDeleteActions: ExpenseActionCreator<
       const individualExpenses = get().individualExpenses.filter(
         (expense) => expense.id !== expenseId,
       );
+      set({
+        groupExpenses,
+        individualExpenses,
+        selectedExpense:
+          get().selectedExpense?.id === expenseId
+            ? null
+            : get().selectedExpense,
+      });
 
-      if (typeof groupId === "string") {
+      if (typeof groupId !== "string") {
+        set({ isLoading: false });
+        return;
+      }
+
+      try {
         const groupBalances = await calculateGroupBalances(groupId);
         set({
-          groupExpenses,
-          individualExpenses,
           groupBalances,
+          groupBalancesGroupId: groupId,
           isLoading: false,
         });
-      } else {
-        set({ groupExpenses, individualExpenses, isLoading: false });
+      } catch (error) {
+        set({
+          error: t("errors.partial.expenseDeleted", {
+            reason: errorMessage(error, "errors.fallback.tryAgain"),
+          }),
+          isLoading: false,
+        });
       }
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not delete expense."),
+        error: errorMessage(error, "errors.fallback.deleteExpense"),
         isLoading: false,
       });
       throw error;

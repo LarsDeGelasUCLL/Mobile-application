@@ -1,39 +1,57 @@
-import { View, StyleSheet } from "react-native";
+import type { ComponentProps } from "react";
+import { View } from "react-native";
+import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { colors } from "../../theme/colors";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface EmptyStateProps {
   title: string;
   description?: string;
+  /** E.g. a button that creates the first item. */
   action?: React.ReactNode;
+  icon?: ComponentProps<typeof Icon>["name"];
+  testID?: string;
 }
 
-export function EmptyState({ title, description, action }: EmptyStateProps) {
+/** Placeholder card (dashed border) for a list with nothing in it yet. */
+export function EmptyState({
+  title,
+  description,
+  action,
+  icon,
+  testID,
+}: EmptyStateProps) {
+  const styles = useStyles();
   return (
-    <View style={styles.base}>
+    <View style={styles.base} testID={testID}>
+      {icon !== undefined && <Icon name={icon} size={32} tone="primary" />}
       <Text size="lg" weight="bold" align="center">
         {title}
       </Text>
-      {description !== undefined && <Text align="center">{description}</Text>}
+      {description !== undefined && (
+        <Text align="center" tone="muted">
+          {description}
+        </Text>
+      )}
       {action !== undefined && <View style={styles.action}>{action}</View>}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 32,
-    gap: 8,
-    backgroundColor: colors.surface,
-    borderRadius: 10,
+    padding: t.spacing.xxl,
+    gap: t.spacing.sm,
+    backgroundColor: t.colors.surface,
+    borderRadius: t.radius.lg,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
+    borderColor: t.colors.primaryBorder,
     borderStyle: "dashed",
   },
   action: {
-    marginTop: 12,
+    marginTop: t.spacing.md,
     width: "100%",
   },
-});
+}));

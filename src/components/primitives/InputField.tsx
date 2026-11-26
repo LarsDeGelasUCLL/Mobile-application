@@ -1,6 +1,6 @@
-import { TextInput, View, StyleSheet } from "react-native";
+import { TextInput, View } from "react-native";
 import { Text } from "./Text";
-import { colors } from "../../theme/colors";
+import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 
 interface InputFieldProps {
   label: string;
@@ -8,10 +8,23 @@ interface InputFieldProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   secureTextEntry?: boolean;
+  /** Shown under the field, which turns red. */
   error?: string;
   testID?: string;
+  keyboardType?:
+    | "default"
+    | "email-address"
+    | "decimal-pad"
+    | "phone-pad"
+    | "url";
+  /** Default: none for email and URL keyboards, sentences otherwise. */
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  multiline?: boolean;
+  maxLength?: number;
+  editable?: boolean;
 }
 
+/** A labelled text input with an optional error message. */
 export function InputField({
   label,
   value,
@@ -20,7 +33,14 @@ export function InputField({
   secureTextEntry = false,
   error,
   testID,
+  keyboardType = "default",
+  autoCapitalize,
+  multiline = false,
+  maxLength,
+  editable = true,
 }: InputFieldProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
       <Text size="sm" weight="medium">
@@ -31,14 +51,29 @@ export function InputField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         secureTextEntry={secureTextEntry}
-        style={[styles.input, error !== undefined && styles.inputError]}
-        placeholderTextColor={colors.muted}
+        accessibilityLabel={label}
+        style={[
+          styles.input,
+          multiline && styles.multiline,
+          !editable && styles.readOnly,
+          error !== undefined && styles.inputError,
+        ]}
+        placeholderTextColor={colors.textMuted}
         selectionColor={colors.primary}
         testID={testID}
-        autoCapitalize="none"
+        keyboardType={keyboardType}
+        multiline={multiline}
+        maxLength={maxLength}
+        editable={editable}
+        autoCapitalize={
+          autoCapitalize ??
+          (keyboardType === "email-address" || keyboardType === "url"
+            ? "none"
+            : "sentences")
+        }
       />
       {error !== undefined && (
-        <Text size="sm" color="red">
+        <Text size="sm" tone="error">
           {error}
         </Text>
       )}
@@ -46,24 +81,34 @@ export function InputField({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   container: {
     width: "100%",
     gap: 6,
-    marginBottom: 4,
+    marginBottom: t.spacing.xs,
   },
   input: {
-    height: 48,
+    minHeight: t.controlSize.control,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
+    borderColor: t.colors.borderStrong,
+    borderRadius: t.radius.sm,
     paddingHorizontal: 14,
-    fontSize: 16,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    ...t.type.md,
+    fontFamily: t.fontFamily.regular,
+    backgroundColor: t.colors.surface,
+    color: t.colors.text,
+  },
+  readOnly: {
+    backgroundColor: t.colors.surfaceTint,
+    borderColor: t.colors.border,
   },
   inputError: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FEF2F2",
+    borderColor: t.colors.error,
+    backgroundColor: t.colors.errorSoft,
   },
-});
+  multiline: {
+    height: 100,
+    paddingTop: t.spacing.md,
+    textAlignVertical: "top",
+  },
+}));

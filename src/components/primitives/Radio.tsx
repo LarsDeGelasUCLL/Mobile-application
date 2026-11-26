@@ -1,16 +1,32 @@
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View } from "react-native";
 import { Text } from "./Text";
+import { makeStyles } from "../../theme/ThemeProvider";
 
-interface RadioProps {
+interface RadioProps<T extends string> {
   label: string;
-  value: string;
+  value: T;
   selected: boolean;
-  onSelect: (value: string) => void;
+  onSelect: (value: T) => void;
+  testID?: string;
 }
 
-export function Radio({ label, value, selected, onSelect }: RadioProps) {
+/** One labelled radio option; reports its `value` when tapped. */
+export function Radio<T extends string>({
+  label,
+  value,
+  selected,
+  onSelect,
+  testID,
+}: RadioProps<T>) {
+  const styles = useStyles();
   return (
-    <Pressable onPress={() => onSelect(value)} style={styles.container}>
+    <Pressable
+      onPress={() => onSelect(value)}
+      style={styles.container}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      testID={testID}
+    >
       <View style={[styles.circle, selected && styles.circleSelected]}>
         {selected && <View style={styles.dot} />}
       </View>
@@ -19,30 +35,30 @@ export function Radio({ label, value, selected, onSelect }: RadioProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   container: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 4,
+    minHeight: t.controlSize.touch,
   },
   circle: {
     width: 22,
     height: 22,
-    borderRadius: 999,
+    borderRadius: t.radius.full,
     borderWidth: 1.5,
-    borderColor: "#D1D5DB",
-    backgroundColor: "#FFFFFF",
+    borderColor: t.colors.borderStrong,
+    backgroundColor: t.colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   circleSelected: {
-    borderColor: "#2563EB",
+    borderColor: t.colors.primary,
   },
   dot: {
     width: 12,
     height: 12,
-    borderRadius: 999,
-    backgroundColor: "#2563EB",
+    borderRadius: t.radius.full,
+    backgroundColor: t.colors.primary,
   },
-});
+}));

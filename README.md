@@ -1,12 +1,12 @@
-# Lumin
+# Laruna
 
-Lumin is a mobile-first app for organizing groups and shared expenses. It is
+Laruna is a mobile-first app for organizing groups and shared expenses. It is
 built with Expo, React Native, and Supabase as part of the Mobile Applications
 course.
 
 ## Target Audience
 
-Lumin is for people who organize activities together and want to keep track of
+Laruna is for people who organize activities together and want to keep track of
 shared costs:
 
 - Friends planning trips, get-togethers, or dinners;
@@ -67,7 +67,7 @@ This roadmap is a guide and may change as the project develops.
 - **Tricount** focuses on splitting group costs, for example during trips or
   shared activities.
 
-Lumin addresses the same need, but aims to combine expense tracking with a
+Laruna addresses the same need, but aims to combine expense tracking with a
 broader, modular environment for group organization. The initial project focus
 remains a clear expense tracker for both groups and expenses between individuals.
 

@@ -1,3 +1,4 @@
+// Map snake_case database rows to the camelCase DTOs the app uses.
 import type {
   UiTheme,
   PublicUserProfileDto,
@@ -6,13 +7,15 @@ import type {
 } from "../../types";
 import type { Database } from "../../types/database.types";
 
+/** Narrows the `ui_theme` column (a check constraint, typed as string) to `UiTheme`. */
 function parseUiTheme(value: unknown): UiTheme {
   if (value === "LIGHT" || value === "DARK" || value === "SYSTEM") {
     return value;
   }
-  return "SYSTEM";
+  throw new Error(`Unexpected UI theme: ${String(value)}`);
 }
 
+/** Full profile row (own profile only) to `UserProfileDto`. */
 export function mapRowToUserProfileDto(
   row: Database["public"]["Tables"]["user_profiles"]["Row"],
 ): UserProfileDto {
@@ -31,6 +34,7 @@ export function mapRowToUserProfileDto(
   };
 }
 
+/** The public profile columns to `PublicUserProfileDto`. */
 export function mapRowToPublicUserProfileDto(
   row: Pick<
     Database["public"]["Tables"]["user_profiles"]["Row"],
@@ -46,6 +50,7 @@ export function mapRowToPublicUserProfileDto(
   };
 }
 
+/** A `user_settings` row to `UserSettingsDto`. */
 export function mapRowToUserSettingsDto(
   row: Database["public"]["Tables"]["user_settings"]["Row"],
 ): UserSettingsDto {

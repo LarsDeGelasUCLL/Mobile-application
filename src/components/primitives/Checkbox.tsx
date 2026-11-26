@@ -1,52 +1,58 @@
-import { Pressable, View, StyleSheet } from "react-native";
+import { Pressable, View } from "react-native";
+import { Icon } from "./Icon";
 import { Text } from "./Text";
-import { colors } from "../../theme/colors";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface CheckboxProps {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  testID?: string;
 }
 
-export function Checkbox({ label, checked, onChange }: CheckboxProps) {
+/** A labelled checkbox; the whole row is the tap target. */
+export function Checkbox({
+  label,
+  checked,
+  onChange,
+  testID,
+}: CheckboxProps) {
+  const styles = useStyles();
   return (
     <Pressable
       onPress={() => onChange(!checked)}
       style={styles.container}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
+      testID={testID}
     >
       <View style={[styles.box, checked && styles.boxChecked]}>
-        {checked && (
-          <Text size="sm" color="#FFFFFF" weight="bold">
-            ✓
-          </Text>
-        )}
+        {checked && <Icon name="checkmark" size={16} tone="onPrimary" />}
       </View>
       <Text size="md">{label}</Text>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   container: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 4,
+    minHeight: t.controlSize.touch,
   },
   box: {
     width: 22,
     height: 22,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: t.colors.borderStrong,
+    backgroundColor: t.colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   boxChecked: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: t.colors.primary,
+    borderColor: t.colors.primary,
   },
-});
+}));

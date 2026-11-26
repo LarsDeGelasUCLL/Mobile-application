@@ -1,46 +1,36 @@
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { Text } from "./Text";
-import { colors } from "../../theme/colors";
+import { makeStyles } from "../../theme/ThemeProvider";
+import type { Tone } from "../../theme/tone";
 
 interface BadgeProps {
   label: string;
   variant?: "default" | "success" | "warning" | "error";
+  testID?: string;
 }
 
-const textColors: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  default: colors.primaryDark,
-  success: colors.success,
-  warning: colors.warning,
-  error: colors.error,
-};
-
-export function Badge({ label, variant = "default" }: BadgeProps) {
+/** A small pill label, e.g. a role or status. */
+export function Badge({ label, variant = "default", testID }: BadgeProps) {
+  const styles = useStyles();
+  const tone: Tone = variant === "default" ? "primary" : variant;
   return (
-    <View style={[styles.base, styles[variant]]}>
-      <Text size="sm" weight="medium" color={textColors[variant]}>
+    <View style={[styles.base, styles[variant]]} testID={testID}>
+      <Text size="sm" weight="medium" tone={tone}>
         {label}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   base: {
     alignSelf: "flex-start",
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingVertical: t.spacing.xs,
+    borderRadius: t.radius.full,
   },
-  default: {
-    backgroundColor: colors.primarySoft,
-  },
-  success: {
-    backgroundColor: colors.successSoft,
-  },
-  warning: {
-    backgroundColor: colors.warningSoft,
-  },
-  error: {
-    backgroundColor: colors.errorSoft,
-  },
-});
+  default: { backgroundColor: t.colors.primarySoft },
+  success: { backgroundColor: t.colors.successSoft },
+  warning: { backgroundColor: t.colors.warningSoft },
+  error: { backgroundColor: t.colors.errorSoft },
+}));

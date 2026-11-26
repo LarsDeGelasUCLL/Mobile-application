@@ -1,0 +1,45 @@
+// Theme-independent design tokens: sizes, type, fonts and motion. Colours live in palettes.ts.
+// Each `as const` keeps literal types (for `keyof typeof`); it asserts no type.
+
+// as const: literal spacing keys and values.
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 32,
+} as const;
+
+// as const: literal radius keys and values.
+export const radius = { sm: 8, md: 12, lg: 16, full: 9999 } as const;
+
+// as const: literal keys so `keyof typeof typeScale` gives the size names.
+export const typeScale = {
+  xs: { fontSize: 12, lineHeight: 16 },
+  sm: { fontSize: 14, lineHeight: 20 },
+  md: { fontSize: 16, lineHeight: 24 },
+  lg: { fontSize: 18, lineHeight: 26 },
+  xl: { fontSize: 22, lineHeight: 28 },
+  xxl: { fontSize: 28, lineHeight: 34 },
+} as const;
+
+// One family per weight: Android ignores fontWeight on custom fonts.
+// as const: literal font-family names.
+export const fontFamily = {
+  regular: "PlusJakartaSans_400Regular",
+  semibold: "PlusJakartaSans_600SemiBold",
+  bold: "PlusJakartaSans_700Bold",
+} as const;
+
+// as const: literal icon-size keys and values.
+export const iconSize = { sm: 16, md: 20, lg: 24 } as const;
+
+// Control heights in pt, applied as minHeight so text can grow with font scale.
+// touch = minimum tap target (icon button, checkbox, radio, link button);
+// control = input, select and standard button height; row = list-row height.
+// as const: literal control-size keys and values.
+export const controlSize = { touch: 44, control: 48, row: 52 } as const;
+
+// as const: literal animation durations in ms.
+export const motion = { press: 150, sheet: 250 } as const;

@@ -4,25 +4,35 @@ import {
   getExpenseById,
   getGroupExpenses,
   getIndividualExpenses,
+  getUserExpenseParticipants,
 } from "../../services";
-import { getErrorMessage } from "../shared/storeUtils";
+import { errorMessage } from "../../i18n";
 
+// Loaders. Each sets a translated `error` and rethrows on failure.
 export const createExpenseLoadActions: ExpenseActionCreator<
   | "fetchGroupExpensesAndBalances"
   | "fetchIndividualExpenses"
   | "fetchExpenseDetail"
-> = (set) => ({
+  | "fetchExpenseParticipants"
+> = (set, get) => ({
   fetchGroupExpensesAndBalances: async (groupId) => {
     set({ isLoading: true, error: null });
     try {
-      const [groupExpenses, groupBalances] = await Promise.all([
-        getGroupExpenses(groupId),
-        calculateGroupBalances(groupId),
-      ]);
-      set({ groupExpenses, groupBalances, isLoading: false });
+      const groupExpenses = await getGroupExpenses(groupId);
+      // Reuse the loaded expenses instead of fetching them twice.
+      const groupBalances = await calculateGroupBalances(
+        groupId,
+        groupExpenses,
+      );
+      set({
+        groupExpenses,
+        groupBalances,
+        groupBalancesGroupId: groupId,
+        isLoading: false,
+      });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load group expenses."),
+        error: errorMessage(error, "errors.fallback.loadGroupExpenses"),
         isLoading: false,
       });
       throw error;
@@ -36,7 +46,7 @@ export const createExpenseLoadActions: ExpenseActionCreator<
       set({ individualExpenses, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load individual expenses."),
+        error: errorMessage(error, "errors.fallback.loadIndividualExpenses"),
         isLoading: false,
       });
       throw error;
@@ -50,10 +60,17 @@ export const createExpenseLoadActions: ExpenseActionCreator<
       set({ selectedExpense, isLoading: false });
     } catch (error) {
       set({
-        error: getErrorMessage(error, "Could not load expense details."),
+        error: errorMessage(error, "errors.fallback.loadExpense"),
         isLoading: false,
       });
       throw error;
     }
+  },
+
+  // A failed history load sets the store error (fetchIndividualExpenses);
+  // a failed participants lookup only rejects, leaving the store error unset.
+  fetchExpenseParticipants: async (userId) => {
+    await get().fetchIndividualExpenses(userId);
+    return getUserExpenseParticipants(userId, get().individualExpenses);
   },
 });

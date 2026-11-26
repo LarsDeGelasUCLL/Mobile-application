@@ -7,3 +7,4 @@ type Story = StoryObj<typeof Spinner>;
 
 export const Small: Story = { args: { size: 'small' } };
 export const Large: Story = { args: { size: 'large' } };
+export const Muted: Story = { args: { size: 'small', tone: 'muted' } };

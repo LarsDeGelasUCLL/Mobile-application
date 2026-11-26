@@ -1,0 +1,90 @@
+import { View } from "react-native";
+import {
+  Avatar,
+  Card,
+  Divider,
+  Row,
+  SectionHeader,
+  Stack,
+  StyledButton,
+  Text,
+} from "../../../components/primitives";
+import { memberName } from "../memberName";
+import type { MembershipDto } from "../../../types";
+import { makeStyles } from "../../../theme/ThemeProvider";
+import { useI18n } from "../../../i18n";
+import { formatDate } from "../../../utils/dates";
+
+interface JoinRequestListProps {
+  requests: MembershipDto[];
+  isLoading: boolean;
+  onRespond: (membershipId: string, approve: boolean) => void;
+  testID?: string;
+}
+
+/** "JOIN REQUESTS": one card, an approve/reject pair per request (admins);
+ * nothing when there are none. */
+export function JoinRequestList({
+  requests,
+  isLoading,
+  onRespond,
+  testID,
+}: JoinRequestListProps) {
+  const styles = useStyles();
+  const { t, locale } = useI18n();
+  if (requests.length === 0) return null;
+  // Not `CardList`: each request keeps a gap above and below its divider.
+  return (
+    <Stack gap="sm" testID={testID}>
+      <SectionHeader title={t("groups.requests.title")} count={requests.length} />
+      <Card>
+        <Stack gap="md">
+          {requests.map((request, index) => (
+            <Stack gap="sm" key={request.id}>
+              {index > 0 && <Divider />}
+              <Row gap="sm" align="center">
+                <Avatar
+                  name={memberName(request, t)}
+                  uri={request.userProfile?.profilePictureUrl ?? undefined}
+                  size="sm"
+                />
+                <Stack gap="none" flex={1}>
+                  <Text weight="medium">{memberName(request, t)}</Text>
+                  <Text size="sm" tone="muted">
+                    {t("groups.requests.requestedOn", {
+                      date: formatDate(request.joinedAt, locale),
+                    })}
+                  </Text>
+                </Stack>
+              </Row>
+              <Row gap="sm">
+                <View style={styles.buttonColumn}>
+                  <StyledButton
+                    label={t("groups.requests.approve")}
+                    onPress={() => onRespond(request.id, true)}
+                    variant="secondary"
+                    isLoading={isLoading}
+                    testID={`join-request-approve-${request.id}`}
+                  />
+                </View>
+                <View style={styles.buttonColumn}>
+                  <StyledButton
+                    label={t("groups.requests.reject")}
+                    onPress={() => onRespond(request.id, false)}
+                    variant="secondary"
+                    isLoading={isLoading}
+                    testID={`join-request-reject-${request.id}`}
+                  />
+                </View>
+              </Row>
+            </Stack>
+          ))}
+        </Stack>
+      </Card>
+    </Stack>
+  );
+}
+
+const useStyles = makeStyles(() => ({
+  buttonColumn: { flex: 1 },
+}));

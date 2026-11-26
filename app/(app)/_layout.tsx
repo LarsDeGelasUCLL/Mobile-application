@@ -1,103 +1,69 @@
-import { StyleSheet } from "react-native";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Stack } from "expo-router";
+import { useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { useI18n } from "../../src/i18n";
 import { useAuthStore } from "../../src/state/useAuthStore";
-import { Icon } from "../../src/components/primitives";
-import { colors } from "../../src/theme/colors";
+import { useSettingsStore } from "../../src/state/useSettingsStore";
+import { SessionRestore } from "../../src/features/auth/components/SessionRestore";
 
+/**
+ * Layout for every signed-in page: waits for the session restore, sends
+ * signed-out users to /login, loads the user's settings, and declares the
+ * stack of pages.
+ */
 export default function AppLayout() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { t } = useI18n();
+  const { isAuthenticated, isInitialized, isLoading, initialize, userId } =
+    useAuthStore(
+      useShallow((state) => ({
+        isAuthenticated: state.isAuthenticated,
+        isInitialized: state.isInitialized,
+        isLoading: state.isLoading,
+        initialize: state.initialize,
+        userId: state.user?.id,
+      })),
+    );
+  const fetchSettings = useSettingsStore((state) => state.fetchSettings);
+
+  // Loads the saved theme app-wide; on failure the app follows the device (Settings shows the error).
+  useEffect(() => {
+    if (userId) void fetchSettings(userId).catch(() => undefined);
+  }, [userId, fetchSettings]);
+
+  if (!isInitialized) {
+    return (
+      <SessionRestore
+        variant="banner"
+        isLoading={isLoading}
+        onRetry={() => void initialize()}
+        failedMessage={t(
+          isAuthenticated
+            ? "app.session.profileFailed"
+            : "app.session.restoreFailed",
+        )}
+      />
+    );
+  }
 
   if (!isAuthenticated) {
     return <Redirect href="/login" />;
   }
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: styles.tabBar,
-        headerStyle: styles.header,
-        headerTitleStyle: styles.headerTitle,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarButtonTestID: "tab-home",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "home" : "home-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="groups"
-        options={{
-          title: "Groups",
-          tabBarButtonTestID: "tab-groups",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "people" : "people-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarButtonTestID: "tab-settings",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "settings" : "settings-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarButtonTestID: "tab-profile",
-          tabBarIcon: ({ focused }) => (
-            <Icon
-              name={focused ? "person" : "person-outline"}
-              size={24}
-              color={focused ? colors.primary : colors.muted}
-            />
-          ),
-        }}
-      />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="settings/index" />
+      <Stack.Screen name="settings/profile" />
+      <Stack.Screen name="settings/email" />
+      <Stack.Screen name="settings/password" />
+      <Stack.Screen name="group/create" />
+      <Stack.Screen name="group/join" />
+      <Stack.Screen name="group/[groupId]/index" />
+      <Stack.Screen name="group/[groupId]/settings" />
+      <Stack.Screen name="group/[groupId]/expenses" />
+      <Stack.Screen name="expense/create" />
+      <Stack.Screen name="expense/[expenseId]" />
+      <Stack.Screen name="expense/edit/[expenseId]" />
+    </Stack>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    height: 64,
-    paddingBottom: 8,
-    paddingTop: 6,
-  },
-  header: {
-    backgroundColor: colors.surface,
-  },
-  headerTitle: {
-    fontWeight: "700",
-    color: colors.text,
-  },
-});

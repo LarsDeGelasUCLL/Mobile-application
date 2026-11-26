@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Lumin",
-    "slug": "lumin",
+    "name": "Laruna",
+    "slug": "laruna",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "lumin",
+    "scheme": "laruna",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -20,14 +20,21 @@
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/icon.png",
-      "name": "Lumin",
-      "shortName": "Lumin",
+      "name": "Laruna",
+      "shortName": "Laruna",
       "lang": "en",
       "themeColor": "#ffffff",
       "backgroundColor": "#ffffff",
       "display": "standalone"
     },
-    "plugins": ["expo-router", "expo-asset", "expo-font", "expo-status-bar"],
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      "expo-font",
+      "expo-status-bar",
+      "expo-splash-screen",
+      "expo-localization"
+    ],
     "experiments": {
       "typedRoutes": true
     }

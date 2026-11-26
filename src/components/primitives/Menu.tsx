@@ -1,5 +1,6 @@
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text } from "./Text";
+import { makeStyles } from "../../theme/ThemeProvider";
 
 interface MenuItem {
   label: string;
@@ -10,23 +11,33 @@ interface MenuProps {
   items: MenuItem[];
   visible: boolean;
   onClose: () => void;
+  testID?: string;
 }
 
-export function Menu({ items, visible, onClose }: MenuProps) {
+/**
+ * A small dropdown anchored top right, under the header. A transparent
+ * overlay behind it closes it on an outside tap; choosing an item closes it too.
+ */
+export function Menu({ items, visible, onClose, testID }: MenuProps) {
+  const styles = useStyles();
   if (!visible) return null;
 
   return (
     <>
       <Pressable onPress={onClose} style={styles.overlay} />
-      <View style={styles.menu}>
+      <View style={styles.menu} testID={testID}>
         {items.map((item) => (
           <Pressable
             key={item.label}
+            accessibilityRole="menuitem"
             onPress={() => {
               item.onPress();
               onClose();
             }}
-            style={styles.menuItem}
+            style={({ pressed }) => [
+              styles.menuItem,
+              pressed && styles.pressed,
+            ]}
           >
             <Text size="md">{item.label}</Text>
           </Pressable>
@@ -36,7 +47,7 @@ export function Menu({ items, visible, onClose }: MenuProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   overlay: {
     position: "absolute",
     top: 0,
@@ -48,19 +59,20 @@ const styles = StyleSheet.create({
   menu: {
     position: "absolute",
     top: 48,
-    right: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
+    right: t.spacing.lg,
+    backgroundColor: t.colors.surface,
+    borderRadius: t.radius.sm,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: t.colors.border,
     minWidth: 160,
     zIndex: 20,
     overflow: "hidden",
   },
   menuItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: t.spacing.md,
+    paddingHorizontal: t.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: t.colors.border,
   },
-});
+  pressed: { backgroundColor: t.colors.surfaceTint },
+}));

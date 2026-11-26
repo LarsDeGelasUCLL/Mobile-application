@@ -1,89 +1,90 @@
-import { useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { router } from "expo-router";
-import { useAuthStore } from "../src/state/useAuthStore";
-import { BrandHeader } from "../src/features/auth/components/BrandHeader";
-import { StyledButton } from "../src/components/common/StyledButton";
-import { colors } from "../src/theme/colors";
-import {
-  Card,
-  InputField,
-  Screen,
-  Stack,
-  Text,
-} from "../src/components/primitives";
+import { Row, Stack, StyledButton, Text } from "../src/components/primitives";
+import { AuthScreen } from "../src/features/auth/components/AuthScreen";
+import { ConfirmationPanel } from "../src/features/auth/components/ConfirmationPanel";
+import { LoginForm } from "../src/features/auth/components/LoginForm";
+import { ResetForm } from "../src/features/auth/components/ResetForm";
+import { SessionRestore } from "../src/features/auth/components/SessionRestore";
+import { SetPasswordForm } from "../src/features/auth/components/SetPasswordForm";
+import { SignupForm } from "../src/features/auth/components/SignupForm";
+import { useLoginPage } from "../src/features/auth/useLoginPage";
+import { useI18n } from "../src/i18n";
 
+/** `/login`: log in, sign up, password reset, set new password and email confirmation, one mode at a time. */
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const { login, isLoading } = useAuthStore();
+  const { t } = useI18n();
+  const page = useLoginPage();
+  const { mode, switchMode, fieldProps, backToLogin } = page;
 
-  const handleLogin = async () => {
-    setError("");
-    try {
-      await login({ email, password });
-      router.replace("/");
-    } catch {
-      setError("Login failed. Check your credentials.");
-    }
-  };
+  if (!page.isInitialized) {
+    return (
+      <SessionRestore
+        variant="card"
+        isLoading={page.isLoading}
+        onRetry={page.retryRestore}
+        testID="auth-bootstrap"
+      />
+    );
+  }
 
   return (
-    <Screen padding="lg">
-      <View style={styles.container} testID="login-screen">
-        <BrandHeader
-          title="Appname, To Be Determined"
-          testID="login-brand-header"
-        />
-        <Card>
-          <Stack gap="lg" padding="md">
-            <Stack gap="sm" align="center">
-              <Text size="sm" weight="bold" color={colors.primary}>
-                Your trusted group activity planner
-              </Text>
-              <Text size="xl" weight="bold" align="center">
-                Welcome back
-              </Text>
-              <Text size="sm" align="center" color={colors.muted}>
-                Log in to pick up where your group left off.
-              </Text>
-            </Stack>
-
-            <InputField
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              testID="email-input"
-            />
-
-            <InputField
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              secureTextEntry
-              testID="password-input"
-              error={error !== "" ? error : undefined}
-            />
-
+    <AuthScreen
+      testID="login-screen"
+      belowCard={
+        mode === "login" ? (
+          <Row justify="center" align="center" gap="none">
+            <Text size="sm" tone="muted">
+              {t("auth.login.newHere")}
+            </Text>
             <StyledButton
-              label="Log in"
-              onPress={handleLogin}
-              isLoading={isLoading}
-              testID="login-button"
+              label={t("auth.login.createAccount")}
+              onPress={() => switchMode("signup")}
+              variant="link"
+              testID="signup-button"
             />
-          </Stack>
-        </Card>
-      </View>
-    </Screen>
+          </Row>
+        ) : null
+      }
+    >
+      <Stack gap="lg" padding="md">
+        <Text size="xxl" weight="bold" align="center">
+          {page.title}
+        </Text>
+        {mode === "login" ? (
+          <LoginForm
+            {...fieldProps}
+            onLoggedIn={page.goHome}
+            onForgotPassword={() => switchMode("reset")}
+          />
+        ) : null}
+        {mode === "signup" ? (
+          <SignupForm
+            {...fieldProps}
+            onSignedUp={page.goHome}
+            onConfirmationRequired={page.requireConfirmation}
+            onBackToLogin={backToLogin}
+          />
+        ) : null}
+        {mode === "reset" ? (
+          <ResetForm
+            {...fieldProps}
+            initialError={page.linkError}
+            onBackToLogin={backToLogin}
+          />
+        ) : null}
+        {mode === "set-password" ? (
+          <SetPasswordForm
+            {...fieldProps}
+            onRequestReset={() => switchMode("reset")}
+            onBackToLogin={backToLogin}
+          />
+        ) : null}
+        {mode === "confirmation" ? (
+          <ConfirmationPanel
+            email={page.confirmationEmail}
+            onBackToLogin={backToLogin}
+          />
+        ) : null}
+      </Stack>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-  },
-});

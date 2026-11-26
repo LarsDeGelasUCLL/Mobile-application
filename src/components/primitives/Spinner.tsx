@@ -1,16 +1,26 @@
-import { ActivityIndicator, StyleSheet } from "react-native";
+import { ActivityIndicator } from "react-native";
+import { useTheme } from "../../theme/ThemeProvider";
+import { toneColor, type Tone } from "../../theme/tone";
 
 interface SpinnerProps {
   size?: "small" | "large";
-  color?: string;
+  tone?: Tone;
+  testID?: string;
 }
 
-export function Spinner({ size = "small", color = "#2563EB" }: SpinnerProps) {
-  return <ActivityIndicator size={size} color={color} style={styles.base} />;
+/** A themed activity indicator. */
+export function Spinner({
+  size = "small",
+  tone = "primary",
+  testID,
+}: SpinnerProps) {
+  const { colors } = useTheme();
+  return (
+    <ActivityIndicator
+      size={size}
+      color={toneColor(colors, tone)}
+      style={{ padding: 4 }}
+      testID={testID}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    padding: 4,
-  },
-});
