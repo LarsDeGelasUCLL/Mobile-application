@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { Avatar } from "./Avatar";
 import { Text } from "./Text";
+import { useI18n } from "../../i18n";
 import { makeStyles } from "../../theme/ThemeProvider";
 import { describeBalance } from "../../utils/money";
 
@@ -20,14 +21,16 @@ export function BalanceRow({
   testID,
 }: BalanceRowProps) {
   const styles = useStyles();
-  const balance = describeBalance(amount);
+  const { t, locale } = useI18n();
+  const balance = describeBalance(amount, locale);
+  const label = t(balance.labelKey);
 
   return (
     <View
       style={styles.base}
       testID={testID}
       accessible
-      accessibilityLabel={`${name} ${balance.label} ${balance.amount}`}
+      accessibilityLabel={`${name} ${label} ${balance.amount}`}
     >
       <Avatar name={name} uri={avatarUri} size="sm" />
       <View style={styles.name}>
@@ -40,7 +43,7 @@ export function BalanceRow({
           {balance.amount}
         </Text>
         <Text size="xs" tone={balance.tone} align="right">
-          {balance.label}
+          {label}
         </Text>
       </View>
     </View>

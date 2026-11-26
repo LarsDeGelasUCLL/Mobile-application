@@ -1,4 +1,5 @@
 import { ListRow } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { formatCurrency } from "../../../utils/money";
 import type { ExpenseDto } from "../../../types";
 
@@ -10,12 +11,13 @@ interface ExpenseRowProps {
 
 /** One expense (group or personal): title, payer, amount; opens its detail. */
 export function ExpenseRow({ expense, onOpen }: ExpenseRowProps) {
+  const { locale } = useI18n();
   return (
     <ListRow
       icon="receipt-outline"
       label={expense.title}
       description={`Paid by ${expense.paidByProfile?.displayName ?? "A participant"}`}
-      value={formatCurrency(expense.amount)}
+      value={formatCurrency(expense.amount, locale)}
       onPress={() => onOpen(expense.id)}
       testID={`expense-row-${expense.id}`}
     />

@@ -1,8 +1,9 @@
 import { firstRender } from '../support/timeouts';
 
-// Same format as the app's formatCurrency (browser locale, EUR).
+// Same format as the app's formatCurrency in English (en-GB, EUR); the test
+// account's language is en.
 const euro = (amount: number) =>
-  new Intl.NumberFormat(undefined, {
+  new Intl.NumberFormat('en-GB', {
     style: 'currency',
     currency: 'EUR',
   }).format(amount);

@@ -5,6 +5,7 @@ import {
   StyledButton,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { formatCurrency } from "../../../utils/money";
 import type { ExpenseSplitDto } from "../../../types";
 
@@ -27,6 +28,7 @@ export function SplitRow({
   onToggleSettled,
   testID,
 }: SplitRowProps) {
+  const { locale } = useI18n();
   return (
     <Card testID={testID}>
       <Row justify="space-between" align="center">
@@ -40,7 +42,7 @@ export function SplitRow({
           </Text>
         </Stack>
         <Stack gap="sm" align="flex-end">
-          <Text weight="bold">{formatCurrency(split.amountOwed)}</Text>
+          <Text weight="bold">{formatCurrency(split.amountOwed, locale)}</Text>
           {canSettle ? (
             <StyledButton
               label={split.isSettled ? "Unsettle" : "Settle"}

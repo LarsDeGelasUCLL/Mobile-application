@@ -11,6 +11,10 @@ export const en = {
   "common.choose": "Choose…",
   "common.opensOptions": "Opens a list of options",
 
+  "balance.getsBack": "gets back",
+  "balance.owes": "owes",
+  "balance.settledUp": "settled up",
+
   // Server messages (`RAISE EXCEPTION`), English text verbatim: errors.ts maps by it.
   "errors.server.authenticationRequired": "Authentication required",
   "errors.server.profileNotFound": "Profile not found",

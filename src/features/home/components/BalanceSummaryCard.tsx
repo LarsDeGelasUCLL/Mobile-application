@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Card, Row, Skeleton, Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { makeStyles } from "../../../theme/ThemeProvider";
 import { describeBalance } from "../../../utils/money";
 
@@ -21,9 +22,10 @@ export function BalanceSummaryCard({
   testID,
 }: BalanceSummaryCardProps) {
   const styles = useStyles();
+  const { locale } = useI18n();
   const balances = [
-    { label: "You get back", balance: describeBalance(youAreOwed) },
-    { label: "You owe", balance: describeBalance(-youOwe) },
+    { label: "You get back", balance: describeBalance(youAreOwed, locale) },
+    { label: "You owe", balance: describeBalance(-youOwe, locale) },
   ];
   return (
     <Card>

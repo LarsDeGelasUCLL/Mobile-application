@@ -12,6 +12,8 @@ import {
 import { memberName } from "../memberName";
 import type { MembershipDto } from "../../../types";
 import { makeStyles } from "../../../theme/ThemeProvider";
+import { useI18n } from "../../../i18n";
+import { formatDate } from "../../../utils/dates";
 
 interface JoinRequestListProps {
   requests: MembershipDto[];
@@ -29,6 +31,7 @@ export function JoinRequestList({
   testID,
 }: JoinRequestListProps) {
   const styles = useStyles();
+  const { locale } = useI18n();
   if (requests.length === 0) return null;
   // Not `CardList`: each request keeps a gap above and below its divider.
   return (
@@ -48,7 +51,7 @@ export function JoinRequestList({
                 <Stack gap="none" flex={1}>
                   <Text weight="medium">{memberName(request)}</Text>
                   <Text size="sm" tone="muted">
-                    Requested {new Date(request.joinedAt).toLocaleDateString()}
+                    Requested {formatDate(request.joinedAt, locale)}
                   </Text>
                 </Stack>
               </Row>

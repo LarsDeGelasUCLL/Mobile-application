@@ -10,6 +10,10 @@ export const nl: Dictionary = {
   "common.choose": "Kies…",
   "common.opensOptions": "Opent een lijst met opties",
 
+  "balance.getsBack": "krijgt terug",
+  "balance.owes": "moet betalen",
+  "balance.settledUp": "verrekend",
+
   // Server messages (`RAISE EXCEPTION`).
   "errors.server.authenticationRequired": "Je moet aangemeld zijn",
   "errors.server.profileNotFound": "Profiel niet gevonden",

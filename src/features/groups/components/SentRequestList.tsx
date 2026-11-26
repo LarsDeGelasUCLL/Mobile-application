@@ -5,7 +5,9 @@ import {
   StyledButton,
   Text,
 } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import type { GroupJoinRequestDto } from "../../../types";
+import { formatDate } from "../../../utils/dates";
 
 interface SentRequestListProps {
   requests: GroupJoinRequestDto[];
@@ -21,6 +23,7 @@ export function SentRequestList({
   onCancel,
   testID,
 }: SentRequestListProps) {
+  const { locale } = useI18n();
   if (requests.length === 0) return null;
   // Not `CardList`: each request keeps a gap above and below its divider.
   return (
@@ -34,7 +37,7 @@ export function SentRequestList({
           {index > 0 && <Divider />}
           <Text weight="bold">{request.group.name}</Text>
           <Text size="sm" tone="muted">
-            Requested {new Date(request.requestedAt).toLocaleDateString()}
+            Requested {formatDate(request.requestedAt, locale)}
           </Text>
           <StyledButton
             label="Cancel request"
