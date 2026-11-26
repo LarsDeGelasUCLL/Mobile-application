@@ -13,6 +13,7 @@ import { useColorScheme } from "react-native";
 import { useAuthStore } from "../src/state/useAuthStore";
 import { useSettingsStore } from "../src/state/useSettingsStore";
 import { ServiceWorkerNotice } from "../src/features/app/components/ServiceWorkerNotice";
+import { useDocumentLanguage } from "../src/features/app/useDocumentLanguage";
 import { useNavigationTheme } from "../src/features/app/useNavigationTheme";
 import { useServiceWorker } from "../src/features/app/useServiceWorker";
 import { useWebThemeColor } from "../src/features/app/useWebThemeColor";
@@ -46,6 +47,7 @@ export default function RootLayout() {
   useAuthDeepLinks();
   const serviceWorker = useServiceWorker();
   useWebThemeColor(scheme);
+  useDocumentLanguage();
 
   if (!fontsReady) return null;
 

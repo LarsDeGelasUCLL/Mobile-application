@@ -2,6 +2,8 @@ import React from "react";
 import type { Preview } from "@storybook/react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { isLanguage, languages } from "../src/i18n/languages";
+import { useLanguageStore } from "../src/state/language/useLanguageStore";
 import { ThemeProvider } from "../src/theme/ThemeProvider";
 import { paletteFor } from "../src/theme/palettes";
 import { fontFamily } from "../src/theme/tokens";
@@ -36,10 +38,26 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    language: {
+      description: "App language",
+      toolbar: {
+        title: "Language",
+        icon: "globe",
+        items: Object.entries(languages).map(([value, { label }]) => ({
+          value,
+          title: label,
+        })),
+        dynamicTitle: true,
+      },
+    },
   },
-  initialGlobals: { theme: "light" },
+  initialGlobals: { theme: "light", language: "en" },
   decorators: [
     (Story, context) => {
+      const language = context.globals.language;
+      useLanguageStore
+        .getState()
+        .setLanguage(isLanguage(language) ? language : "en");
       const scheme = context.globals.theme === "dark" ? "dark" : "light";
       const palette = paletteFor(scheme);
       document.body.style.backgroundColor = palette.background;
