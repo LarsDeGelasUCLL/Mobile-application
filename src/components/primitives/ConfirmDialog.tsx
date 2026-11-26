@@ -6,7 +6,7 @@ import { useI18n } from "../../i18n";
 
 interface ConfirmDialogProps {
   visible: boolean;
-  /** Name the object: "Leave 'Weekend Ghent'?" (design §4). */
+  /** Name the object: "Leave 'Weekend Ghent'?". */
   title: string;
   message?: string;
   confirmLabel: string;
@@ -19,6 +19,7 @@ interface ConfirmDialogProps {
   testID?: string;
 }
 
+/** A centred modal that asks to confirm an action. Tapping the scrim cancels. */
 export function ConfirmDialog({
   visible,
   title,

@@ -14,6 +14,7 @@ interface ScreenProps {
   padding?: "none" | "sm" | "md" | "lg";
   scrollable?: boolean;
   refreshing?: boolean;
+  /** Enables pull to refresh (scrollable screens only). */
   onRefresh?: () => void;
   /** Sticky bottom bar (primary action). Stays above the keyboard. */
   footer?: React.ReactNode;
@@ -24,6 +25,10 @@ interface ScreenProps {
 const keyboardDismissMode: ScrollViewProps["keyboardDismissMode"] =
   Platform.select({ ios: "interactive", android: "on-drag", default: "none" });
 
+/**
+ * The page body under the header: themed background, padding, scrolling,
+ * keyboard handling and an optional sticky footer.
+ */
 export function Screen({
   children,
   padding = "md",
@@ -50,12 +55,14 @@ export function Screen({
   return (
     <KeyboardAvoidingView
       style={styles.container}
+      // iOS handles the keyboard with automaticallyAdjustKeyboardInsets below.
       behavior={Platform.OS === "android" ? "height" : undefined}
       testID={testID}
     >
       <ScrollView
         style={styles.fill}
         contentContainerStyle={[styles.content, styles[padding]]}
+        // A tap on a button while the keyboard is open presses it instead of only closing the keyboard.
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={keyboardDismissMode}
         automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}

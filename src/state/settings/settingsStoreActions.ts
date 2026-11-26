@@ -2,6 +2,10 @@ import { getUserSettings, updateUserSettings } from "../../services";
 import type { SettingsActionCreator } from "./settingsStoreTypes";
 import { errorMessage } from "../../i18n";
 
+/**
+ * The settings store's actions. Fetch and update set a translated `error`
+ * and also rethrow, so the caller can react too.
+ */
 export const createSettingsActions: SettingsActionCreator = (set) => ({
   fetchSettings: async (userId) => {
     set({ isLoading: true, error: null });
@@ -32,6 +36,7 @@ export const createSettingsActions: SettingsActionCreator = (set) => ({
     }
   },
 
+  // On logout.
   resetSettings: () =>
     set({
       settings: null,

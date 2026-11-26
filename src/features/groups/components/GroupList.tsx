@@ -34,6 +34,7 @@ export function GroupList({ testID, ...props }: GroupListProps) {
   );
 }
 
+/** The list's content for the current load state. */
 function GroupListBody({
   groups,
   joinRequestCounts,

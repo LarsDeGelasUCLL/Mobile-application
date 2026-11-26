@@ -5,6 +5,7 @@ import type {
   UserGroupDto,
 } from "../../types";
 
+// UI-side mirror of the server rules (RLS), to show or hide actions.
 type PermissionUser = Pick<User, "id"> | null;
 
 /** Edit and delete: a group admin of the expense's group, its creator, or its payer. */

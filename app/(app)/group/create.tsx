@@ -14,6 +14,7 @@ import { useGroupStore } from "../../../src/state/useGroupStore";
 import { validateGroupName } from "../../../src/features/groups/groupValidation";
 import { useI18n, type TranslationKey } from "../../../src/i18n";
 
+/** Create a group (`/group/create`); opens the new group after saving. */
 export default function CreateGroupScreen() {
   const { t } = useI18n();
   const user = useAuthStore((state) => state.user);

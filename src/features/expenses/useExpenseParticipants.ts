@@ -7,6 +7,7 @@ import { useGroupStore } from "../../state/useGroupStore";
 import type { TranslationKey } from "../../i18n";
 import type { PublicUserProfileDto } from "../../types";
 
+/** The message shown when loading participants fails. */
 export const participantsErrorFallback: TranslationKey =
   "errors.fallback.loadParticipants";
 

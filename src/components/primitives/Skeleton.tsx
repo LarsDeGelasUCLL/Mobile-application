@@ -9,6 +9,7 @@ interface SkeletonProps {
   testID?: string;
 }
 
+/** A pulsing placeholder block; holds still when the OS asks for reduced motion. */
 export function Skeleton({
   width = "100%",
   height = 16,
@@ -19,6 +20,7 @@ export function Skeleton({
   const [opacity] = useState(() => new Animated.Value(1));
   const [reduceMotion, setReduceMotion] = useState(false);
 
+  // Follow the reduce-motion setting, also when it changes while mounted.
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion, () => {});
     const sub = AccessibilityInfo.addEventListener(
@@ -38,6 +40,7 @@ export function Skeleton({
         Animated.timing(opacity, {
           toValue: 0.4,
           duration: 800,
+          // The native driver does not exist on web.
           useNativeDriver: Platform.OS !== "web",
         }),
         Animated.timing(opacity, {

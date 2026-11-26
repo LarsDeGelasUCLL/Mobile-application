@@ -38,6 +38,7 @@ export function RecentExpensesSection({
   );
 }
 
+/** The section's content for the current load state. */
 function RecentExpensesBody({
   expenses,
   isLoading,

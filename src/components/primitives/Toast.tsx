@@ -10,6 +10,7 @@ interface ToastProps {
   testID?: string;
 }
 
+/** A message pinned to the bottom of its parent, announced politely to screen readers. */
 export function Toast({
   message,
   variant = "default",

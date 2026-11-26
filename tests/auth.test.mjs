@@ -1,3 +1,5 @@
+// Unit tests for auth: login modes and links, validation, the auth service and the auth store.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule, serviceDeps } from "./support/loadModule.mjs";

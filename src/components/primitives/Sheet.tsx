@@ -25,7 +25,7 @@ export function Sheet({
   const { spacing } = useTheme();
   const { bottom } = useSafeAreaInsets();
 
-  // Fade, not slide: low motion (design §3.3) and the scrim does not slide with the panel.
+  // Fade, not slide: less motion, and the scrim does not slide in with the panel.
   return (
     <Modal
       visible={visible}
@@ -44,6 +44,7 @@ export function Sheet({
         <View
           style={[
             styles.panel,
+            // Keep content above the home indicator / gesture bar.
             { paddingBottom: Math.max(bottom, spacing.lg) },
           ]}
           accessibilityViewIsModal

@@ -10,6 +10,7 @@ interface RowProps {
   testID?: string;
 }
 
+/** Lays out children horizontally with a token gap. */
 export function Row({
   children,
   gap = "none",

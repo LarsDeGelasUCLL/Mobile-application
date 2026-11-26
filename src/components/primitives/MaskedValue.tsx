@@ -29,6 +29,7 @@ export function MaskedValue({
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Show "Copied" for 2 seconds after a copy.
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), 2000);
@@ -86,6 +87,7 @@ export function MaskedValue({
   );
 }
 
+/** One of the reveal / copy / share buttons under the value. */
 function Action({
   icon,
   label,

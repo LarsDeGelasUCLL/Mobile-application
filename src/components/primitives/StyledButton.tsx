@@ -10,7 +10,7 @@ interface StyledButtonProps {
   label: string;
   onPress: () => void;
   /**
-   * Max one `primary` per screen (design §4). `danger` = destructive confirm.
+   * Max one `primary` per screen. `danger` = destructive confirm.
    * `link` = low-emphasis text link ("Forgot password?"), sized to its text.
    */
   variant?: Variant;
@@ -26,6 +26,7 @@ const toneByVariant: Record<Variant, Tone> = {
   link: "primary",
 };
 
+/** The app's text button; shows a spinner and blocks presses while `isLoading`. */
 export function StyledButton({
   label,
   onPress,

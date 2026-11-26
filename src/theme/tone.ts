@@ -25,6 +25,7 @@ const paletteKeyByTone: Record<Tone, keyof Palette> = {
   warning: "warning",
 };
 
+/** The palette colour for `tone` in the current palette. */
 export function toneColor(colors: Palette, tone: Tone): string {
   return colors[paletteKeyByTone[tone]];
 }

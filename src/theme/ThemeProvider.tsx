@@ -12,6 +12,7 @@ import {
   typeScale,
 } from "./tokens";
 
+/** Everything `makeStyles` and `useTheme` hand to components: colours plus the shared tokens. */
 export interface Theme {
   colors: Palette;
   spacing: typeof spacing;
@@ -41,6 +42,7 @@ const darkTheme: Theme = { ...lightTheme, colors: darkPalette, scheme: "dark" };
 // Default value lets primitives render outside the provider (Storybook).
 const ThemeContext = createContext<Theme>(lightTheme);
 
+/** Provides the light or dark theme to everything below it. */
 export function ThemeProvider({
   children,
   scheme = "light",
@@ -56,6 +58,7 @@ export function ThemeProvider({
   );
 }
 
+/** The current theme, for values a stylesheet cannot hold (icon colours, inline styles). */
 export function useTheme() {
   return useContext(ThemeContext);
 }
@@ -66,6 +69,7 @@ export function makeStyles<T extends Parameters<typeof StyleSheet.create>[0]>(
 ) {
   return function useStyles() {
     const theme = useTheme();
+    // Rebuild the stylesheet only when the theme (light/dark) changes.
     return useMemo(() => StyleSheet.create(factory(theme)), [theme]);
   };
 }

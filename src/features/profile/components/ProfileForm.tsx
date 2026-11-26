@@ -19,6 +19,7 @@ interface ProfileFormProps {
   testID?: string;
 }
 
+/** What the parent can call through `ref`. */
 export interface ProfileFormHandle {
   submit: () => void;
 }

@@ -2,6 +2,8 @@ import { calculateGroupBalances, deleteExpense } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
 import { errorMessage, t } from "../../i18n";
 
+// Delete. Same error pattern as the create actions: a failed delete rethrows,
+// a failed balance refresh after it only sets a partial-success `error`.
 export const createExpenseDeleteActions: ExpenseActionCreator<
   "removeExpense"
 > = (set, get) => ({

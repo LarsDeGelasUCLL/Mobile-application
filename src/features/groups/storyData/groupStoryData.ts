@@ -17,6 +17,7 @@ const profile = (id: string, displayName: string): PublicUserProfileDto => ({
   recordCreated: "2026-01-01T12:00:00Z",
 });
 
+// A membership in group-1; without a profile the user id is made up.
 const membership = (
   id: string,
   userProfile: PublicUserProfileDto | undefined,
@@ -40,6 +41,7 @@ export const storyGroup = {
   description: "Trip costs for the weekend.",
 } satisfies Pick<GroupDto, "id" | "name" | "description">;
 
+// Sam is the admin; Bob has no profile, to show the fallback name.
 export const storyMembers = [
   membership("m-sam", profile("sam", "Sam"), "ADMIN", "ACTIVE"),
   membership("m-ann", profile("ann", "Ann"), "MEMBER", "ACTIVE"),
@@ -51,6 +53,7 @@ export const storyJoinRequests = [
   membership("r-max", profile("max", "Max"), "MEMBER", "REQUESTED"),
 ];
 
+// A group with only an id and name set.
 const group = (id: string, name: string): GroupDto => ({
   id,
   name,
@@ -61,6 +64,7 @@ const group = (id: string, name: string): GroupDto => ({
   recordCreated: "2026-01-01T12:00:00Z",
 });
 
+// `storyGroup` as a complete `GroupDto`.
 export const storyFullGroup: GroupDto = {
   ...group(storyGroup.id, storyGroup.name),
   ...storyGroup,
@@ -83,6 +87,7 @@ export const storyUserGroups: UserGroupDto[] = [
 
 export const storyJoinRequestCounts = { "group-1": 2 };
 
+// The second invite has no known inviter.
 export const storyInvites: GroupInviteDto[] = [
   {
     membershipId: "i-1",
@@ -123,6 +128,7 @@ const balance = (
   netBalance,
 });
 
+// Sam paid 30 for Ann and Bob, who each owe 15.
 export const storyBalances = [
   balance("sam", "Sam", 30),
   balance("ann", "Ann", -15),

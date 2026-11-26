@@ -13,6 +13,7 @@ interface CollapsibleSectionProps {
   testID?: string;
 }
 
+/** A card with a header that shows or hides its content. */
 export function CollapsibleSection({
   title,
   count,
@@ -25,7 +26,7 @@ export function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen);
   const heading = count !== undefined ? `${title} (${count})` : title;
 
-  // shortcut: instant toggle, no height animation; satisfies reduced motion. Animate in Phase 9 if wanted.
+  // shortcut: instant toggle, no height animation (so nothing to turn off for reduced motion); add one if the jump feels abrupt.
   return (
     <View style={styles.base} testID={testID}>
       <Pressable

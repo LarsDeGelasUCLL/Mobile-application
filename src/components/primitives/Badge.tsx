@@ -9,6 +9,7 @@ interface BadgeProps {
   testID?: string;
 }
 
+/** A small pill label, e.g. a role or status. */
 export function Badge({ label, variant = "default", testID }: BadgeProps) {
   const styles = useStyles();
   const tone: Tone = variant === "default" ? "primary" : variant;

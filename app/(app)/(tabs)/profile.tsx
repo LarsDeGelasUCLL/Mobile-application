@@ -14,7 +14,7 @@ import { useI18n } from "../../../src/i18n";
 
 const editProfile = () => router.push("/settings/profile");
 
-// Display only (design §6.5): every change happens in Settings.
+/** Profile tab (`/profile`). Display only: every change happens in Settings. */
 export default function ProfileScreen() {
   const { t } = useI18n();
   const user = useAuthStore((state) => state.user);

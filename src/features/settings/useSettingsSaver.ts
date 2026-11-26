@@ -42,6 +42,7 @@ export function useSettingsSaver() {
     void loadSettings();
   }, [loadSettings]);
 
+  // One save at a time; the change stays in `pendingSettings` until it is stored.
   const saveSettings = async (payload: UpdateUserSettingsDto) => {
     if (!userId || isSavingSettings) return;
     setPendingSettings(payload);

@@ -10,6 +10,7 @@ export type PluralKey = {
 
 export type TranslationParams = Record<string, string | number>;
 
+/** True when `value` is a key of the English (source) dictionary. */
 export function isTranslationKey(value: string): value is TranslationKey {
   return Object.hasOwn(dictionaries[DEFAULT_LANGUAGE], value);
 }
@@ -20,6 +21,10 @@ function pluralCategory(count: number): "one" | "other" {
   return count === 1 ? "one" : "other";
 }
 
+/**
+ * The dictionary key to use for `key`: its plural variant when `count` is a
+ * number, else the key itself, else its `_other` variant (a bare plural key).
+ */
 function templateKey(key: string, count: unknown): TranslationKey | undefined {
   if (typeof count === "number") {
     const variant = `${key}_${pluralCategory(count)}`;

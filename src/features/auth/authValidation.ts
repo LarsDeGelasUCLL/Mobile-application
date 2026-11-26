@@ -1,3 +1,5 @@
+// Client-side checks for the auth forms. Each returns the dictionary key of
+// the error to show, or undefined when the value is fine.
 import type { TranslationKey } from "../../i18n";
 
 export function validateEmail(email: string): TranslationKey | undefined {
@@ -5,6 +7,7 @@ export function validateEmail(email: string): TranslationKey | undefined {
   if (!value) {
     return "validation.emailRequired";
   }
+  // Rough shape check (x@y.z); Supabase does the real validation.
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
     return "validation.emailInvalid";
   }

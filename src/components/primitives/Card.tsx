@@ -9,6 +9,7 @@ interface CardProps {
   testID?: string;
 }
 
+/** A bordered surface. With `onPress` the whole card is a button. */
 export function Card({
   children,
   onPress,

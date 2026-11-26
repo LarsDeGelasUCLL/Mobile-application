@@ -13,6 +13,8 @@ import {
 } from "./expenseValidation";
 import { supabase } from "../supabase";
 
+// Expense writes. Also the entry point of the expenses service: the queries,
+// mappers and balance calculation are re-exported from here.
 export { mapRowToExpenseDto, mapRowToExpenseSplitDto } from "./expenseMappers";
 export {
   getUserExpenseParticipants,
@@ -22,6 +24,7 @@ export {
 } from "./expenseQueries";
 export { calculateGroupBalances } from "./expenseBalanceService";
 
+/** The signed-in user's id; throws when signed out. */
 async function getCurrentUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) {
@@ -32,6 +35,10 @@ async function getCurrentUserId(): Promise<string> {
   return data.user.id;
 }
 
+/**
+ * Validates the payload (same rules as the form) and creates the expense
+ * and its splits in one RPC, so both are saved or neither.
+ */
 export async function createExpense(
   payload: CreateExpenseDto,
 ): Promise<ExpenseDto> {
@@ -60,6 +67,7 @@ export async function createExpense(
   return expense;
 }
 
+/** Validates the payload and replaces the expense and its splits in one RPC. */
 export async function updateExpense(
   expenseId: string,
   payload: UpdateExpenseDto,
@@ -89,6 +97,10 @@ export async function updateExpense(
   return expense;
 }
 
+/**
+ * Marks a split paid or unpaid. Only `is_settled` may change; the split user
+ * or the payer may do it, but not on the payer's own split.
+ */
 export async function settleExpenseSplit(
   splitId: string,
   isSettled: boolean,
@@ -107,6 +119,7 @@ export async function settleExpenseSplit(
   return mapRowToExpenseSplitDto(data);
 }
 
+/** Deletes an expense (payer, creator or group admin). `.select().single()` makes a blocked delete fail. */
 export async function deleteExpense(expenseId: string): Promise<void> {
   const { error } = await supabase
     .from("expenses")

@@ -1,3 +1,5 @@
+// Unit tests for money and date formatting and the personal balance summary.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { importModule } from "./support/loadModule.mjs";

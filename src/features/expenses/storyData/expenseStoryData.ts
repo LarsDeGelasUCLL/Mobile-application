@@ -15,6 +15,7 @@ export const storyParticipants = [
   profile("bob", "Bob"),
 ];
 
+// Sam paid 45, split evenly over the three; Bob's share is already settled.
 export const storyExpense: ExpenseDto = {
   id: "expense-1",
   groupId: "group-1",

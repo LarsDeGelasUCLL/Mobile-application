@@ -1,13 +1,13 @@
 import type { PublicUserProfileDto } from "./User";
 
-// Response DTO: public.expense_splits
+// Response DTO: public.expense_splits. One person's share of an expense.
 export interface ExpenseSplitDto {
   id: string;
   expenseId: string;
   userId: string;
   amountOwed: number;
   isSettled: boolean;
-  userProfile?: PublicUserProfileDto;
+  userProfile?: PublicUserProfileDto; // filled in when the query joins the profile
 }
 
 // Response DTO: public.expenses
@@ -25,12 +25,13 @@ export interface ExpenseDto {
   splits: ExpenseSplitDto[];
 }
 
-// Input DTO for creating an expense split
+// Input DTO for one split when creating or updating an expense
 export interface CreateExpenseSplitInput {
   userId: string;
   amountOwed: number;
 }
 
+// Request DTO for editing an expense; the splits replace the old ones
 export interface UpdateExpenseDto {
   groupId: string | null;
   paidByUserId: string;
@@ -56,5 +57,5 @@ export interface UserBalanceDto {
   displayName: string;
   totalPaid: number;
   totalOwed: number;
-  netBalance: number; // Positive = user is owed money, Negative = user owes money
+  netBalance: number; // positive = user is owed money, negative = user owes money
 }

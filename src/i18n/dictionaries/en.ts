@@ -443,4 +443,5 @@ export const en = {
 
 };
 
+// The shape every other dictionary must match: the same keys, string values.
 export type Dictionary = Record<keyof typeof en, string>;

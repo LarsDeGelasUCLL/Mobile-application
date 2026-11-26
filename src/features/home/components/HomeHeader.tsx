@@ -5,6 +5,7 @@ interface HomeHeaderProps {
   testID?: string;
 }
 
+/** The top of the Home screen: the user's avatar and name. */
 export function HomeHeader({ name, testID }: HomeHeaderProps) {
   return (
     <Row justify="space-between" align="center" testID={testID}>

@@ -15,6 +15,7 @@ import { useGroupStore } from "../../../src/state/useGroupStore";
 import { validateInviteCode } from "../../../src/features/groups/groupValidation";
 import { useI18n, type TranslationKey } from "../../../src/i18n";
 
+/** Join a group with an invite code (`/group/join`). */
 export default function JoinGroupScreen() {
   const { t } = useI18n();
   const user = useAuthStore((state) => state.user);

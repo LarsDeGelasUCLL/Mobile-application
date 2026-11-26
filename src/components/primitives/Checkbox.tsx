@@ -10,6 +10,7 @@ interface CheckboxProps {
   testID?: string;
 }
 
+/** A labelled checkbox; the whole row is the tap target. */
 export function Checkbox({
   label,
   checked,

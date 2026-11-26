@@ -11,6 +11,7 @@ interface StackProps {
   testID?: string;
 }
 
+/** Lays out children vertically with a token gap and padding. */
 export function Stack({
   children,
   gap = "none",

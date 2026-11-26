@@ -1,3 +1,4 @@
+// Public API of the i18n module; import from here, not from the files inside.
 export {
   DEFAULT_LANGUAGE,
   intlLocale,

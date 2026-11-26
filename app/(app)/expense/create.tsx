@@ -17,6 +17,7 @@ import {
 import { ExpenseFormSkeleton } from "../../../src/features/expenses/components/ExpenseFormSkeleton";
 import { useCreateExpense } from "../../../src/features/expenses/useCreateExpense";
 
+/** New expense (`/expense/create`, optional `groupId` param): personal without one, in that group with one. */
 export default function CreateExpenseScreen() {
   const { t } = useI18n();
   const { groupId: routeGroupId } = useLocalSearchParams<{

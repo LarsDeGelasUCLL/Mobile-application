@@ -1,3 +1,5 @@
+// Unit tests for the settings service, the settings store and the settings retry rule.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule, serviceDeps } from "./support/loadModule.mjs";

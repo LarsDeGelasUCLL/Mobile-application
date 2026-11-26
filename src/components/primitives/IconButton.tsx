@@ -12,6 +12,7 @@ interface IconButtonProps {
   testID?: string;
 }
 
+/** A round icon-only button with a full-size tap target. */
 export function IconButton({
   icon,
   accessibilityLabel,

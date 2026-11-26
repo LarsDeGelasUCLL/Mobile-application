@@ -8,10 +8,14 @@ import { transformAsync } from "@babel/core";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 
+// Storybook renders the React Native components in the browser through Vite.
+// React Native / Expo packages in node_modules ship untranspiled Flow and JSX,
+// so files matching this regex are run through Babel first.
 // `[\\/]`: esbuild passes Windows paths with backslashes.
 const REACT_NATIVE_PACKAGE_REGEX =
   /node_modules[\\/](react-native|@react-native|@expo|expo(-[a-z-]+)?)[\\/].*\.js$/;
 
+/** Strips Flow types and compiles JSX in a React Native package file. */
 const babelTransformReactNative = async (
   code: string,
   filename: string,
@@ -29,6 +33,7 @@ const babelTransformReactNative = async (
   return result?.code ?? code;
 };
 
+// Resolution order: platform `.web.*` files first.
 const WEB_EXTENSIONS = [
   ".web.tsx",
   ".web.ts",
@@ -52,6 +57,7 @@ type EsbuildPlugin = NonNullable<
   NonNullable<DepOptimizationOptions["esbuildOptions"]>["plugins"]
 >[number];
 
+// Transforms RN packages when Vite serves them...
 const reactNativeVitePlugin: Plugin = {
   name: "react-native-node-modules",
   enforce: "pre",
@@ -62,6 +68,7 @@ const reactNativeVitePlugin: Plugin = {
   },
 };
 
+// ...and when Vite pre-bundles dependencies with esbuild.
 const reactNativeEsbuildPlugin: EsbuildPlugin = {
   name: "react-native-flow-strip",
   setup(build) {
@@ -92,6 +99,7 @@ const config: StorybookConfig = {
       define: BUNDLER_GLOBALS,
       resolve: {
         alias: {
+          // Render React Native components with react-native-web.
           "react-native": "react-native-web",
           "node:async_hooks": fileURLToPath(
             new URL("./node-async-hooks.ts", import.meta.url),

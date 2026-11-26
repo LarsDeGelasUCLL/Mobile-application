@@ -8,6 +8,7 @@ interface ContainerProps {
   testID?: string;
 }
 
+/** A full-width box with optional flex and token padding. */
 export function Container({
   children,
   flex,

@@ -1,3 +1,8 @@
+/**
+ * Handles an auth email link URL: "unrelated" when it carries no code (an
+ * ordinary deep link), "completed" after signing in with its PKCE code, and
+ * "failed" for a broken URL, an error param or a rejected code.
+ */
 export async function exchangeAuthLinkCode(
   url: string,
   exchangeCode: (code: string) => Promise<{ error: unknown | null }>,

@@ -1,6 +1,7 @@
 import type { I18n } from "../../i18n";
 import type { PublicUserProfileDto, User } from "../../types";
 
+/** The signed-in user's public profile fields. */
 function currentUserProfile(user: User): PublicUserProfileDto {
   return {
     id: user.id,

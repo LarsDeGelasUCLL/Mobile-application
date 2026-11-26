@@ -13,6 +13,7 @@ import {
 import { validateEmail } from "../../../src/features/auth/authValidation";
 import { errorMessage, useI18n, type TranslationKey } from "../../../src/i18n";
 
+/** Change email (`/settings/email`): sends a confirmation link to the new address. */
 export default function ChangeEmailScreen() {
   const { t } = useI18n();
   const user = useAuthStore((state) => state.user);

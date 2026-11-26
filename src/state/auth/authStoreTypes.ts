@@ -11,9 +11,12 @@ import type {
 } from "../../types";
 
 export interface AuthState {
+  /** The signed-in user's profile; can be `null` while it loads even when authenticated. */
   user: User | null;
   isAuthenticated: boolean;
+  /** An auth call is running (disables forms). */
   isLoading: boolean;
+  /** The stored session has been checked and applied. */
   isInitialized: boolean;
   initialize: () => Promise<void>;
   login: (payload: LoginRequestDto) => Promise<void>;
@@ -28,6 +31,7 @@ export interface AuthState {
   updateProfile: (payload: UpdateUserProfileDto) => Promise<void>;
 }
 
+/** Typed creator for the actions only (the store adds the state fields). */
 export type AuthActionCreator = StateCreator<
   AuthState,
   [],

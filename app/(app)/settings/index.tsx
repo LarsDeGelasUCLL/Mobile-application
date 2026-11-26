@@ -18,6 +18,7 @@ import {
 } from "../../../src/components/primitives";
 import { useI18n } from "../../../src/i18n";
 
+/** Settings (`/settings`): account links, preferences, notifications and log out. */
 export default function SettingsScreen() {
   const { t } = useI18n();
   const email = useAuthStore((state) => state.user?.emailAddress);

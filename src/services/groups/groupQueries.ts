@@ -1,3 +1,5 @@
+// Read queries for groups and memberships. Each loads the memberships first,
+// then the groups or profiles they point to in one `in (...)` query.
 import type {
   GroupInviteDto,
   GroupJoinRequestDto,
@@ -10,6 +12,7 @@ import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
 import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+/** The groups the user is an active member of, with their role in each. */
 export async function getUserActiveGroups(
   userId: string,
 ): Promise<UserGroupDto[]> {
@@ -36,6 +39,7 @@ export async function getUserActiveGroups(
     throw new Error(groupsError?.message ?? "Could not load groups.");
   }
 
+  // flatMap skips a membership whose group could not be read.
   return memberships.flatMap((membership) => {
     const group = groups.find((item) => item.id === membership.group_id);
     return group
@@ -51,17 +55,19 @@ export async function getUserActiveGroups(
   });
 }
 
+/** A group's active members with their public profiles (pending invites excluded). */
 export function getGroupMembers(groupId: string): Promise<MembershipDto[]> {
   return getGroupMembershipsByStatus(groupId, "ACTIVE");
 }
 
-// RLS lets every active member read these rows; only admins can act on them.
+/** Open join requests for a group. RLS lets every active member read these rows; only admins can act on them. */
 export function getGroupJoinRequests(
   groupId: string,
 ): Promise<MembershipDto[]> {
   return getGroupMembershipsByStatus(groupId, "REQUESTED");
 }
 
+/** Memberships of a group with one status, each with the member's public profile if readable. */
 async function getGroupMembershipsByStatus(
   groupId: string,
   status: MembershipStatus,
@@ -98,6 +104,7 @@ async function getGroupMembershipsByStatus(
   });
 }
 
+/** Invites the user has not answered yet, with the group and who invited them. */
 export async function getUserPendingInvites(
   userId: string,
 ): Promise<GroupInviteDto[]> {
@@ -125,6 +132,7 @@ export async function getUserPendingInvites(
   if (groupsError) {
     throw new Error(groupsError.message);
   }
+  // Skip the query when no invite has a known inviter.
   const { data: inviters, error: invitersError } =
     inviterIds.length > 0
       ? await supabase
@@ -156,6 +164,7 @@ export async function getUserPendingInvites(
   });
 }
 
+/** Join requests the user sent that no admin has handled yet. */
 export async function getUserJoinRequests(
   userId: string,
 ): Promise<GroupJoinRequestDto[]> {
@@ -196,6 +205,7 @@ export async function getUserJoinRequests(
   });
 }
 
+/** Number of open join requests per group id, for the groups the user administers. */
 export async function getAdminJoinRequestCounts(
   adminGroupIds: string[],
 ): Promise<Record<string, number>> {

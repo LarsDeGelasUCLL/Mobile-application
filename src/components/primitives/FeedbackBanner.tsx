@@ -17,6 +17,7 @@ interface FeedbackBannerProps {
   testID?: string;
 }
 
+/** The app's status message (error, success, warning); announced to screen readers as an alert. */
 export function FeedbackBanner({
   message,
   tone,

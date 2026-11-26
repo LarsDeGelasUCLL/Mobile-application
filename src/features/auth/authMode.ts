@@ -1,5 +1,6 @@
 import type { TranslationKey } from "../../i18n";
 
+/** The forms the login page can show. */
 export type AuthMode =
   "login" | "signup" | "reset" | "set-password" | "confirmation";
 
@@ -12,6 +13,7 @@ export type AuthLinkParams = {
   error_code?: string;
 };
 
+/** The page title (a dictionary key) per mode. */
 export const AUTH_TITLES: Record<AuthMode, TranslationKey> = {
   login: "auth.title.login",
   signup: "auth.title.signup",
@@ -20,6 +22,7 @@ export const AUTH_TITLES: Record<AuthMode, TranslationKey> = {
   confirmation: "auth.title.confirmation",
 };
 
+/** True when the URL reports a failed auth link (our own flag or Supabase's error params). */
 function hasAuthLinkError(params: AuthLinkParams): boolean {
   return Boolean(params.authLinkError || params.error || params.error_code);
 }

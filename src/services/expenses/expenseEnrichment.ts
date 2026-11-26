@@ -4,6 +4,11 @@ import { mapRowToPublicUserProfileDto } from "../profiles/profileMappers";
 import { mapRowToExpenseDto, mapRowToExpenseSplitDto } from "./expenseMappers";
 import { supabase } from "../supabase";
 
+/**
+ * Turns expense rows into `ExpenseDto`s with their splits and the public
+ * profiles of the payer, creator and split users. Uses two extra queries in
+ * total (splits, then profiles), not one per expense.
+ */
 export async function enrichExpenses(
   expenseRows: Database["public"]["Tables"]["expenses"]["Row"][],
 ): Promise<ExpenseDto[]> {
@@ -19,6 +24,7 @@ export async function enrichExpenses(
     throw new Error(splitError.message);
   }
 
+  // Everyone the expenses mention, each once.
   const userIds = new Set<string>();
   for (const expense of expenseRows) {
     if (typeof expense.paid_by_user_id === "string") {

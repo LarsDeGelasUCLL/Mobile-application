@@ -29,6 +29,7 @@ export const lightPalette = {
 
 export type Palette = typeof lightPalette;
 
+// Same keys as the light palette (the `Palette` type and tests/theme.test.mjs check this).
 export const darkPalette: Palette = {
   background: "#14111C",
   surface: "#1E1A29",
@@ -53,6 +54,7 @@ export const darkPalette: Palette = {
   shadow: "#000000",
 };
 
+/** The colour palette for a resolved light/dark scheme. */
 export function paletteFor(scheme: Scheme): Palette {
   return scheme === "dark" ? darkPalette : lightPalette;
 }

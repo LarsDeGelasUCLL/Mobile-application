@@ -1,3 +1,5 @@
+// Supabase Auth calls. Each throws an `Error` with the Supabase message on failure;
+// callers translate it with `errorMessage`.
 import { getUserProfile } from "../profiles/profileService";
 import { supabase } from "../supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -11,6 +13,7 @@ import type {
   User,
 } from "../../types";
 
+/** Thrown by `register` when the account must be confirmed by email before it can sign in. */
 export class EmailConfirmationRequiredError extends Error {
   constructor(readonly email: string) {
     super("Registration succeeded. Check your email to confirm your account.");
@@ -18,6 +21,7 @@ export class EmailConfirmationRequiredError extends Error {
   }
 }
 
+/** Signs in with email and password and returns the user's profile. */
 export async function login(payload: LoginRequestDto): Promise<User> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: payload.email.trim(),
@@ -31,6 +35,11 @@ export async function login(payload: LoginRequestDto): Promise<User> {
   return getUserProfile(data.user.id);
 }
 
+/**
+ * Creates an account. The `handle_new_user` trigger builds the profile and
+ * settings rows from the metadata below. Without a session (email
+ * confirmation required) it throws `EmailConfirmationRequiredError`.
+ */
 export async function register(payload: RegisterRequestDto): Promise<User> {
   const cleanName = payload.displayName.trim();
   const { data, error } = await supabase.auth.signUp({
@@ -55,6 +64,10 @@ export async function register(payload: RegisterRequestDto): Promise<User> {
   return getUserProfile(data.user.id);
 }
 
+/**
+ * The signed-in user's profile, or `null` when signed out. Pass a session
+ * (from an auth event) to skip reading the stored one; `undefined` reads it.
+ */
 export async function getCurrentUser(
   session?: Session | null,
 ): Promise<User | null> {
@@ -73,6 +86,7 @@ export async function getCurrentUser(
   return getUserProfile(currentSession.user.id);
 }
 
+/** Emails a password reset link that leads to `redirectTo`. */
 export async function requestPasswordReset(
   payload: PasswordResetRequestDto,
 ): Promise<void> {
@@ -93,6 +107,7 @@ export async function exchangeCodeForSession(code: string): Promise<void> {
   }
 }
 
+/** Sets a new password for the signed-in user (after a reset link, or from Settings). */
 export async function setPassword(
   payload: SetPasswordRequestDto,
 ): Promise<void> {
@@ -104,6 +119,10 @@ export async function setPassword(
   }
 }
 
+/**
+ * Starts an email change: Supabase mails a confirmation link, and the
+ * `handle_user_email_change` trigger updates the profile once it is confirmed.
+ */
 export async function changeEmail(
   payload: ChangeEmailRequestDto,
 ): Promise<void> {
@@ -116,6 +135,7 @@ export async function changeEmail(
   }
 }
 
+/** Sends the signup confirmation email again. */
 export async function resendConfirmation(
   payload: ResendConfirmationRequestDto,
 ): Promise<void> {
@@ -128,6 +148,7 @@ export async function resendConfirmation(
   }
 }
 
+/** Signs out. The auth store resets the other stores. */
 export async function logout(): Promise<void> {
   const { error } = await supabase.auth.signOut();
   if (error) {

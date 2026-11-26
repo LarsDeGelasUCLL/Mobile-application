@@ -21,8 +21,14 @@ import { useAuthDeepLinks } from "../src/features/auth/useAuthDeepLinks";
 import { resolveScheme } from "../src/theme/scheme";
 import { ThemeProvider } from "../src/theme/ThemeProvider";
 
+// Keep the splash screen up until the fonts are ready (hidden in RootLayout).
 void SplashScreen.preventAutoHideAsync();
 
+/**
+ * Root of the app: fonts and splash screen, theme (saved setting or device),
+ * auth start-up and deep links, and the web-only service worker, page
+ * language and theme colour.
+ */
 export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
   const uiTheme = useSettingsStore((state) => state.settings?.uiTheme);

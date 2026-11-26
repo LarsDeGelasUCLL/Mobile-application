@@ -9,7 +9,7 @@ const meta: Meta<typeof GroupBalancesSection> = {
 export default meta;
 type Story = StoryObj<typeof GroupBalancesSection>;
 
-// Seen by Sam: his row reads "You".
+// Seen by Sam: their own row is marked as theirs.
 export const WithBalances: Story = {
   args: {
     balances: storyBalances,

@@ -5,6 +5,7 @@ import { createExpenseLoadActions } from "./expenseLoadActions";
 import { createExpenseSplitActions } from "./expenseSplitActions";
 import type { ExpenseState } from "./expenseStoreTypes";
 
+/** Group and personal expenses, the open expense and group balances. Actions live in the slice files. */
 export const useExpenseStore = create<ExpenseState>()((set, get, api) => ({
   groupExpenses: [],
   individualExpenses: [],

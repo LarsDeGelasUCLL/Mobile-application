@@ -6,6 +6,7 @@ import { Text } from "./Text";
 import { makeStyles, useTheme } from "../../theme/ThemeProvider";
 import { useI18n } from "../../i18n";
 
+/** One choice in a `Select`: the text shown and the value reported. */
 export interface SelectOption<T extends string> {
   label: string;
   value: T;
@@ -64,6 +65,7 @@ export function Select<T extends string>({
             return (
               <Pressable
                 key={option.value}
+                // Choosing an option also closes the sheet.
                 onPress={() => {
                   onChange(option.value);
                   setOpen(false);

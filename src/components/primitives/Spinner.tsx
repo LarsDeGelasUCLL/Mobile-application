@@ -8,6 +8,7 @@ interface SpinnerProps {
   testID?: string;
 }
 
+/** A themed activity indicator. */
 export function Spinner({
   size = "small",
   tone = "primary",

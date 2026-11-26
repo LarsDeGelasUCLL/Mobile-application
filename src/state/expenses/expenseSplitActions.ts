@@ -3,6 +3,7 @@ import { calculateGroupBalances, settleExpenseSplit } from "../../services";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
 import { errorMessage, t } from "../../i18n";
 
+/** Copies `expenses` with the split's `isSettled` changed. */
 function updateSplitStatus(
   expenses: ExpenseDto[],
   splitId: string,
@@ -16,10 +17,12 @@ function updateSplitStatus(
   }));
 }
 
+// Mark a split paid or unpaid. Same error pattern as the create actions.
 export const createExpenseSplitActions: ExpenseActionCreator<
   "toggleSettleSplit"
 > = (set, get) => ({
   toggleSettleSplit: async (splitId, isSettled, groupId) => {
+    // Check locally first, so an obviously invalid toggle never reaches the server.
     const state = get();
     const expense = [
       state.selectedExpense,

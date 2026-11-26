@@ -20,6 +20,7 @@ interface SectionHeaderProps {
   testID?: string;
 }
 
+/** A heading above a section, with an optional "See all"-style link. */
 export function SectionHeader({
   title,
   count,

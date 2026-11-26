@@ -55,6 +55,7 @@ export function useGroupDetail(groupId: string | undefined) {
     })),
   );
 
+  // Undefined when the user is not an active member of this group.
   const groupMembership = groups.find((item) => item.group.id === groupId);
   const members = allActiveGroupMembers.filter(
     (membership) => membership.groupId === groupId,
@@ -81,6 +82,7 @@ export function useGroupDetail(groupId: string | undefined) {
         setSelectedGroupId(null);
         return;
       }
+      // Read the fresh role from the store: only admins load join requests.
       const loadedAsAdmin = useGroupStore
         .getState()
         .groups.some(
@@ -121,6 +123,7 @@ export function useGroupDetail(groupId: string | undefined) {
     groupExpenses: expensesInStore.filter(
       (expense) => expense.groupId === groupId,
     ),
+    // Never show balances that belong to another group.
     visibleBalances: groupBalancesGroupId === groupId ? groupBalances : [],
     balancesLoaded: groupBalancesGroupId === groupId,
     isLoading,

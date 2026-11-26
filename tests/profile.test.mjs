@@ -1,3 +1,5 @@
+// Unit tests for the edit-profile form values, key and validation.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule } from "./support/loadModule.mjs";

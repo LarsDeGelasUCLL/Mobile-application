@@ -7,11 +7,13 @@ import { makeStyles } from "../../theme/ThemeProvider";
 interface EmptyStateProps {
   title: string;
   description?: string;
+  /** E.g. a button that creates the first item. */
   action?: React.ReactNode;
   icon?: ComponentProps<typeof Icon>["name"];
   testID?: string;
 }
 
+/** Placeholder card (dashed border) for a list with nothing in it yet. */
 export function EmptyState({
   title,
   description,

@@ -12,6 +12,7 @@ interface IconProps {
   testID?: string;
 }
 
+/** An Ionicons glyph in a theme tone. */
 export function Icon({
   name,
   size = 24,

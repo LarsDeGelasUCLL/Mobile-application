@@ -10,6 +10,7 @@ import { useI18n } from "../../../src/i18n";
 import { NewPasswordFields } from "../../../src/features/auth/components/NewPasswordFields";
 import { useChangePassword } from "../../../src/features/auth/useChangePassword";
 
+/** Change password (`/settings/password`). */
 export default function ChangePasswordScreen() {
   const { t } = useI18n();
   const page = useChangePassword();

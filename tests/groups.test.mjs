@@ -1,3 +1,5 @@
+// Unit tests for groups: display helpers, validation, group queries, and the group store actions.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadModule, plain, serviceDeps } from "./support/loadModule.mjs";

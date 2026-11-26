@@ -1,8 +1,11 @@
 import type { UpdateUserSettingsDto, UserSettingsDto } from "../../types";
 
+/** What `canRetrySettingsLoad` looks at. */
 export interface SettingsLoadRetryInput {
+  /** A change that is still being saved. */
   pendingSettings: UpdateUserSettingsDto | null;
   isLoading: boolean;
+  /** The cached settings, `null` when none are loaded. */
   settings: UserSettingsDto | null;
   /** The settings page's failed load or save; "" when none. */
   settingsActionError: string;

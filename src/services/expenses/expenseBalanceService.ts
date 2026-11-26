@@ -1,6 +1,12 @@
 import type { ExpenseDto, UserBalanceDto } from "../../types";
 import { getGroupExpenses } from "./expenseQueries";
 
+/**
+ * Who owes whom in a group, from the unsettled splits only. A payer's own
+ * split is not a debt. `totalPaid` = what others still owe this user,
+ * `totalOwed` = what this user still owes others. Pass `groupExpenses` when
+ * they are already loaded to skip the fetch.
+ */
 export async function calculateGroupBalances(
   groupId: string,
   groupExpenses?: ExpenseDto[],
@@ -8,6 +14,7 @@ export async function calculateGroupBalances(
   const expenses = groupExpenses ?? (await getGroupExpenses(groupId));
   const balances = new Map<string, UserBalanceDto>();
 
+  // The user's balance entry, created at zero on first use.
   const ensureUserEntry = (
     userId: string,
     displayName: string,

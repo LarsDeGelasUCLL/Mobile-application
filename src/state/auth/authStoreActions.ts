@@ -18,15 +18,19 @@ import { useExpenseStore } from "../expenses/useExpenseStore";
 import { useGroupStore } from "../groups/useGroupStore";
 import { useSettingsStore } from "../settings/useSettingsStore";
 
+// Module-level so concurrent `initialize()` calls share one run, and the auth
+// listener is registered only once for the app's lifetime.
 let initializationPromise: Promise<void> | null = null;
 let authSubscription: { unsubscribe: () => void } | null = null;
 
+/** Clears the previous user's data from the other stores (on sign-out). */
 function resetUserStores() {
   useGroupStore.getState().resetGroupStore();
   useExpenseStore.getState().resetExpenseStore();
   useSettingsStore.getState().resetSettings();
 }
 
+/** The auth store's actions; the state fields are in useAuthStore. */
 export const createAuthActions: AuthActionCreator = (set, get) => {
   // Keeps the cached user while the session's profile reloads, then sets it.
   const applySession = async (session: Session) => {
@@ -58,6 +62,8 @@ export const createAuthActions: AuthActionCreator = (set, get) => {
   };
 
   return {
+    // Restores the stored session and subscribes to auth changes. Runs once;
+    // after a failure (`isInitialized` stays false) the app can call it again.
     initialize: async () => {
       if (get().isInitialized) {
         return;
@@ -82,6 +88,8 @@ export const createAuthActions: AuthActionCreator = (set, get) => {
               return;
             }
 
+            // Signed in, but the profile failed to load: stay uninitialized so
+            // the app layout shows SessionRestore with a retry.
             void applySession(session).catch((error) => {
               console.error(
                 "Could not load the authenticated user profile.",
@@ -151,6 +159,7 @@ export const createAuthActions: AuthActionCreator = (set, get) => {
     resendConfirmation: (payload) =>
       withLoading(() => resendConfirmation(payload)),
 
+    // Also clears state here, without waiting for the SIGNED_OUT event.
     logout: async () => {
       await logout();
       resetUserStores();
@@ -172,6 +181,7 @@ export const createAuthActions: AuthActionCreator = (set, get) => {
           isLoading: false,
         });
       } catch (error) {
+        // The profile row was saved even though the call threw: keep the saved data.
         if (error instanceof ProfileUpdatePartialSuccessError) {
           set({
             user: { ...currentUser, ...error.profile },

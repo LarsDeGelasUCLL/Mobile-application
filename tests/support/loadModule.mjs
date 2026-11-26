@@ -4,6 +4,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 
+/** Transpiles a TS file to JS in the given module format (types stripped, no type check). */
 function transpile(filePath, module) {
   const source = fs.readFileSync(filePath, "utf8");
   return ts.transpileModule(source, {
@@ -11,6 +12,7 @@ function transpile(filePath, module) {
   }).outputText;
 }
 
+/** Runs a TS file as CommonJS in a vm sandbox; see `loadModule`. */
 function runCommonJs(filePath, dependencies, globals) {
   const module = { exports: {} };
   vm.runInNewContext(

@@ -27,6 +27,7 @@ export function useCreateExpense(groupId: string | null) {
   const create = async (draft: ValidExpenseForm) => {
     try {
       const created = await addExpense({ ...draft, groupId });
+      // An error after a resolved add = saved, but the balance refresh failed.
       const mutationError = useExpenseStore.getState().error;
       if (mutationError) {
         setCreatedExpenseId(created.id);
@@ -42,6 +43,7 @@ export function useCreateExpense(groupId: string | null) {
     }
   };
 
+  // Retry only the balance refresh; the expense already exists.
   const retryBalances = async () => {
     if (!groupId || !createdExpenseId) return;
     try {

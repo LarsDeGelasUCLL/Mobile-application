@@ -8,6 +8,7 @@ import {
 import type { GroupActionCreator } from "./groupStoreTypes";
 import { errorMessage, t } from "../../i18n";
 
+// Loaders for the groups tab and a group's member list.
 export const createGroupLoadActions: GroupActionCreator<
   "fetchGroupsAndInvites" | "fetchMembersForGroup"
 > = (set, get) => ({

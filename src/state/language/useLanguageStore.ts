@@ -12,6 +12,7 @@ export function languageFromSettings(
   return resolveLanguage(settings?.languageCode, device);
 }
 
+/** The current app language; `t` and `useI18n` read it. */
 interface LanguageState {
   language: Language;
   setLanguage: (language: Language) => void;
@@ -20,6 +21,7 @@ interface LanguageState {
 // Kept in sync by useSettingsStore. Imports no service, so Storybook and unit tests can use it.
 export const useLanguageStore = create<LanguageState>()((set, get) => ({
   language: languageFromSettings(null, deviceLanguage()),
+  // Skip identical values so subscribers do not re-render.
   setLanguage: (language) => {
     if (get().language !== language) set({ language });
   },

@@ -1,4 +1,4 @@
-// Theme-independent design tokens (design.md §3.2–3.3).
+// Theme-independent design tokens: sizes, type, fonts and motion. Colours live in palettes.ts.
 // Each `as const` keeps literal types (for `keyof typeof`); it asserts no type.
 
 // as const: literal spacing keys and values.

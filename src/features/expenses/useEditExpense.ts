@@ -56,7 +56,7 @@ export function useEditExpense(expenseId: string | undefined) {
   const { participants, fetchParticipants } = useParticipantOptions(
     expense?.groupId ?? null,
   );
-  // The page has always shown the participants fallback for any failed step.
+  // Any failed step shows the participants fallback message.
   const { isLoading, isLoaded, error, run } = useLoadState(
     participantsErrorFallback,
   );
@@ -95,6 +95,7 @@ export function useEditExpense(expenseId: string | undefined) {
         ...draft,
         groupId: expense.groupId,
       });
+      // Saved, but the balance refresh failed: stay so the banner shows.
       if (useExpenseStore.getState().error) return;
       router.replace({
         pathname: "/expense/[expenseId]",

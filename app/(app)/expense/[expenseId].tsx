@@ -17,6 +17,7 @@ import { ExpenseSummaryCard } from "../../../src/features/expenses/components/Ex
 import { SplitBreakdown } from "../../../src/features/expenses/components/SplitBreakdown";
 import { useExpenseDetail } from "../../../src/features/expenses/useExpenseDetail";
 
+/** Expense detail (`/expense/:expenseId`): summary, split breakdown with settle buttons, edit and delete. */
 export default function ExpenseDetailScreen() {
   const { t } = useI18n();
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();

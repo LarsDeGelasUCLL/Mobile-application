@@ -1,6 +1,7 @@
 import type { PublicUserProfileDto } from "./User";
 
 export type GroupRole = "ADMIN" | "MEMBER";
+// PENDING = invited by an admin, REQUESTED = asked to join with an invite code.
 export type MembershipStatus = "PENDING" | "ACTIVE" | "REQUESTED";
 
 // Response DTO: public.groups
@@ -56,6 +57,7 @@ export interface GroupJoinRequestDto {
   group: GroupDto;
 }
 
+// Request DTO for editing a group's info (admins only)
 export interface UpdateGroupDto {
   name?: string;
   description?: string | null;

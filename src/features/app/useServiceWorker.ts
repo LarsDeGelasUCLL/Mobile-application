@@ -20,6 +20,7 @@ export function useServiceWorker() {
 
   useEffect(() => {
     if (Platform.OS !== "web" || typeof document === "undefined") return;
+    // The PWA manifest link, unless the page already has one.
     if (!document.querySelector('link[rel="manifest"]')) {
       const link = document.createElement("link");
       link.rel = "manifest";

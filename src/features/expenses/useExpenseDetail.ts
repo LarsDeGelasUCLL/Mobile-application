@@ -49,8 +49,10 @@ export function useExpenseDetail(expenseId: string | undefined) {
     })),
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Set when the delete worked but the group balance refresh failed (for the retry).
   const [deletedGroupId, setDeletedGroupId] = useState<string | null>(null);
 
+  // Ignore a stale expense from an earlier detail page.
   const expense = selectedExpense?.id === expenseId ? selectedExpense : null;
 
   const reload = useCallback(async () => {
@@ -81,6 +83,7 @@ export function useExpenseDetail(expenseId: string | undefined) {
     void reload();
   }, [reload]);
 
+  // Reload the expense, or, after a half-failed delete, retry the balance refresh.
   const retry = async () => {
     if (expense?.id) {
       await reload();

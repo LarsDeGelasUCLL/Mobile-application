@@ -6,10 +6,12 @@ interface NavItemProps {
   label: string;
   onPress: () => void;
   active?: boolean;
+  /** Accepted but not rendered. */
   icon?: string;
   testID?: string;
 }
 
+/** One text tab in a `Nav`; the active tab is underlined. */
 export function NavItem({
   label,
   onPress,

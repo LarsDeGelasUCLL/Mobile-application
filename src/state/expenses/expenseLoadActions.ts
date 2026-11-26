@@ -8,6 +8,7 @@ import {
 } from "../../services";
 import { errorMessage } from "../../i18n";
 
+// Loaders. Each sets a translated `error` and rethrows on failure.
 export const createExpenseLoadActions: ExpenseActionCreator<
   | "fetchGroupExpensesAndBalances"
   | "fetchIndividualExpenses"
@@ -18,6 +19,7 @@ export const createExpenseLoadActions: ExpenseActionCreator<
     set({ isLoading: true, error: null });
     try {
       const groupExpenses = await getGroupExpenses(groupId);
+      // Reuse the loaded expenses instead of fetching them twice.
       const groupBalances = await calculateGroupBalances(
         groupId,
         groupExpenses,

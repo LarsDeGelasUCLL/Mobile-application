@@ -14,6 +14,7 @@ import { ExpenseRow } from "../../../../src/features/expenses/components/Expense
 import { openExpense } from "../../../../src/features/expenses/openExpense";
 import { useGroupDetail } from "../../../../src/features/groups/useGroupDetail";
 
+/** All expenses of a group (`/group/:groupId/expenses`). */
 export default function GroupExpensesScreen() {
   const { t } = useI18n();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();

@@ -6,8 +6,10 @@ import type { TranslationKey } from "../../i18n";
 import type { ExpenseDto } from "../../types";
 
 export type ExpenseSplitDraft = ExpenseFormDraft["splits"][number];
+/** `equal`: shares follow the amount automatically. `custom`: the user types each share. */
 export type SplitMode = "equal" | "custom";
 
+/** The expense form's state, kept in a reducer. Amounts are strings as typed. */
 export interface ExpenseFormState {
   title: string;
   amount: string;
@@ -15,6 +17,7 @@ export interface ExpenseFormState {
   paidByUserId: string;
   splitMode: SplitMode;
   splits: ExpenseSplitDraft[];
+  /** Set on a failed submit; any edit clears it. */
   validationError?: TranslationKey;
 }
 
@@ -34,6 +37,7 @@ export type ExpenseFormAction =
   | { type: "setSplitAmount"; userId: string; value: string }
   | { type: "setValidationError"; error: TranslationKey | undefined };
 
+/** The fields of an existing expense the edit form starts from. */
 type InitialExpense = Pick<
   ExpenseDto,
   "title" | "amount" | "receiptUrl" | "paidByUserId"
@@ -85,6 +89,11 @@ export function initialExpenseFormState({
   };
 }
 
+/**
+ * Adds or removes a participant. Equal mode re-divides the amount; custom mode
+ * adds a 0.00 share or drops theirs. For a personal expense the payer must be
+ * a participant, so removing the payer makes the first remaining one pay.
+ */
 function toggleParticipant(
   state: ExpenseFormState,
   {
@@ -110,6 +119,7 @@ function toggleParticipant(
   return { ...state, splits, paidByUserId, validationError: undefined };
 }
 
+/** The expense form reducer. Edits that change the shares keep equal splits in sync. */
 export function expenseFormReducer(
   state: ExpenseFormState,
   action: ExpenseFormAction,
@@ -149,6 +159,7 @@ export function expenseFormReducer(
             : state.splits,
         validationError: undefined,
       };
+    // Typing a share switches to custom mode.
     case "setSplitAmount":
       return {
         ...state,

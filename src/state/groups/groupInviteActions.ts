@@ -10,6 +10,8 @@ import { withoutJoinRequest } from "./groupJoinRequestActions";
 import type { GroupActionCreator } from "./groupStoreTypes";
 import { errorMessage, t } from "../../i18n";
 
+// Invites by email, joining by code and answering invites. Each sets a
+// translated `error` and rethrows on failure.
 export const createGroupInviteActions: GroupActionCreator<
   "inviteMemberByEmail" | "joinByCode" | "respondToInvite"
 > = (set, get) => ({
@@ -25,6 +27,7 @@ export const createGroupInviteActions: GroupActionCreator<
       if (membership.status === "ACTIVE") {
         set(withoutJoinRequest(get(), membership.id, groupId));
       }
+      // Add the new member to the open group's member list.
       if (membership.status === "ACTIVE" && get().selectedGroupId === groupId) {
         set({
           activeGroupMembers: [...get().activeGroupMembers, membership],
@@ -93,6 +96,7 @@ export const createGroupInviteActions: GroupActionCreator<
       throw error;
     }
 
+    // Update the lists right away; the reload below then brings the server's version.
     const invite = get().pendingInvites.find(
       (item) => item.membershipId === membershipId,
     );

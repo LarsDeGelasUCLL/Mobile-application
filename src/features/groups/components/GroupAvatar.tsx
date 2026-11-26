@@ -10,6 +10,7 @@ interface GroupAvatarProps {
   testID?: string;
 }
 
+/** A group's picture, or its initials on a tinted square when it has none. */
 export function GroupAvatar({
   name,
   imageUri,

@@ -11,8 +11,11 @@ import type {
 } from "../../types";
 
 export interface GroupState {
+  // Groups the current user is an active member of.
   groups: UserGroupDto[];
+  // Invites the current user has not answered yet.
   pendingInvites: GroupInviteDto[];
+  // Active members of `selectedGroupId`.
   activeGroupMembers: MembershipDto[];
   // Open join requests of the group last loaded with fetchJoinRequestsForGroup (admin view).
   joinRequests: MembershipDto[];
@@ -20,8 +23,10 @@ export interface GroupState {
   sentJoinRequests: GroupJoinRequestDto[];
   // Open join request count per group where the current user is ADMIN.
   joinRequestCounts: Record<string, number>;
+  // The group whose members are loaded (the open group screen).
   selectedGroupId: string | null;
   isLoading: boolean;
+  // Translated message of the last failure (or partial success).
   error: string | null;
   fetchGroupsAndInvites: (userId: string) => Promise<void>;
   fetchMembersForGroup: (groupId: string) => Promise<void>;
@@ -40,6 +45,7 @@ export interface GroupState {
     senderUserId: string,
     targetEmail: string,
   ) => Promise<void>;
+  // `status` tells whether the user joined at once (they had an invite) or must wait for approval.
   joinByCode: (
     userId: string,
     inviteCode: string,
@@ -63,6 +69,7 @@ export interface GroupState {
   resetGroupStore: () => void;
 }
 
+/** Typed creator for one slice of the actions (`Keys`). */
 export type GroupActionCreator<Keys extends keyof GroupState> = StateCreator<
   GroupState,
   [],

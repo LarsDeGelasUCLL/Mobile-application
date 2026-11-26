@@ -9,11 +9,12 @@ interface ScreenHeaderProps {
   subtitle?: string;
   /** Shows a back arrow left of the title. */
   onBack?: () => void;
-  /** Max 2 `IconButton`s (design §4). */
+  /** Right-side actions: at most 2 `IconButton`s. */
   actions?: React.ReactNode;
   testID?: string;
 }
 
+/** A page title with optional subtitle, back button and actions. Sub-pages (with back) get a smaller title. */
 export function ScreenHeader({
   title,
   subtitle,

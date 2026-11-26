@@ -1,3 +1,5 @@
+// Unit tests for i18n: language resolution, translation, plurals, dictionary consistency and error mapping.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";

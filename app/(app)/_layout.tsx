@@ -6,6 +6,11 @@ import { useAuthStore } from "../../src/state/useAuthStore";
 import { useSettingsStore } from "../../src/state/useSettingsStore";
 import { SessionRestore } from "../../src/features/auth/components/SessionRestore";
 
+/**
+ * Layout for every signed-in page: waits for the session restore, sends
+ * signed-out users to /login, loads the user's settings, and declares the
+ * stack of pages.
+ */
 export default function AppLayout() {
   const { t } = useI18n();
   const { isAuthenticated, isInitialized, isLoading, initialize, userId } =

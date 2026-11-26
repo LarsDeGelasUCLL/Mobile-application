@@ -5,6 +5,7 @@ import { createGroupLoadActions } from "./groupLoadActions";
 import { createGroupManagementActions } from "./groupManagementActions";
 import type { GroupState } from "./groupStoreTypes";
 
+/** Groups, invites, join requests and the open group's members. Actions live in the slice files. */
 export const useGroupStore = create<GroupState>()((...args) => ({
   groups: [],
   pendingInvites: [],

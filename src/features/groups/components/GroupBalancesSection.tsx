@@ -37,6 +37,7 @@ export function GroupBalancesSection({
   );
 }
 
+/** The section's content for the current load state. */
 function BalancesBody({
   balances,
   currentUserId,

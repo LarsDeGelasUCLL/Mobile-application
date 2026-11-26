@@ -19,6 +19,7 @@ interface ListRowProps {
   testID?: string;
 }
 
+/** A settings-style row: icon, label, optional description and a value or custom trailing element. */
 export function ListRow({
   label,
   icon,

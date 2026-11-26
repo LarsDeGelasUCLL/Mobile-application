@@ -10,6 +10,7 @@ interface RadioProps<T extends string> {
   testID?: string;
 }
 
+/** One labelled radio option; reports its `value` when tapped. */
 export function Radio<T extends string>({
   label,
   value,

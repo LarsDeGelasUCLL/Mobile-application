@@ -6,6 +6,7 @@ import { useI18n } from "../../../src/i18n";
 import { useGroupStore } from "../../../src/state/useGroupStore";
 import { useTheme } from "../../../src/theme/ThemeProvider";
 
+/** The bottom tab bar (Home, Groups, Expenses, Profile). The Groups tab shows a badge with open invites. */
 export default function TabsLayout() {
   const { t } = useI18n();
   const { colors, fontFamily } = useTheme();

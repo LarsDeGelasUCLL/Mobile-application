@@ -13,7 +13,7 @@ interface BalanceRowProps {
   testID?: string;
 }
 
-/** Sign + words + colour, never colour alone (design §3.1). */
+/** One person's balance. Sign + words + colour, never colour alone, so it reads without colour vision. */
 export function BalanceRow({
   name,
   amount,

@@ -7,6 +7,7 @@ import { useI18n } from "../../i18n";
 import { useGroupStore } from "../../state/useGroupStore";
 import type { GroupRole, MembershipDto } from "../../types";
 
+/** Which confirm dialog is open. */
 type ConfirmKind = "leave" | "delete" | "remove";
 
 /** The group settings page: the loaded group plus the admin actions (edit,
@@ -82,6 +83,7 @@ export function useGroupSettings(groupId: string | undefined) {
     );
 
   const changeRole = (membershipId: string, role: GroupRole) => {
+    // Close the member sheet first so the result banner is visible.
     setSelectedMember(null);
     void run(
       () => changeMemberRole(membershipId, role),
@@ -102,6 +104,7 @@ export function useGroupSettings(groupId: string | undefined) {
     setSelectedMember(null);
   };
 
+  // Leaving needs the user's own membership; no success message, the page closes.
   const leaveOrDelete = async (kind: "leave" | "delete") => {
     const membershipId = currentMembership?.id;
     if (!user?.id || !group || (kind === "leave" && !membershipId)) return;

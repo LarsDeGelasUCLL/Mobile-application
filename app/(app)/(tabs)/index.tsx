@@ -11,6 +11,7 @@ import { HomeHeader } from "../../../src/features/home/components/HomeHeader";
 import { HomeRecentExpenses } from "../../../src/features/home/components/HomeRecentExpenses";
 import { useHomePage } from "../../../src/features/home/useHomePage";
 
+/** Home tab (`/`): balance summary, group highlights and recent personal expenses. */
 export default function HomeScreen() {
   const { t } = useI18n();
   const page = useHomePage();

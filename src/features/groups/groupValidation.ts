@@ -1,3 +1,4 @@
+// Client-side checks for the group forms; each returns an error key or undefined.
 import type { TranslationKey } from "../../i18n";
 import { validateEmail } from "../auth/authValidation";
 

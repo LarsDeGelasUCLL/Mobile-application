@@ -6,7 +6,7 @@ import {
 import type { GroupActionCreator, GroupState } from "./groupStoreTypes";
 import { errorMessage, type TranslationKey } from "../../i18n";
 
-// Drops a handled request from the admin list and lowers that group's badge count.
+/** Drops a handled request from the admin list and lowers that group's badge count. Unchanged when the request is not in the list. */
 export function withoutJoinRequest(
   state: Pick<GroupState, "joinRequests" | "joinRequestCounts">,
   membershipId: string,
@@ -27,6 +27,7 @@ export function withoutJoinRequest(
   };
 }
 
+// Join requests: the admin side (load, approve, reject) and the requester side (cancel).
 export const createGroupJoinRequestActions: GroupActionCreator<
   | "fetchJoinRequestsForGroup"
   | "approveJoinRequest"
@@ -62,6 +63,7 @@ export const createGroupJoinRequestActions: GroupActionCreator<
       run("errors.fallback.approveJoinRequest", async () => {
         const member = await approveJoinRequest(membershipId);
         set(withoutJoinRequest(get(), membershipId, member.groupId));
+        // Add the new member to the open group's member list.
         if (get().selectedGroupId === member.groupId) {
           set({ activeGroupMembers: [...get().activeGroupMembers, member] });
         }
@@ -69,6 +71,7 @@ export const createGroupJoinRequestActions: GroupActionCreator<
 
     rejectJoinRequest: (membershipId) =>
       run("errors.fallback.rejectJoinRequest", async () => {
+        // Look it up before deleting: the group id is needed for the badge count.
         const request = get().joinRequests.find(
           (item) => item.id === membershipId,
         );

@@ -18,6 +18,7 @@ import { ExpenseFormSkeleton } from "../../../../src/features/expenses/component
 import { ExpenseMissingState } from "../../../../src/features/expenses/components/ExpenseMissingState";
 import { useEditExpense } from "../../../../src/features/expenses/useEditExpense";
 
+/** Edit expense (`/expense/edit/:expenseId`); only for users who may manage it. */
 export default function EditExpenseScreen() {
   const { t } = useI18n();
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();

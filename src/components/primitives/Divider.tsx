@@ -7,6 +7,7 @@ interface DividerProps {
   testID?: string;
 }
 
+/** A 1px border-coloured line. */
 export function Divider({
   orientation = "horizontal",
   spacing = "none",

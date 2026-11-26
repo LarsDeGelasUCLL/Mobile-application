@@ -24,6 +24,7 @@ fontStyle.textContent = [
   .join("");
 document.head.appendChild(fontStyle);
 
+// Toolbar switches for theme and language, applied to every story.
 const preview: Preview = {
   globalTypes: {
     theme: {
@@ -54,6 +55,7 @@ const preview: Preview = {
   initialGlobals: { theme: "light", language: "en" },
   decorators: [
     (Story, context) => {
+      // Stories read the language from the store, like the app does.
       const language = context.globals.language;
       useLanguageStore
         .getState()

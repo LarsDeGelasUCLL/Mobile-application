@@ -40,6 +40,8 @@ export function useLoginPage() {
       })),
     );
 
+  // Signed in: go to the app, except in the modes that must stay on this page
+  // (choosing a new password after a link, or waiting for email confirmation).
   useEffect(() => {
     if (
       isInitialized &&
@@ -62,6 +64,7 @@ export function useLoginPage() {
 
   const fieldProps: AuthFieldProps = { fields, onChangeField: changeField };
 
+  // After signup when the account must be confirmed by email first.
   const requireConfirmation = (email: string) => {
     setConfirmationEmail(email);
     setMode("confirmation");

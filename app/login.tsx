@@ -9,6 +9,7 @@ import { SignupForm } from "../src/features/auth/components/SignupForm";
 import { useLoginPage } from "../src/features/auth/useLoginPage";
 import { useI18n } from "../src/i18n";
 
+/** `/login`: log in, sign up, password reset, set new password and email confirmation, one mode at a time. */
 export default function LoginScreen() {
   const { t } = useI18n();
   const page = useLoginPage();

@@ -37,6 +37,7 @@ function stubAccountWrites() {
   }).as('updateProfile');
 }
 
+// Asserts that none of the stubbed account writes was attempted.
 function expectNoAccountWrites() {
   cy.get('@updateAuthUser.all').should('have.length', 0);
   cy.get('@updateProfile.all').should('have.length', 0);

@@ -13,7 +13,7 @@ interface TextProps {
   testID?: string;
 }
 
-// Design allows only 400/600/700; "medium" renders as 600.
+// Only 400/600/700 font files are loaded; "medium" renders as 600.
 // as const: a readonly map of literal weights; it narrows, it asserts no type.
 const familyByWeight = {
   normal: fontFamily.regular,
@@ -21,6 +21,7 @@ const familyByWeight = {
   bold: fontFamily.bold,
 } as const;
 
+/** The app's text: type scale, font weight and a theme tone. Use it instead of React Native's `Text`. */
 export function Text({
   children,
   size = "md",

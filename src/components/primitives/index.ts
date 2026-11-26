@@ -1,3 +1,4 @@
+// Barrel for the shared UI primitives; screens and features import from here.
 export type { Tone } from "../../theme/tone";
 export { Avatar } from "./Avatar";
 export { Badge } from "./Badge";

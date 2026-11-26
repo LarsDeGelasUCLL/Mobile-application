@@ -14,6 +14,10 @@ interface MenuProps {
   testID?: string;
 }
 
+/**
+ * A small dropdown anchored top right, under the header. A transparent
+ * overlay behind it closes it on an outside tap; choosing an item closes it too.
+ */
 export function Menu({ items, visible, onClose, testID }: MenuProps) {
   const styles = useStyles();
   if (!visible) return null;

@@ -1,3 +1,4 @@
+// Dutch dictionary. Keys, placeholders and plurals follow en.ts, the source dictionary.
 import type { Dictionary } from "./en";
 
 export const nl: Dictionary = {
@@ -273,6 +274,7 @@ export const nl: Dictionary = {
   "app.serviceWorker.failed": "Offline gebruik kon niet starten. De app werkt nog wel online.",
   "app.serviceWorker.retry": "Offline gebruik opnieuw proberen",
 
+  // Client-side validation (feature *Validation.ts, expenseValidation.ts).
   "validation.emailRequired": "E-mailadres is verplicht.",
   "validation.emailInvalid": "Vul een geldig e-mailadres in.",
   "validation.passwordRequired": "Wachtwoord is verplicht.",
@@ -377,6 +379,7 @@ export const nl: Dictionary = {
   "errors.service.settingsNotFound": "Instellingen niet gevonden.",
   "errors.service.couldNotUpdateSettings": "Kon de instellingen niet bijwerken.",
 
+  // Fallbacks for `errorMessage(error, key)`: shown when the error is not a known message.
   "errors.fallback.requestEmailChange": "Kon de e-mailwijziging niet aanvragen. Probeer opnieuw.",
   "errors.fallback.resendConfirmation": "Kon de bevestiging niet opnieuw versturen. Probeer opnieuw.",
   "errors.fallback.login": "Aanmelden mislukt. Probeer opnieuw.",
@@ -413,10 +416,12 @@ export const nl: Dictionary = {
   "errors.fallback.tryAgain": "Probeer opnieuw.",
   "errors.fallback.pleaseRetry": "Probeer opnieuw.",
 
+  // Thrown by stores as keys (errorMessage translates them).
   "errors.store.notLoggedIn": "Je bent niet aangemeld.",
   "errors.store.splitNotLoaded": "Dit deel van de uitgave is niet geladen.",
   "errors.store.payerOwnSplit": "Het deel van de betaler kan niet als betaald of onbetaald worden gemarkeerd.",
 
+  // Partial success: the action worked, a follow-up refresh failed. {reason} = errorMessage.
   "errors.partial.expenseCreated": "Uitgave aangemaakt, maar de groepssaldi konden niet worden vernieuwd. {reason}",
   "errors.partial.expenseUpdated": "Uitgave bijgewerkt, maar de groepssaldi konden niet worden vernieuwd. {reason}",
   "errors.partial.expenseDeleted": "Uitgave verwijderd, maar de groepssaldi konden niet worden vernieuwd. {reason}",
@@ -426,6 +431,7 @@ export const nl: Dictionary = {
   "errors.partial.invitationDeclined": "Uitnodiging geweigerd, maar de groepsgegevens konden niet worden vernieuwd: {reason}",
   "errors.partial.joinRequestsNotLoaded": "Groepen geladen, maar de deelnameverzoeken konden niet worden geladen: {reason}",
 
+  // Success and warning banners.
   "feedback.passwordUpdated": "Je wachtwoord is gewijzigd.",
   "feedback.profileSaved": "Je profiel is opgeslagen.",
   "feedback.profileSavedToAccount": "Je profiel is opgeslagen in je account.",

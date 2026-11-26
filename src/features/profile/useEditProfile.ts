@@ -30,8 +30,7 @@ export function useEditProfile() {
   const [savedCount, setSavedCount] = useState(0);
 
   const initialValues = profileFormValues(user);
-  // A new key remounts the form with fresh values, as the old effect on
-  // `user` re-seeded them.
+  // A new key remounts the form, which re-reads its initial values.
   const formKey = profileFormKey(savedCount, user?.id ?? "", initialValues);
 
   const clearMessages = () => {

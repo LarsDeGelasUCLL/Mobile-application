@@ -37,9 +37,11 @@ export function useGroupsTab() {
     })),
   );
 
+  // The add-group sheet (create or join).
   const [menuOpen, setMenuOpen] = useState(false);
   const { feedback, run } = useActionFeedback(clearError);
 
+  // Load failures show through the store error banner.
   const loadGroups = useCallback(() => {
     if (userId) {
       void fetchGroupsAndInvites(userId).catch(() => undefined);

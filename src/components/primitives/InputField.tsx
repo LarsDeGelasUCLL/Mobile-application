@@ -8,6 +8,7 @@ interface InputFieldProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   secureTextEntry?: boolean;
+  /** Shown under the field, which turns red. */
   error?: string;
   testID?: string;
   keyboardType?:
@@ -16,12 +17,14 @@ interface InputFieldProps {
     | "decimal-pad"
     | "phone-pad"
     | "url";
+  /** Default: none for email and URL keyboards, sentences otherwise. */
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   multiline?: boolean;
   maxLength?: number;
   editable?: boolean;
 }
 
+/** A labelled text input with an optional error message. */
 export function InputField({
   label,
   value,

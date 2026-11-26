@@ -6,6 +6,7 @@ interface NavProps {
   testID?: string;
 }
 
+/** A horizontal bar of `NavItem` tabs with a bottom border. */
 export function Nav({ children, testID }: NavProps) {
   const styles = useStyles();
   return (

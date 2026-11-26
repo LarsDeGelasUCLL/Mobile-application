@@ -2,6 +2,7 @@ import { en } from "./dictionaries/en";
 import type { Language } from "./languages";
 import { isTranslationKey, translate, type TranslationKey } from "./translate";
 
+// Dictionary sections whose English text is an exact error message from the server or a service.
 const MESSAGE_KEY_PREFIXES = ["errors.server.", "errors.auth.", "errors.service."];
 
 /**
@@ -18,6 +19,7 @@ for (const key of Object.keys(en)) {
   }
 }
 
+/** The translation key for an error message: the message itself if it is a key, else a known server message. */
 function messageKey(message: string): TranslationKey | undefined {
   if (isTranslationKey(message)) return message;
   // Supabase wording drifts on the trailing period.

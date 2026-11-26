@@ -7,6 +7,9 @@ import type { ExpenseDto } from "../../types";
 import type { ExpenseActionCreator } from "./expenseStoreTypes";
 import { errorMessage, t } from "../../i18n";
 
+// Create and update. A failed save sets `error` and rethrows. Once saved, a
+// failed balance refresh only sets a partial-success `error` and still
+// returns the expense, because the save itself worked.
 export const createExpenseCreateActions: ExpenseActionCreator<
   "addExpense" | "updateExpense"
 > = (set, get) => ({
@@ -23,6 +26,7 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       throw error;
     }
 
+    // Personal expense: no group balances to refresh.
     if (payload.groupId === null) {
       set({
         individualExpenses: [created, ...get().individualExpenses],
@@ -63,6 +67,7 @@ export const createExpenseCreateActions: ExpenseActionCreator<
       throw error;
     }
 
+    // Replace the old copy wherever the store holds it.
     set({
       groupExpenses: get().groupExpenses.map((expense) =>
         expense.id === expenseId ? updated : expense,

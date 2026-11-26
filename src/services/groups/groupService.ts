@@ -4,6 +4,8 @@ import { mapRowToGroupDto } from "./groupMappers";
 import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+// Group CRUD. Also the entry point of the groups service: the queries and
+// membership functions are re-exported from here.
 export { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 export {
   getAdminJoinRequestCounts,
@@ -22,6 +24,7 @@ export {
   updateMembershipRole,
 } from "./groupMembershipService";
 
+/** Creates a group with the caller as its ADMIN (one RPC, so both rows or neither). */
 export async function createGroup(
   userId: string,
   payload: CreateGroupDto,
@@ -48,6 +51,7 @@ export async function createGroup(
   return mapRowToGroupDto(group);
 }
 
+/** One group; fails when it does not exist or the user may not see it. */
 export async function getGroupById(groupId: string): Promise<GroupDto> {
   const { data, error } = await supabase
     .from("groups")
@@ -62,6 +66,7 @@ export async function getGroupById(groupId: string): Promise<GroupDto> {
   return mapRowToGroupDto(data);
 }
 
+/** Admin updates the fields present in `payload`; an empty description becomes `null`. */
 export async function updateGroup(
   groupId: string,
   payload: UpdateGroupDto,
@@ -97,6 +102,7 @@ export async function updateGroup(
   return mapRowToGroupDto(data);
 }
 
+/** Admin deletes the group. `.select().single()` makes a blocked delete fail instead of silently doing nothing. */
 export async function deleteGroup(groupId: string): Promise<void> {
   const { error } = await supabase
     .from("groups")

@@ -19,6 +19,7 @@ import { MemberList } from "../../../../src/features/groups/components/MemberLis
 import { memberName } from "../../../../src/features/groups/memberName";
 import { useGroupSettings } from "../../../../src/features/groups/useGroupSettings";
 
+/** Group settings (`/group/:groupId/settings`): admin tools, members, join requests, leave and delete. */
 export default function GroupSettingsScreen() {
   const { t } = useI18n();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();

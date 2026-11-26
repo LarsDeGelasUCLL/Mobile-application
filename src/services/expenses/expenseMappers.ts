@@ -1,3 +1,5 @@
+// Map snake_case expense rows to camelCase DTOs. Postgres `numeric` columns
+// come back as numbers or strings, hence `Number(...)`.
 import type {
   ExpenseDto,
   ExpenseSplitDto,
@@ -5,6 +7,7 @@ import type {
 } from "../../types";
 import type { Database } from "../../types/database.types";
 
+/** An `expense_splits` row to `ExpenseSplitDto`, with the split user's profile when loaded. */
 export function mapRowToExpenseSplitDto(
   row: Database["public"]["Tables"]["expense_splits"]["Row"],
   profile?: PublicUserProfileDto,
@@ -19,6 +22,7 @@ export function mapRowToExpenseSplitDto(
   };
 }
 
+/** An `expenses` row to `ExpenseDto`, with its splits and the profiles when loaded. */
 export function mapRowToExpenseDto(
   row: Database["public"]["Tables"]["expenses"]["Row"],
   paidByProfile?: PublicUserProfileDto,

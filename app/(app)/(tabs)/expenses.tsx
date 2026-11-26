@@ -17,6 +17,7 @@ import { openExpense } from "../../../src/features/expenses/openExpense";
 import { useAuthStore } from "../../../src/state/useAuthStore";
 import { useExpenseStore } from "../../../src/state/useExpenseStore";
 
+/** Expenses tab (`/expenses`): the user's personal expenses and a button to add one. */
 export default function ExpensesScreen() {
   const { t } = useI18n();
   const userId = useAuthStore((state) => state.user?.id);

@@ -12,6 +12,7 @@ import { InvitationList } from "../../../src/features/groups/components/Invitati
 import { SentRequestList } from "../../../src/features/groups/components/SentRequestList";
 import { useGroupsTab } from "../../../src/features/groups/useGroupsTab";
 
+/** Groups tab (`/groups`): the user's groups, invitations and sent join requests. */
 export default function GroupsScreen() {
   const { t } = useI18n();
   const page = useGroupsTab();

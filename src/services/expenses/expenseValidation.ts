@@ -1,6 +1,9 @@
+// Expense rules shared by the form (string input) and the service (numbers).
+// All money maths is in whole cents to avoid floating-point errors.
 import type { TranslationKey } from "../../i18n";
 import type { CreateExpenseSplitInput } from "../../types";
 
+/** The expense form as typed: amounts are still strings. */
 export interface ExpenseFormDraft {
   title: string;
   amount: string;
@@ -9,6 +12,7 @@ export interface ExpenseFormDraft {
   splits: { userId: string; amount: string }[];
 }
 
+/** A draft that passed validation: trimmed text and amounts in euros. */
 export interface ValidExpenseForm {
   title: string;
   amount: number;
@@ -18,11 +22,17 @@ export interface ValidExpenseForm {
 }
 
 interface ExpenseValidationContext {
+  /** `null` for a personal expense, which has extra rules. */
   groupId: string | null;
   currentUserId: string;
+  /** Who may pay or be in a split; omitted = anyone (the server checks). */
   allowedParticipantIds?: string[];
 }
 
+/**
+ * An amount in whole cents, or `undefined` when it is not a valid amount with
+ * at most two decimals. Numbers must already be whole cents (no 0.001).
+ */
 function parseCents(value: string | number): number | undefined {
   if (typeof value === "number") {
     if (!Number.isFinite(value)) return undefined;
@@ -42,6 +52,7 @@ function parseCents(value: string | number): number | undefined {
   return Number.isSafeInteger(cents) ? cents : undefined;
 }
 
+/** A trimmed receipt URL, or `null` when empty. */
 export function normalizeReceiptUrl(
   receiptUrl: string | null | undefined,
 ): string | null {
@@ -49,6 +60,7 @@ export function normalizeReceiptUrl(
   return trimmed ? trimmed : null;
 }
 
+/** The validated values, or the dictionary key of the first rule that fails. */
 function validateValues(
   draft: {
     title: string;
@@ -61,6 +73,7 @@ function validateValues(
 ): ValidExpenseForm | TranslationKey {
   const title = draft.title.trim();
   if (!title) return "validation.expense.titleRequired";
+  // Count characters, not UTF-16 units, so an emoji counts once.
   if ([...title].length > 150) {
     return "validation.expense.titleTooLong";
   }
@@ -103,6 +116,7 @@ function validateValues(
   if (totalSplitCents !== amountCents) {
     return "validation.expense.splitsMustEqualAmount";
   }
+  // Personal expenses: the payer has a split, and the current user takes part.
   if (context.groupId === null && !splitUsers.has(paidByUserId)) {
     return "validation.expense.payerMustBeIncluded";
   }
@@ -123,6 +137,7 @@ function validateValues(
   };
 }
 
+/** Validates the form; returns the clean values or a dictionary key to show. */
 export function validateExpenseForm(
   draft: ExpenseFormDraft,
   context: ExpenseValidationContext,
@@ -130,6 +145,7 @@ export function validateExpenseForm(
   return validateValues(draft, context);
 }
 
+/** The same rules for a service payload; throws `Error(key)` when one fails. */
 export function validateExpensePayload(
   payload: {
     groupId: string | null;
@@ -159,10 +175,15 @@ export function validateExpensePayload(
   }
 }
 
+/** Whole cents as a form amount string, e.g. 1205 -> "12.05". */
 function formatCents(cents: number): string {
   return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, "0")}`;
 }
 
+/**
+ * Splits `amount` evenly over `userIds`. Leftover cents go one each to the
+ * first users, so the parts always add up to the amount.
+ */
 export function createEqualExpenseSplits(
   amount: string,
   userIds: string[],

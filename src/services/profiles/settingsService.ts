@@ -4,6 +4,7 @@ import { mapRowToUserSettingsDto } from "./profileMappers";
 import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+/** The signed-in user's settings row. */
 export async function getUserSettings(
   userId: string,
 ): Promise<UserSettingsDto> {
@@ -22,6 +23,7 @@ export async function getUserSettings(
   return mapRowToUserSettingsDto(data);
 }
 
+/** Updates only the settings present in `payload` and returns the saved row. */
 export async function updateUserSettings(
   userId: string,
   payload: UpdateUserSettingsDto,

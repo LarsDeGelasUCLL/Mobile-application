@@ -1,3 +1,5 @@
+// Unit tests for the database row -> DTO mappers.
+// Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { importModule } from "./support/loadModule.mjs";

@@ -7,6 +7,7 @@ import {
 import { createSettingsActions } from "./settingsStoreActions";
 import type { SettingsState } from "./settingsStoreTypes";
 
+/** The signed-in user's settings (theme, language, notifications). */
 export const useSettingsStore = create<SettingsState>()((...args) => ({
   settings: null,
   isLoading: false,

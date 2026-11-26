@@ -16,6 +16,7 @@ import { InviteCodeSheet } from "../../../../src/features/groups/components/Invi
 import { RecentExpensesSection } from "../../../../src/features/groups/components/RecentExpensesSection";
 import { useGroupDetailPage } from "../../../../src/features/groups/useGroupDetailPage";
 
+/** Group detail (`/group/:groupId`): balances, recent expenses and the invite code. */
 export default function GroupDetailScreen() {
   const { t } = useI18n();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();

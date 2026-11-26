@@ -4,11 +4,13 @@ import { makeStyles } from "../../theme/ThemeProvider";
 
 interface AvatarProps {
   uri?: string;
+  /** Used for the initials when there is no `uri`. */
   name?: string;
   size?: "sm" | "md" | "lg";
   testID?: string;
 }
 
+/** A round profile picture, or the name's initials ("?" without a name). */
 export function Avatar({ uri, name, size = "md", testID }: AvatarProps) {
   const styles = useStyles();
   const initials = name

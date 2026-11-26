@@ -21,22 +21,28 @@ import { SplitAmountRow } from "./SplitAmountRow";
 import { SplitBetween } from "./SplitBetween";
 
 interface ExpenseFormProps {
+  /** `null` for a personal expense. */
   groupId: string | null;
   currentUserId: string;
+  /** Who may pay or take a share. */
   participants: PublicUserProfileDto[];
   /** Read once on mount; give the form `key={expense.id}` to reset it. */
   initialExpense?: ExpenseDto;
   isLoading: boolean;
+  /** The store's save error, shown with a retry. */
   error: string | null;
+  /** Called with the validated values only. */
   onSubmit: (payload: ValidExpenseForm) => Promise<void>;
-  /** The page's sticky footer button calls `submit()` (design §4). */
+  /** The page's sticky footer button calls `submit()`. */
   ref?: Ref<ExpenseFormHandle>;
 }
 
+/** What the parent can call through `ref`. */
 export interface ExpenseFormHandle {
   submit: () => void;
 }
 
+/** The create / edit expense form: details, payer and how the amount is split. */
 export function ExpenseForm({
   groupId,
   currentUserId,
@@ -63,6 +69,7 @@ export function ExpenseForm({
     validationError,
   } = state;
 
+  // Validate; show the first error, or hand the clean values to `onSubmit`.
   const handleSubmit = () => {
     const result = validateExpenseForm(
       { title, amount, receiptUrl, paidByUserId, splits },

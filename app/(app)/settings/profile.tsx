@@ -14,6 +14,7 @@ import {
 } from "../../../src/features/profile/components/ProfileForm";
 import { useEditProfile } from "../../../src/features/profile/useEditProfile";
 
+/** Edit profile (`/settings/profile`): name, phone, IBAN, picture and bio. */
 export default function EditProfileScreen() {
   const { t } = useI18n();
   const formRef = useRef<ProfileFormHandle>(null);

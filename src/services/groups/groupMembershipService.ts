@@ -1,9 +1,15 @@
+// Invites, join requests and membership changes. Permissions are enforced by
+// RLS, the RPCs and the `protect_membership_mutations` trigger.
 import type { GroupDto, MembershipDto } from "../../types";
 import { mapRowToGroupDto, mapRowToMembershipDto } from "./groupMappers";
 import { getPublicUserProfile } from "../profiles/profileService";
 import { assertCurrentUser } from "../authGuard";
 import { supabase } from "../supabase";
 
+/**
+ * Admin invites an existing account by email (a PENDING membership). If that
+ * person already asked to join, the invite approves their request instead.
+ */
 export async function inviteUserByEmail(
   groupId: string,
   senderUserId: string,
@@ -24,6 +30,10 @@ export async function inviteUserByEmail(
   return mapRowToMembershipDto(created, targetProfile);
 }
 
+/**
+ * Asks to join the group with this invite code (a REQUESTED membership), or
+ * accepts an open invite to it. Codes are stored upper case.
+ */
 export async function joinGroupByInviteCode(
   userId: string,
   inviteCode: string,
@@ -42,7 +52,10 @@ export async function joinGroupByInviteCode(
   return mapRowToGroupDto(group);
 }
 
-// Reject (admin) and cancel (requester) a join request with removeMembership.
+/**
+ * Admin approves a join request (REQUESTED becomes ACTIVE). Rejecting (admin)
+ * or cancelling (requester) a request uses `removeMembership`.
+ */
 export async function approveJoinRequest(
   membershipId: string,
 ): Promise<MembershipDto> {
@@ -58,6 +71,7 @@ export async function approveJoinRequest(
   return mapRowToMembershipDto(approved, requesterProfile);
 }
 
+/** Accepts (becomes ACTIVE) or declines (row deleted) the user's own invite. */
 export async function respondToGroupInvite(
   membershipId: string,
   accept: boolean,
@@ -76,11 +90,13 @@ export async function respondToGroupInvite(
         .select("id")
         .single();
 
+  // `.select().single()` makes a call that matched no row (e.g. blocked by RLS) fail instead of silently doing nothing.
   if (response.error) {
     throw new Error(response.error.message);
   }
 }
 
+/** Deletes a membership: leave, remove a member, reject or cancel a join request. */
 export async function removeMembership(membershipId: string): Promise<void> {
   const { error } = await supabase
     .from("memberships")
@@ -94,6 +110,7 @@ export async function removeMembership(membershipId: string): Promise<void> {
   }
 }
 
+/** Admin promotes or demotes a member. */
 export async function updateMembershipRole(
   membershipId: string,
   groupRole: "ADMIN" | "MEMBER",

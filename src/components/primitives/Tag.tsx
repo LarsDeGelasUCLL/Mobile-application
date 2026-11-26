@@ -10,6 +10,7 @@ interface TagProps {
   testID?: string;
 }
 
+/** A pill label, with a remove button when `onRemove` is set. */
 export function Tag({ label, onRemove, testID }: TagProps) {
   const { t } = useI18n();
   const styles = useStyles();
@@ -21,6 +22,7 @@ export function Tag({ label, onRemove, testID }: TagProps) {
       {onRemove !== undefined && (
         <Pressable
           onPress={onRemove}
+          // The icon is small; widen the tap area.
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel={t("common.removeItem", { label })}

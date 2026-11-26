@@ -5,6 +5,7 @@ interface Language {
   code: string;
   /** The language select's aria label once this language is active. */
   selectLabel: string;
+  /** The "Settings saved." banner in this language. */
   saved: string;
 }
 

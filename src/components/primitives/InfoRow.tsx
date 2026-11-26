@@ -5,11 +5,14 @@ import { makeStyles } from "../../theme/ThemeProvider";
 interface InfoRowProps {
   label: string;
   value: string;
+  /** Extra line under the label; the label is then emphasised. */
   description?: string;
+  /** Shows the value in the primary colour. */
   highlightValue?: boolean;
   testID?: string;
 }
 
+/** A read-only label/value pair, value right-aligned. */
 export function InfoRow({
   label,
   value,
