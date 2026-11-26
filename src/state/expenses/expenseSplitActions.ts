@@ -71,8 +71,8 @@ export const createExpenseSplitActions: ExpenseActionCreator<
       } catch (error) {
         set({
           error: t("errors.partial.paymentStatusUpdated", {
-          reason: errorMessage(error, "errors.fallback.tryAgain"),
-        }),
+            reason: errorMessage(error, "errors.fallback.tryAgain"),
+          }),
           isLoading: false,
         });
       }

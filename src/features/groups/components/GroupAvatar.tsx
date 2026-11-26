@@ -1,5 +1,6 @@
 import { Image, StyleSheet, View } from "react-native";
 import { Text } from "../../../components/primitives";
+import { useI18n } from "../../../i18n";
 import { useTheme } from "../../../theme/ThemeProvider";
 
 interface GroupAvatarProps {
@@ -15,7 +16,9 @@ export function GroupAvatar({
   size = 56,
   testID,
 }: GroupAvatarProps) {
+  const { t } = useI18n();
   const { colors } = useTheme();
+  const label = t("groups.avatar.label", { name });
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -31,7 +34,7 @@ export function GroupAvatar({
   if (imageUri) {
     return (
       <Image
-        accessibilityLabel={`${name} group profile picture`}
+        accessibilityLabel={label}
         source={{ uri: imageUri }}
         resizeMode="cover"
         style={avatarStyle}
@@ -42,7 +45,7 @@ export function GroupAvatar({
 
   return (
     <View
-      accessibilityLabel={`${name} group profile picture`}
+      accessibilityLabel={label}
       style={[...avatarStyle, { backgroundColor: colors.primary }]}
       testID={testID}
     >

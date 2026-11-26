@@ -41,7 +41,7 @@ export function Select<T extends string>({
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel={`${label}, ${current?.label ?? "not set"}`}
+        accessibilityLabel={`${label}, ${current?.label ?? t("common.notSet")}`}
         accessibilityHint={t("common.opensOptions")}
         style={({ pressed }) => [styles.field, pressed && styles.pressed]}
         testID={testID}

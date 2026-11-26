@@ -39,8 +39,8 @@ export const createExpenseDeleteActions: ExpenseActionCreator<
       } catch (error) {
         set({
           error: t("errors.partial.expenseDeleted", {
-          reason: errorMessage(error, "errors.fallback.tryAgain"),
-        }),
+            reason: errorMessage(error, "errors.fallback.tryAgain"),
+          }),
           isLoading: false,
         });
       }

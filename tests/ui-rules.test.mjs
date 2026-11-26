@@ -146,8 +146,12 @@ const uiTextPatterns = [
   /^\s+\w+ = "[A-Z][^"]*"/gm,
   // A sentence in a fallback or ternary: `?? "Choose…"`, `? "Could not …" :`.
   /(?:\?\?|[?:]) "[A-Z][a-z][^"]*"/g,
+  // Lowercase words in a fallback or ternary: `?? "not set"`.
+  /(?:\?\?|\?) "[a-z]+ [a-z][^"]*"/g,
   // A sentence in a template literal: `Remove ${label}`.
   /`[A-Z][a-z]+ [^`]*`/g,
+  // Words after a leading placeholder: `${name} group picture`.
+  /`\$\{[^}`]*\}[^`]*?\s[A-Za-z]{2,}[^`]*`/g,
 ];
 
 async function uiTextFiles() {
