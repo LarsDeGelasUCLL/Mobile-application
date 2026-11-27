@@ -64,7 +64,7 @@ export function useLoginPage() {
 
   const fieldProps: AuthFieldProps = { fields, onChangeField: changeField };
 
-  // After signup when the account must be confirmed by email first.
+  // After signup, or a login with the right password, when the email is not confirmed yet.
   const requireConfirmation = (email: string) => {
     setConfirmationEmail(email);
     setMode("confirmation");

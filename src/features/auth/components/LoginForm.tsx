@@ -5,6 +5,7 @@ import {
   Stack,
   StyledButton,
 } from "../../../components/primitives";
+import { EmailConfirmationRequiredError } from "../../../services";
 import { errorMessage, useI18n, type TranslationKey } from "../../../i18n";
 import { useAuthStore } from "../../../state/useAuthStore";
 import { validateEmail, validatePassword } from "../authValidation";
@@ -15,6 +16,8 @@ import { AuthPasswordField } from "./AuthPasswordField";
 interface LoginFormProps extends AuthFieldProps {
   onLoggedIn: () => void;
   onForgotPassword: () => void;
+  /** Right password, but the email isn't confirmed yet. */
+  onConfirmationRequired: (email: string) => void;
   testID?: string;
 }
 
@@ -24,6 +27,7 @@ export function LoginForm({
   onChangeField,
   onLoggedIn,
   onForgotPassword,
+  onConfirmationRequired,
   testID,
 }: LoginFormProps) {
   const { t } = useI18n();
@@ -46,6 +50,10 @@ export function LoginForm({
       await login({ email, password });
       onLoggedIn();
     } catch (error) {
+      if (error instanceof EmailConfirmationRequiredError) {
+        onConfirmationRequired(error.email);
+        return;
+      }
       setFormError(errorMessage(error, "errors.fallback.login"));
     }
   };

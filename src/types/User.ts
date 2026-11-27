@@ -28,6 +28,8 @@ export interface RegisterRequestDto {
   password: string;
   displayName: string;
   phoneNumber?: string;
+  language?: string; // stored in auth metadata; email templates pick en/nl from it
+  redirectTo?: string; // where the confirmation link in the email leads
 }
 
 export interface PasswordResetRequestDto {
@@ -46,6 +48,7 @@ export interface ChangeEmailRequestDto {
 
 export interface ResendConfirmationRequestDto {
   email: string;
+  redirectTo?: string; // where the confirmation link in the email leads
 }
 
 // Request DTO: update profile

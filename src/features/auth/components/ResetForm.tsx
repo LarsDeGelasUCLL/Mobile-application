@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Platform } from "react-native";
 import {
   FeedbackBanner,
   Stack,
@@ -7,6 +6,7 @@ import {
 } from "../../../components/primitives";
 import { errorMessage, useI18n, type TranslationKey } from "../../../i18n";
 import { useAuthStore } from "../../../state/useAuthStore";
+import { authRedirectUrl } from "../authRedirect";
 import { validateEmail } from "../authValidation";
 import type { AuthFieldProps } from "../types";
 import { AuthEmailField } from "./AuthEmailField";
@@ -17,14 +17,6 @@ interface ResetFormProps extends AuthFieldProps {
   initialError?: string;
   onBackToLogin: () => void;
   testID?: string;
-}
-
-/** Where the reset email's link opens the app: web origin or the native scheme. */
-function setPasswordRedirectUrl() {
-  if (Platform.OS === "web" && typeof window !== "undefined") {
-    return `${window.location.origin}/login?mode=set-password`;
-  }
-  return "laruna://login?mode=set-password";
 }
 
 /** Sends the password reset email. */
@@ -55,7 +47,7 @@ export function ResetForm({
     try {
       await requestPasswordReset({
         email,
-        redirectTo: setPasswordRedirectUrl(),
+        redirectTo: authRedirectUrl("login?mode=set-password"),
       });
       setSuccessMessage(t("feedback.resetSent"));
     } catch (error) {

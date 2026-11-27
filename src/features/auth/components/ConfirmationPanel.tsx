@@ -7,6 +7,7 @@ import {
 } from "../../../components/primitives";
 import { useAuthStore } from "../../../state/useAuthStore";
 import { errorMessage, useI18n } from "../../../i18n";
+import { authRedirectUrl } from "../authRedirect";
 import { BackToLoginLink } from "./BackToLoginLink";
 
 interface ConfirmationPanelProps {
@@ -16,7 +17,7 @@ interface ConfirmationPanelProps {
   testID?: string;
 }
 
-/** After signing up: confirm the email first, or resend the confirmation. */
+/** After signup or an unconfirmed login: confirm the email first, or resend the confirmation. */
 export function ConfirmationPanel({
   email,
   onBackToLogin,
@@ -32,7 +33,7 @@ export function ConfirmationPanel({
     setFormError("");
     setSuccessMessage("");
     try {
-      await resendConfirmation({ email });
+      await resendConfirmation({ email, redirectTo: authRedirectUrl("login") });
       setSuccessMessage(t("feedback.confirmationResent"));
     } catch (error) {
       setFormError(

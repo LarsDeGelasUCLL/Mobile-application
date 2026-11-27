@@ -353,6 +353,9 @@ export const nl: Dictionary = {
   "errors.auth.registrationFailed": "Registreren mislukt.",
   "errors.auth.notLoggedInAsUser": "Je bent niet aangemeld als deze gebruiker.",
 
+  "errors.emailCooldown_one": "Wacht {count} seconde voordat je een nieuwe e-mail aanvraagt.",
+  "errors.emailCooldown_other": "Wacht {count} seconden voordat je een nieuwe e-mail aanvraagt.",
+
 
   // Messages thrown by `src/services`.
   "errors.service.signInToManageExpenses": "Je moet aangemeld zijn om uitgaven te beheren.",

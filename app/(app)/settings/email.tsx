@@ -10,6 +10,7 @@ import {
   StyledButton,
   Text,
 } from "../../../src/components/primitives";
+import { authRedirectUrl } from "../../../src/features/auth/authRedirect";
 import { validateEmail } from "../../../src/features/auth/authValidation";
 import { errorMessage, useI18n, type TranslationKey } from "../../../src/i18n";
 
@@ -32,7 +33,10 @@ export default function ChangeEmailScreen() {
     if (nextEmailError) return;
 
     try {
-      await changeEmail({ email: newEmail });
+      await changeEmail({
+        email: newEmail,
+        redirectTo: authRedirectUrl("login"),
+      });
       setEmailMessage(t("feedback.emailChangeSent"));
       setNewEmail("");
     } catch (emailError) {

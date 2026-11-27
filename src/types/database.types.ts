@@ -23,7 +23,7 @@ export interface Database {
       user_profiles: Table<
         {
           id: string;
-          email_address: string;
+          email_address: string | null;
           display_name: string;
           phone_number: string | null;
           iban: string | null;
@@ -33,7 +33,7 @@ export interface Database {
         },
         {
           id: string;
-          email_address: string;
+          email_address?: string | null;
           display_name: string;
           phone_number?: string | null;
           iban?: string | null;

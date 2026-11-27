@@ -8,6 +8,7 @@ import {
 import { EmailConfirmationRequiredError } from "../../../services";
 import { errorMessage, useI18n, type TranslationKey } from "../../../i18n";
 import { useAuthStore } from "../../../state/useAuthStore";
+import { authRedirectUrl } from "../authRedirect";
 import {
   validateDisplayName,
   validateEmail,
@@ -35,7 +36,7 @@ export function SignupForm({
   onBackToLogin,
   testID,
 }: SignupFormProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const register = useAuthStore((state) => state.register);
   const isLoading = useAuthStore((state) => state.isLoading);
   const [nameError, setNameError] = useState<TranslationKey>();
@@ -60,6 +61,8 @@ export function SignupForm({
         password,
         displayName,
         phoneNumber: phoneNumber.trim() || undefined,
+        language,
+        redirectTo: authRedirectUrl("login"),
       });
       onSignedUp();
     } catch (error) {

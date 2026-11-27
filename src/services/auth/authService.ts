@@ -13,21 +13,28 @@ import type {
   User,
 } from "../../types";
 
-/** Thrown by `register` when the account must be confirmed by email before it can sign in. */
+/**
+ * Thrown by `register` (account created, no session yet) and `login` (right
+ * password, unconfirmed email): the account's email must be confirmed first.
+ */
 export class EmailConfirmationRequiredError extends Error {
   constructor(readonly email: string) {
-    super("Registration succeeded. Check your email to confirm your account.");
+    super("Email confirmation required.");
     this.name = "EmailConfirmationRequiredError";
   }
 }
 
 /** Signs in with email and password and returns the user's profile. */
 export async function login(payload: LoginRequestDto): Promise<User> {
+  const email = payload.email.trim();
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: payload.email.trim(),
+    email,
     password: payload.password,
   });
 
+  if (error?.code === "email_not_confirmed") {
+    throw new EmailConfirmationRequiredError(email);
+  }
   if (error || !data.user || !data.session) {
     throw new Error(error?.message ?? "Login failed");
   }
@@ -50,7 +57,9 @@ export async function register(payload: RegisterRequestDto): Promise<User> {
         display_name: cleanName,
         name: cleanName,
         phone_number: payload.phoneNumber?.trim() ?? null,
+        language: payload.language ?? null,
       },
+      emailRedirectTo: payload.redirectTo,
     },
   });
 
@@ -142,6 +151,7 @@ export async function resendConfirmation(
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: payload.email.trim(),
+    options: { emailRedirectTo: payload.redirectTo },
   });
   if (error) {
     throw new Error(error.message);

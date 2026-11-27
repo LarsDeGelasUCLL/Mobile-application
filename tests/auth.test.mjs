@@ -2,7 +2,7 @@
 // Run with `npm test`.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { loadModule, serviceDeps } from "./support/loadModule.mjs";
+import { loadModule, plain, serviceDeps } from "./support/loadModule.mjs";
 
 const { parseAuthMode, authLinkErrorMessage, AUTH_TITLES } =
   await loadModule("src/features/auth/authMode.ts");
@@ -181,6 +181,80 @@ test("auth service exchanges an auth link code and throws the Supabase message",
     message: "Invalid code verifier",
   });
   assert.deepEqual(codes, ["valid-code", "expired-code"]);
+});
+
+/** authService with a fake `supabase.auth`; getUserProfile returns `{ id }`. */
+async function loadAuthService(auth) {
+  return loadModule("src/services/auth/authService.ts", {
+    "../profiles/profileService": { getUserProfile: async (id) => ({ id }) },
+    ...serviceDeps({ auth }),
+  });
+}
+
+test("login of an unconfirmed account throws EmailConfirmationRequiredError with the email", async () => {
+  let loginError = { message: "Email not confirmed", code: "email_not_confirmed" };
+  const { login, EmailConfirmationRequiredError } = await loadAuthService({
+    signInWithPassword: async () => ({ data: { user: null, session: null }, error: loginError }),
+  });
+
+  await assert.rejects(login({ email: " a@b.be ", password: "secret1" }), (error) => {
+    assert.ok(error instanceof EmailConfirmationRequiredError);
+    assert.equal(error.email, "a@b.be");
+    return true;
+  });
+  loginError = { message: "Invalid login credentials", code: "invalid_credentials" };
+  await assert.rejects(login({ email: "a@b.be", password: "x" }), {
+    message: "Invalid login credentials",
+  });
+});
+
+test("register and resend send the redirect URL; register stores the language", async () => {
+  const calls = [];
+  const { register, resendConfirmation, EmailConfirmationRequiredError } =
+    await loadAuthService({
+      signUp: async (payload) => {
+        calls.push(payload);
+        return { data: { user: { id: "u1" }, session: null }, error: null };
+      },
+      resend: async (payload) => {
+        calls.push(payload);
+        return { data: {}, error: null };
+      },
+    });
+
+  await assert.rejects(
+    register({
+      email: "a@b.be",
+      password: "secret1",
+      displayName: " Ann ",
+      language: "nl",
+      redirectTo: "https://x.test/login",
+    }),
+    EmailConfirmationRequiredError,
+  );
+  await resendConfirmation({ email: " a@b.be ", redirectTo: "https://x.test/login" });
+
+  assert.equal(calls[0].options.emailRedirectTo, "https://x.test/login");
+  assert.equal(calls[0].options.data.language, "nl");
+  assert.equal(calls[0].options.data.display_name, "Ann");
+  assert.deepEqual(plain(calls[1]), {
+    type: "signup",
+    email: "a@b.be",
+    options: { emailRedirectTo: "https://x.test/login" },
+  });
+});
+
+test("authRedirectUrl: web origin on web, the app scheme on native", async () => {
+  const load = (os, globals) =>
+    loadModule(
+      "src/features/auth/authRedirect.ts",
+      { "react-native": { Platform: { OS: os } } },
+      globals,
+    );
+  const web = await load("web", { window: { location: { origin: "https://laruna.test" } } });
+  assert.equal(web.authRedirectUrl("login?mode=set-password"), "https://laruna.test/login?mode=set-password");
+  const native = await load("ios");
+  assert.equal(native.authRedirectUrl("login"), "laruna://login");
 });
 
 test("auth store exchanges an auth link code through the service", async () => {

@@ -36,8 +36,8 @@ test("StyledButton's link variant is announced as a link", async () => {
 test("native auth redirects use the scheme app.json registers", async () => {
   const { expo } = JSON.parse(await read("app.json"));
   assert.ok(
-    (await read("src/features/auth/components/ResetForm.tsx")).includes(
-      `${expo.scheme}://login?mode=`,
+    (await read("src/features/auth/authRedirect.ts")).includes(
+      `\`${expo.scheme}://\${path}\``,
     ),
   );
 });

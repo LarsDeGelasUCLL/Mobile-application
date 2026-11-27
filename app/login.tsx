@@ -54,6 +54,7 @@ export default function LoginScreen() {
             {...fieldProps}
             onLoggedIn={page.goHome}
             onForgotPassword={() => switchMode("reset")}
+            onConfirmationRequired={page.requireConfirmation}
           />
         ) : null}
         {mode === "signup" ? (

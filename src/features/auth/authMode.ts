@@ -28,7 +28,7 @@ function hasAuthLinkError(params: AuthLinkParams): boolean {
 }
 
 /** A failed auth link opens reset; otherwise the `mode` param, or login.
- * Confirmation is only reached by signing up, never by link. */
+ * Confirmation is reached by signup or an unconfirmed login, never by link. */
 export function parseAuthMode(params: AuthLinkParams): AuthMode {
   if (hasAuthLinkError(params)) return "reset";
   switch (params.mode) {

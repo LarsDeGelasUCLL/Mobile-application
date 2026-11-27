@@ -101,6 +101,32 @@ test("translateError: key, known server message, then fallback", async () => {
   assert.equal(translateError({ message: "Invalid invite code" }, "common.retry", "en"), "Retry");
 });
 
+test("translateError: the email cooldown is matched by pattern and keeps the seconds", async () => {
+  const { translateError } = await loadI18n();
+  const cooldown = (s) => new Error(`For security purposes, you can only request this after ${s} seconds.`);
+  assert.equal(
+    translateError(cooldown(42), "common.retry", "en"),
+    "Wait 42 seconds before requesting another email.",
+  );
+  assert.equal(
+    translateError(cooldown(1), "common.retry", "en"),
+    "Wait 1 second before requesting another email.",
+  );
+  assert.equal(
+    translateError(cooldown(42), "common.retry", "nl"),
+    "Wacht 42 seconden voordat je een nieuwe e-mail aanvraagt.",
+  );
+  // Older GoTrue wording.
+  assert.equal(
+    translateError(
+      new Error("For security purposes, you can only request this once every 60 seconds"),
+      "common.retry",
+      "en",
+    ),
+    "Wait 60 seconds before requesting another email.",
+  );
+});
+
 test("every mapped server message points at a real key", async () => {
   const { serverMessageKeys, dictionaries } = await loadI18n();
   for (const key of Object.values(serverMessageKeys)) assert.ok(key in dictionaries.en, key);

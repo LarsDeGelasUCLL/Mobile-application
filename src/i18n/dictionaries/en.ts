@@ -353,6 +353,10 @@ export const en = {
   "errors.auth.registrationFailed": "Registration failed.",
   "errors.auth.notLoggedInAsUser": "Not logged in as this user.",
 
+  // Matched by pattern in errors.ts (the message contains the seconds), not verbatim.
+  "errors.emailCooldown_one": "Wait {count} second before requesting another email.",
+  "errors.emailCooldown_other": "Wait {count} seconds before requesting another email.",
+
 
   // Messages thrown by `src/services`, English text verbatim.
   "errors.service.signInToManageExpenses": "You must be signed in to manage expenses.",
