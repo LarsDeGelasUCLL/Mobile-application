@@ -26,7 +26,7 @@ https://mobile-application-brown.vercel.app/
 The teacher may use the following credentials to log in to the public app:
 
 - **Email:** `test@ucll.be`
-- **Password:** `Test123`
+- **Password:** `Test1234`
 
 ## What We Are Building
 
